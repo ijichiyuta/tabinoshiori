@@ -16,7 +16,7 @@ export function Schedule({ shiori }: { shiori: Shiori }) {
 
   return (
     <AppFrame shiori={shiori} tab="schedule">
-      <UpdateBanner updates={shiori.updates} />
+      <UpdateBanner shiori={shiori} />
       <div style={{ padding: '14px 18px 0' }}>
         <h1 className="page-title">行程</h1>
       </div>

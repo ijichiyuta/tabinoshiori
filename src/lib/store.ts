@@ -7,6 +7,7 @@ export interface StoredState {
   checked: string[]
   billing?: Billing
   settled?: boolean // 少人数版の精算済みフラグ
+  dismissedUpdates?: string[] // 閉じた更新告知のid
 }
 
 const key = (slug: string) => `shiori:${slug}`

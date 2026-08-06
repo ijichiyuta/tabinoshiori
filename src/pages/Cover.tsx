@@ -169,7 +169,7 @@ export function Cover({ shiori }: { shiori: Shiori }) {
 
   return (
     <AppFrame shiori={shiori} tab="cover">
-      <UpdateBanner updates={shiori.updates} />
+      <UpdateBanner shiori={shiori} />
       {showPhotoBand && (
         <div
           className="cover-photo"

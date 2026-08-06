@@ -1,12 +1,35 @@
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import QRCode from 'qrcode'
 import { TimelineDay } from '../components/TimelineDay'
 import { InfoGrid } from '../components/InfoGrid'
 import { computeSettlement, yen } from '../lib/settle'
 import { attendanceCounts, useShioriState } from '../lib/store'
 import { themeClass } from '../lib/theme'
 import { useNow } from '../lib/time'
-import type { ReactNode } from 'react'
 import type { Shiori } from '../lib/types'
+
+/** 有料プランのみ: 印刷しおりの表紙に載せるQR(要件04「QRコード」) */
+function PrintQr({ url }: { url: string }) {
+  const [qr, setQr] = useState('')
+  useEffect(() => {
+    QRCode.toDataURL(`https://${url}`, {
+      width: 240,
+      margin: 1,
+      color: { dark: '#1F1D1A', light: '#FFFFFF' },
+    })
+      .then(setQr)
+      .catch(() => setQr(''))
+  }, [url])
+  if (!qr) return null
+  return (
+    <img
+      src={qr}
+      alt="しおりを開くQRコード"
+      style={{ width: 96, height: 96, border: '1px solid var(--line)', padding: 6, background: 'white' }}
+    />
+  )
+}
 
 function Sheet({ watermark, children }: { watermark: boolean; children: ReactNode }) {
   return (
@@ -78,8 +101,19 @@ export function Print({ shiori }: { shiori: Shiori }) {
                 ]
           }
         />
-        <div style={{ marginTop: 28, fontSize: 13, color: 'var(--muted)' }} className="mono">
-          {shiori.shareUrl}
+        <div
+          style={{
+            marginTop: 28,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: 16,
+          }}
+        >
+          <div style={{ fontSize: 13, color: 'var(--muted)' }} className="mono">
+            {shiori.shareUrl}
+          </div>
+          {!watermark && <PrintQr url={shiori.shareUrl} />}
         </div>
       </Sheet>
 

@@ -4,7 +4,7 @@ import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
 import { yen } from '../lib/settle'
 import { effectiveAnswer, feeFor, rosterNote, useShioriState } from '../lib/store'
-import { nextEvent, useNow } from '../lib/time'
+import { nextEvent, shortDateLabel, useNow } from '../lib/time'
 import type { Shiori } from '../lib/types'
 
 function fmtStamp(iso: string): string {
@@ -238,7 +238,9 @@ export function RsvpDone({ shiori }: { shiori: Shiori }) {
             ],
             [
               '集合',
-              next ? `${next.day.label.split(' ')[1] ?? ''} ${next.ev.time}　${next.ev.desc ?? ''}` : '—',
+              next
+                ? `${shortDateLabel(new Date(`${next.day.date}T00:00:00`))} ${next.ev.time}　${next.ev.desc ?? ''}`
+                : '—',
             ],
           ]}
         />
