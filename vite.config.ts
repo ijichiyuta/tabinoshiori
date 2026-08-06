@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // スマホ実機やトンネル経由での確認用(ローカルデモ前提)
+  preview: { host: true, allowedHosts: true },
+  server: { host: true },
   plugins: [
     react(),
     VitePWA({
