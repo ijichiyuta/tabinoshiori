@@ -278,7 +278,3 @@ const kinosaki: Shiori = {
 }
 
 export const SHIORI_LIST: Shiori[] = [gasshuku, kinosaki]
-
-export function findShiori(slug: string | undefined): Shiori | undefined {
-  return SHIORI_LIST.find((s) => s.slug === slug)
-}

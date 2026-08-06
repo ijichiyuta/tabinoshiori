@@ -33,16 +33,34 @@ npm run preview    # ビルド結果の確認 (http://localhost:4173)
 - **連絡先** `/s/:slug/contacts`(グループ)/ **費用と予約** `/s/:slug/costs`(少人数: 割り勘・精算・予約控え)
 - **課金(幹事のみ)** `/publish/:slug` — 無料(6名まで・透かし入り)/1冊¥480買い切り/年間パス¥1,800 → 支払い → 公開・URL共有・領収書
 - **印刷PDF** `/s/:slug/print` — A4しおり。無料プランは透かし入り
+- **共有カード** `/s/:slug/card` — QRコード付きの配布カード(有料プランの機能)
 
-回答・チェック・支払い状態は localStorage に保存されます(サーバーなしのデモ実装)。
+### 幹事メニュー(作成・編集) `/manage`
+
+- しおりの新規作成(グループ/少人数)・一覧
+- `/manage/:slug` — 管理ハブ: 公開状態・編集セクション・共有・印刷
+- 基本情報(表紙・写真アップロード・参加費・選択肢)/行程(日・予定の追加・並べ替え・移動/注記/タグ/地図/電話)/名簿(幹事指定・区分)と出欠・集金状況(現金受領の記録)/持ち物/連絡先/更新告知/費用・予約控え(少人数)
+- デモしおりの編集は copy-on-write。「編集をリセット」で元に戻せます
+
+しおり文書・回答・チェック・支払い状態はすべて localStorage に保存されます(サーバーなしのデモ実装)。
 
 ## 検証スクリプト
 
 ```sh
 npm run preview -- --port 4173 &
-node scripts/flow-test.mjs        # 主要フローのE2Eチェック(要 playwright-core)
+node scripts/flow-test.mjs        # 25項目のE2Eチェック(要 playwright-core)
 node scripts/screenshot-demo.mjs  # 全画面のスクリーンショットを /tmp/shiori-shots へ
 ```
+
+## iOSシミュレーターで確認する
+
+```sh
+npm run preview -- --port 4173 &
+sh scripts/open-in-simulator.sh                          # トップページを開く
+sh scripts/open-in-simulator.sh http://localhost:4173/s/tob2026
+```
+
+シミュレーターが起動していなければ自動で iPhone を起動します(要 Xcode)。
 
 ## デザインシステム
 

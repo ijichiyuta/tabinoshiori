@@ -1,0 +1,192 @@
+import { SHIORI_LIST } from './data'
+import type { Shiori, ShioriKind } from './types'
+
+/**
+ * しおり文書のリポジトリ。
+ * 組み込みデモ(data.ts)はそのまま、編集・新規作成分は localStorage に保存する。
+ * 組み込みデモを編集すると copy-on-write で localStorage 側が優先される。
+ */
+const INDEX_KEY = 'shiori-docs'
+const docKey = (slug: string) => `shiori-doc:${slug}`
+
+export function uid(prefix = ''): string {
+  return prefix + Math.random().toString(36).slice(2, 8)
+}
+
+function readIndex(): string[] {
+  try {
+    const raw = localStorage.getItem(INDEX_KEY)
+    if (raw) {
+      const arr = JSON.parse(raw)
+      if (Array.isArray(arr)) return arr.filter((x) => typeof x === 'string')
+    }
+  } catch {
+    // 壊れていたら空扱い
+  }
+  return []
+}
+
+function writeIndex(slugs: string[]) {
+  localStorage.setItem(INDEX_KEY, JSON.stringify([...new Set(slugs)]))
+}
+
+export function loadDoc(slug: string): Shiori | null {
+  try {
+    const raw = localStorage.getItem(docKey(slug))
+    if (raw) return JSON.parse(raw) as Shiori
+  } catch {
+    // 壊れた文書は無視して組み込みへフォールバック
+  }
+  return null
+}
+
+export function saveDoc(doc: Shiori) {
+  localStorage.setItem(docKey(doc.slug), JSON.stringify(doc))
+  writeIndex([...readIndex(), doc.slug])
+}
+
+export function deleteDoc(slug: string) {
+  localStorage.removeItem(docKey(slug))
+  writeIndex(readIndex().filter((s) => s !== slug))
+}
+
+export function isBuiltin(slug: string): boolean {
+  return SHIORI_LIST.some((s) => s.slug === slug)
+}
+
+export function hasDoc(slug: string): boolean {
+  return loadDoc(slug) !== null
+}
+
+/** 参加者・幹事の全画面が使う解決関数。編集版があればそちらを返す。 */
+export function findShiori(slug: string | undefined): Shiori | undefined {
+  if (!slug) return undefined
+  return loadDoc(slug) ?? SHIORI_LIST.find((s) => s.slug === slug)
+}
+
+export interface ShioriListing {
+  shiori: Shiori
+  isCustom: boolean // 新規作成されたもの
+  isEdited: boolean // 組み込みデモを編集したもの
+}
+
+export function listAllShiori(): ShioriListing[] {
+  const docSlugs = readIndex()
+  const builtins: ShioriListing[] = SHIORI_LIST.map((b) => {
+    const doc = loadDoc(b.slug)
+    return { shiori: doc ?? b, isCustom: false, isEdited: doc !== null }
+  })
+  const customs: ShioriListing[] = docSlugs
+    .filter((s) => !isBuiltin(s))
+    .map((s) => loadDoc(s))
+    .filter((d): d is Shiori => d !== null)
+    .map((d) => ({ shiori: d, isCustom: true, isEdited: false }))
+  return [...builtins, ...customs]
+}
+
+const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
+
+export function dayLabelFromDate(date: string, index: number): string {
+  const d = new Date(`${date}T00:00:00`)
+  if (isNaN(d.getTime())) return `${index + 1}日目`
+  return `${index + 1}日目 ${d.getMonth() + 1}/${d.getDate()}`
+}
+
+export function dateLabelRange(dates: string[]): string {
+  if (dates.length === 0) return ''
+  const f = (s: string) => {
+    const d = new Date(`${s}T00:00:00`)
+    return `${d.getMonth() + 1}月${d.getDate()}日(${WEEKDAYS[d.getDay()]})`
+  }
+  const first = new Date(`${dates[0]}T00:00:00`)
+  const head = `${first.getFullYear()}年${f(dates[0])}`
+  if (dates.length === 1) return `${head}　日帰り`
+  const nights = dates.length - 1
+  return `${head} 〜 ${f(dates[dates.length - 1])}　${nights}泊${dates.length}日`
+}
+
+/** 新規しおりのテンプレート */
+export function createShiori(kind: ShioriKind): Shiori {
+  const slug = uid('s')
+  const now = new Date()
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+  const base: Shiori = {
+    slug,
+    kind,
+    coverLabel: kind === 'duo' ? 'た　び　の　記　録' : 'し　お　り',
+    cornerNote: kind === 'duo' ? '2名' : `No. ${ym}`,
+    eyebrow: kind === 'duo' ? 'ふたりの旅' : '団体名',
+    title: '新しい旅',
+    subtitle: '行き先',
+    dateLabel: dateLabelRange([date]),
+    organizerId: 'm1',
+    members:
+      kind === 'duo'
+        ? [
+            { id: 'm1', name: '同行者1' },
+            { id: 'm2', name: '同行者2' },
+          ]
+        : [{ id: 'm1', name: '幹事', role: '幹事' }],
+    seedRsvps: {},
+    attendanceOptions: kind === 'duo' ? [] : ['参加', '不参加'],
+    transportOptions: kind === 'duo' ? [] : ['自家用車', '電車', '現地集合'],
+    days: [
+      {
+        id: uid('d'),
+        date,
+        label: dayLabelFromDate(date, 0),
+        events: [
+          {
+            id: uid('e'),
+            time: '9:00',
+            title: '集合',
+            desc: '集合場所を入力',
+          },
+        ],
+      },
+    ],
+    checklist: [],
+    contacts: [],
+    updates: [],
+    shareUrl: `trip-shiori.jp/s/${slug}`,
+  }
+  if (kind === 'duo') {
+    base.expenses = []
+    base.reservations = []
+  } else {
+    base.fee = { rows: [{ category: '一般', amount: 0 }] }
+    base.destination = ''
+  }
+  return base
+}
+
+/** "0599-XX-XXXX" のような表示用番号から tel: リンクを作る(数字以外は0扱いでダミー化) */
+export function telFromDisplay(display: string): { display: string; href: string } | undefined {
+  const t = display.trim()
+  if (!t) return undefined
+  const digits = t.replace(/[^0-9]/g, (c) => (/[XxＸ×]/.test(c) ? '0' : ''))
+  return { display: t, href: `tel:${digits || '0'}` }
+}
+
+const MAP_PREFIX = 'https://www.google.com/maps/search/'
+
+export function mapUrlFromQuery(q: string): string | undefined {
+  const t = q.trim()
+  if (!t) return undefined
+  if (/^https?:\/\//.test(t)) return t
+  return MAP_PREFIX + encodeURIComponent(t)
+}
+
+export function mapQueryFromUrl(url: string | undefined): string {
+  if (!url) return ''
+  if (url.startsWith(MAP_PREFIX)) {
+    try {
+      return decodeURIComponent(url.slice(MAP_PREFIX.length))
+    } catch {
+      return url
+    }
+  }
+  return url
+}

@@ -17,6 +17,16 @@ export function Home() {
           お支払いは幹事だけ(1冊 ¥480 買い切り／年間パス ¥1,800)。
         </p>
 
+        <div className="home-card">
+          <h2>幹事メニュー</h2>
+          <div className="sub">しおりの新規作成・編集・出欠状況の確認・公開・QR共有カード</div>
+          <div className="home-links">
+            <Link className="primary" to="/manage">
+              しおりを作成・編集する
+            </Link>
+          </div>
+        </div>
+
         {SHIORI_LIST.map((s) => (
           <div key={s.slug} className="home-card">
             <h2>

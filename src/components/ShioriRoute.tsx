@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { findShiori } from '../lib/data'
+import { findShiori } from '../lib/docs'
 import type { Shiori } from '../lib/types'
 
 export function NotFound() {

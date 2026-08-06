@@ -373,6 +373,12 @@ export function PublishDone({ shiori }: { shiori: Shiori }) {
         <Link className="btn" to={`/s/${shiori.slug}`}>
           しおりを見る
         </Link>
+        {!isFree && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 18, fontSize: 13.5 }}>
+            <Link to={`/s/${shiori.slug}/card`}>共有カード(QR)</Link>
+            <Link to={`/s/${shiori.slug}/print`}>印刷PDF</Link>
+          </div>
+        )}
       </div>
     </AppFrame>
   )
