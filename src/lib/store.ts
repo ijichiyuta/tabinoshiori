@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import type { Billing, RsvpAnswer, Shiori } from './types'
+import type { Billing, RsvpAnswer, Shiori, Survey } from './types'
 
 export interface StoredState {
   memberId?: string
@@ -8,6 +8,8 @@ export interface StoredState {
   billing?: Billing
   settled?: boolean // 少人数版の精算済みフラグ
   dismissedUpdates?: string[] // 閉じた更新告知のid
+  checkin?: Record<string, boolean> // ツアー: 点呼(乗車確認)
+  surveys?: Record<string, Survey> // ツアー: アンケート回答
 }
 
 const key = (slug: string) => `shiori:${slug}`
@@ -32,6 +34,18 @@ function sanitize(raw: unknown, shiori: Shiori): StoredState {
     typeof billing.paidAt === 'string'
       ? (billing as unknown as Billing)
       : undefined
+  const checkin: Record<string, boolean> = {}
+  if (isRecord(raw.checkin)) {
+    for (const [k, v] of Object.entries(raw.checkin)) {
+      if (typeof v === 'boolean') checkin[k] = v
+    }
+  }
+  const surveys: Record<string, Survey> = {}
+  if (isRecord(raw.surveys)) {
+    for (const [k, v] of Object.entries(raw.surveys)) {
+      if (isRecord(v) && typeof v.rating === 'number') surveys[k] = v as unknown as Survey
+    }
+  }
   return {
     memberId: typeof raw.memberId === 'string' ? raw.memberId : undefined,
     answers,
@@ -43,6 +57,8 @@ function sanitize(raw: unknown, shiori: Shiori): StoredState {
     dismissedUpdates: Array.isArray(raw.dismissedUpdates)
       ? raw.dismissedUpdates.filter((x): x is string => typeof x === 'string')
       : undefined,
+    checkin,
+    surveys,
   }
 }
 
@@ -103,10 +119,21 @@ export function attendanceCounts(shiori: Shiori, state: StoredState) {
 
 export function rosterNote(shiori: Shiori, state: StoredState, memberId: string): string {
   const m = shiori.members.find((x) => x.id === memberId)
+  if (shiori.kind === 'tour') {
+    const bp = shiori.boardingPoints?.find((p) => p.id === m?.boardingPointId)
+    return bp ? `${bp.time} ${bp.name.split(' ')[0]}` : ''
+  }
   if (m?.role) return m.role
   const a = effectiveAnswer(shiori, state, memberId)
   if (!a) return '未回答'
   return a.attendance === '不参加' ? '不参加' : '回答済'
+}
+
+/** 本人の乗車地(未割当なら先頭の乗車地) */
+export function boardingPointFor(shiori: Shiori, memberId: string | undefined) {
+  const m = shiori.members.find((x) => x.id === memberId)
+  const points = shiori.boardingPoints ?? []
+  return points.find((p) => p.id === m?.boardingPointId) ?? points[0] ?? null
 }
 
 export function feeFor(shiori: Shiori, memberId: string): { category: string; amount: number } | null {

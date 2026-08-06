@@ -5,6 +5,7 @@ import { InfoGrid } from '../components/InfoGrid'
 import {
   createShiori,
   deleteDoc,
+  duplicateShiori,
   hasDoc,
   isBuiltin,
   listAllShiori,
@@ -55,7 +56,7 @@ export function ManageHome() {
       </div>
       <div style={{ marginTop: 20 }}>
         <div className="field-label">新しいしおりを作る</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 9 }}>
           <button className="add-btn" onClick={() => create('group')}>
             ＋ グループ
             <div style={{ fontSize: 12, marginTop: 2 }}>名簿・出欠・集金</div>
@@ -63,6 +64,10 @@ export function ManageHome() {
           <button className="add-btn" onClick={() => create('duo')}>
             ＋ 少人数
             <div style={{ fontSize: 12, marginTop: 2 }}>割り勘・予約控え</div>
+          </button>
+          <button className="add-btn" onClick={() => create('tour')}>
+            ＋ バスツアー
+            <div style={{ fontSize: 12, marginTop: 2 }}>乗車地・点呼・案内</div>
           </button>
         </div>
       </div>
@@ -137,8 +142,16 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
             {shiori.days.length}日・{shiori.days.reduce((n, d) => n + d.events.length, 0)}件
           </span>
         </Link>
+        {shiori.kind === 'tour' && (
+          <Link to={`${base}/boarding`}>
+            <span>乗車地</span>
+            <span className="hint">{(shiori.boardingPoints ?? []).length}か所</span>
+          </Link>
+        )}
         <Link to={`${base}/members`}>
-          <span>{shiori.kind === 'duo' ? '同行者' : '名簿・出欠状況'}</span>
+          <span>
+            {shiori.kind === 'duo' ? '同行者' : shiori.kind === 'tour' ? '名簿・座席(CSV取込)' : '名簿・出欠状況'}
+          </span>
           <span className="hint">{shiori.members.length}名</span>
         </Link>
         <Link to={`${base}/items`}>
@@ -155,11 +168,35 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
             <span className="hint">{(shiori.expenses ?? []).length}件</span>
           </Link>
         )}
+        {shiori.kind === 'tour' && (
+          <Link to={`${base}/notices`}>
+            <span>ご案内(旅行条件・FAQ)</span>
+            <span className="hint">{(shiori.notices ?? []).length}件</span>
+          </Link>
+        )}
         <Link to={`${base}/updates`}>
           <span>更新告知</span>
           <span className="hint">{shiori.updates.length}件</span>
         </Link>
       </div>
+
+      {shiori.kind === 'tour' && (
+        <>
+          <div className="field-label" style={{ marginTop: 18 }}>
+            当日の運行
+          </div>
+          <div className="manage-nav">
+            <Link to={`${base}/checkin`}>
+              <span>点呼・乗車確認(添乗員)</span>
+              <span className="arrow">›</span>
+            </Link>
+            <Link to={`${base}/survey`}>
+              <span>アンケート結果</span>
+              <span className="arrow">›</span>
+            </Link>
+          </div>
+        </>
+      )}
 
       <div className="field-label" style={{ marginTop: 18 }}>
         公開・共有
@@ -179,7 +216,16 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
         </Link>
       </div>
 
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 24, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          className="icon-btn"
+          onClick={() => {
+            const copy = duplicateShiori(shiori)
+            navigate(`/manage/${copy.slug}`)
+          }}
+        >
+          このしおりを複製(次回催行用)
+        </button>
         {(edited || !builtin) && (
           <button className="icon-btn danger" onClick={removeOrReset}>
             {builtin ? '編集をリセットしてデモに戻す' : 'このしおりを削除'}

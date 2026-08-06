@@ -231,6 +231,75 @@ await page.goto(base + '/s/kino2026/costs')
 check('オフラインで割り勘も開く', (await page.locator('text=¥68,400').count()) > 0)
 await page.context().setOffline(false)
 
+// 18) ツアー: 本人選択(検索付き)→表紙に乗車地・号車座席
+await page.goto(base + '/s/hama2026')
+await page.waitForURL('**/rsvp/who')
+check('大人数の名簿には検索が出る', (await page.locator('input[placeholder="お名前で検索"]').count()) === 1)
+await page.fill('input[placeholder="お名前で検索"]', '木村')
+check('検索で1名に絞り込める', (await page.locator('.roster button').count()) === 1)
+await page.click('.roster button:has-text("木村")')
+await page.waitForURL('**/s/hama2026')
+check('表紙に自分の乗車地(7:10)', (await page.locator('text=7:10').count()) > 0)
+check('表紙に号車・座席', (await page.locator('text=2号車 2B').count()) > 0)
+
+// 19) 行程に乗車地一覧+「あなた」チップ
+await page.goto(base + '/s/hama2026/schedule')
+check('乗車地一覧が出る', (await page.locator('text=金山駅 南口').count()) > 0)
+check('自分の乗車地にチップ', (await page.locator('text=/^あなた$/').count()) === 1)
+
+// 20) ご案内(旅行条件・FAQ)
+await page.goto(base + '/s/hama2026/notices')
+check('キャンセル規定が読める', (await page.locator('text=キャンセル規定').count()) > 0)
+check('当日連絡先が出る', (await page.locator('text=催行会社・当日連絡先').count()) > 0)
+
+// 21) 添乗員: 点呼(乗車確認)が保存される
+await page.goto(base + '/manage/hama2026/checkin')
+await page.locator('.hairline-block button').first().click()
+await page.locator('.hairline-block button').nth(1).click()
+await page.waitForTimeout(200)
+let summary = await page.locator('.card.accent').innerText()
+check('点呼カウントが 2/24 になる', summary.includes('2') && summary.includes('24'))
+await page.reload()
+await page.waitForSelector('.card.accent')
+summary = await page.locator('.card.accent').innerText()
+check('点呼がリロード後も残る', summary.includes('2') && summary.includes('24'))
+
+// 22) アンケート回答→集計に反映
+await page.goto(base + '/s/hama2026/survey')
+await page.click('.choice-grid button:has-text("大満足")')
+await page.fill('textarea', 'うなぎが最高でした')
+await page.click('button:has-text("送信する")')
+await page.waitForSelector('text=ご回答ありがとうございました')
+check('アンケート送信完了', true)
+await page.goto(base + '/manage/hama2026/survey')
+check('集計に平均が出る', (await page.locator('text=5.0').count()) > 0)
+check('コメントが出る', (await page.locator('text=うなぎが最高でした').count()) > 0)
+
+// 23) CSVで名簿を一括取り込み
+await page.goto(base + '/manage/hama2026/members')
+await page.fill(
+  'textarea',
+  '試験太郎, 金山, 2, 9A, 090-9999-0001\n試験花子, 名古屋駅, 1, 9B',
+)
+await page.click('button:has-text("取り込む")')
+check('CSV取込メッセージ', (await page.locator('text=2名を追加しました').count()) > 0)
+await page.click('.save-bar button')
+await page.waitForSelector('.saved-note')
+await page.goto(base + '/manage/hama2026')
+check('名簿が26名に増える', (await page.locator('text=26名').count()) > 0)
+
+// 24) しおりの複製(定期催行)→削除→ツアー編集リセット
+await page.click('button:has-text("このしおりを複製")')
+await page.waitForURL(/\/manage\/s[a-z0-9]+$/)
+check('複製が作られる', (await page.locator('text=(コピー)').count()) > 0)
+await page.click('button:has-text("このしおりを削除")')
+await page.waitForURL('**/manage')
+await page.goto(base + '/manage/hama2026')
+await page.click('button:has-text("編集をリセットしてデモに戻す")')
+await page.waitForURL('**/manage')
+await page.goto(base + '/manage/hama2026')
+check('リセットで24名に戻る', (await page.locator('text=24名').count()) > 0)
+
 await browser.close()
 console.log(failed === 0 ? '\nALL PASS' : `\n${failed} FAILED`)
 process.exit(failed === 0 ? 0 : 1)

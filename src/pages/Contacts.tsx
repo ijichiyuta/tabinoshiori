@@ -8,6 +8,26 @@ export function Contacts({ shiori }: { shiori: Shiori }) {
         <h1 className="page-title">連絡先</h1>
       </div>
       <div style={{ padding: '14px 20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {shiori.operator && (
+          <div className="card accent">
+            <div style={{ fontSize: 13, color: 'var(--muted)' }}>催行会社・当日連絡先</div>
+            <div className="serif" style={{ fontSize: 19, fontWeight: 600, marginTop: 2 }}>
+              {shiori.operator.name}
+            </div>
+            {shiori.operator.tel && (
+              <div style={{ marginTop: 6 }}>
+                <a href={shiori.operator.tel.href} className="tnum" style={{ fontSize: 17 }}>
+                  {shiori.operator.tel.display}
+                </a>
+              </div>
+            )}
+            {shiori.operator.note && (
+              <div style={{ fontSize: 13.5, color: 'var(--sub)', marginTop: 6, lineHeight: 1.6 }}>
+                {shiori.operator.note}
+              </div>
+            )}
+          </div>
+        )}
         {shiori.contacts.map((c) => (
           <div key={c.id} className="card">
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>{c.label}</div>

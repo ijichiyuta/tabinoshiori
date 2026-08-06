@@ -54,6 +54,14 @@ export function shortDateLabel(d: Date): string {
   return `${d.getMonth() + 1}/${d.getDate()} (${WEEKDAYS[d.getDay()]})`
 }
 
+/** 旅程がすべて終わったか(最終日の翌日以降) */
+export function tripEnded(shiori: Shiori, now: Date): boolean {
+  const last = shiori.days[shiori.days.length - 1]
+  if (!last) return false
+  const end = new Date(`${last.date}T23:59:59`)
+  return !isNaN(end.getTime()) && now > end
+}
+
 /** 次に来る予定(集合)を探す。すべて過去なら最初の予定を返す。 */
 export function nextEvent(
   shiori: Shiori,

@@ -17,33 +17,62 @@ function fmtStamp(iso: string): string {
 export function RsvpWho({ shiori }: { shiori: Shiori }) {
   const [state, update] = useShioriState(shiori)
   const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+  const isTour = shiori.kind === 'tour'
   const organizer = shiori.contacts.find((c) => c.label === '幹事')
 
   const choose = (memberId: string) => {
     update({ memberId })
+    if (isTour) {
+      navigate(`/s/${shiori.slug}`)
+      return
+    }
     const answered = effectiveAnswer(shiori, state, memberId)
     navigate(answered ? `/s/${shiori.slug}` : `/s/${shiori.slug}/rsvp`)
   }
+
+  const members = query.trim()
+    ? shiori.members.filter((m) => m.name.includes(query.trim()))
+    : shiori.members
+
+  const contactNote = isTour
+    ? shiori.operator?.tel
+      ? `お名前が見つからない場合は${shiori.operator.name}(${shiori.operator.tel.display})までご連絡ください。`
+      : 'お名前が見つからない場合は催行会社までご連絡ください。'
+    : `名前がない場合は幹事${organizer?.tel ? `(${organizer.name} ${organizer.tel.display})` : ''}までご連絡ください。`
 
   return (
     <AppFrame shiori={shiori}>
       <div style={{ padding: '18px 20px 0' }}>
         <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
-          あなたは どなたですか？
+          {isTour ? 'ご予約のお名前をお選びください' : 'あなたは どなたですか？'}
         </h1>
         <p style={{ margin: '7px 0 0', fontSize: 14.5, lineHeight: 1.65, color: 'var(--sub)' }}>
-          名簿からお名前を選んでください。登録やログインは不要です。名前がない場合は幹事
-          {organizer?.tel ? `(${organizer.name} ${organizer.tel.display})` : ''}
-          までご連絡ください。
+          名簿からお名前を選んでください。登録やログインは不要です。{contactNote}
         </p>
       </div>
+      {shiori.members.length > 12 && (
+        <div style={{ margin: '14px 20px 0' }}>
+          <input
+            className="text-input"
+            placeholder="お名前で検索"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+      )}
       <div style={{ margin: '14px 20px 24px' }} className="roster">
-        {shiori.members.map((m) => (
+        {members.map((m) => (
           <button key={m.id} onClick={() => choose(m.id)}>
             <span>{m.name}</span>
-            <span className="note">{rosterNote(shiori, state, m.id)}</span>
+            <span className="note tnum">{rosterNote(shiori, state, m.id)}</span>
           </button>
         ))}
+        {members.length === 0 && (
+          <p style={{ padding: '14px 2px', margin: 0, fontSize: 14, color: 'var(--muted)' }}>
+            「{query}」は見つかりませんでした。
+          </p>
+        )}
       </div>
     </AppFrame>
   )
@@ -62,6 +91,7 @@ export function RsvpForm({ shiori }: { shiori: Shiori }) {
   const [transport, setTransport] = useState(existing?.transport)
   const [paid, setPaid] = useState(existing?.paid ?? false)
 
+  if (shiori.kind === 'tour') return <Navigate to={`/s/${shiori.slug}`} replace />
   if (!me) return <Navigate to={`/s/${shiori.slug}/rsvp/who`} replace />
   const fee = feeFor(shiori, me.id)
 
@@ -186,6 +216,7 @@ export function RsvpDone({ shiori }: { shiori: Shiori }) {
   const me = shiori.members.find((m) => m.id === state.memberId)
   const answer = me ? effectiveAnswer(shiori, state, me.id) : null
 
+  if (shiori.kind === 'tour') return <Navigate to={`/s/${shiori.slug}`} replace />
   if (!me) return <Navigate to={`/s/${shiori.slug}/rsvp/who`} replace />
   if (!answer) return <Navigate to={`/s/${shiori.slug}/rsvp`} replace />
 

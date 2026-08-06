@@ -81,10 +81,45 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
           日程から自動生成
         </button>
       </Field>
-      {draft.kind === 'group' && (
+      {draft.kind !== 'duo' && (
         <Field label="行き先">
           <TextInput value={draft.destination ?? ''} onChange={(v) => patch({ destination: v })} />
         </Field>
+      )}
+
+      {draft.kind === 'tour' && (
+        <>
+          <div className="field-label" style={{ marginTop: 8 }}>
+            催行会社(参加者への表示・当日連絡先)
+          </div>
+          <div className="form-grid2">
+            <Field label="会社名">
+              <TextInput
+                value={draft.operator?.name ?? ''}
+                onChange={(v) => patch({ operator: { ...(draft.operator ?? { name: '' }), name: v } })}
+              />
+            </Field>
+            <Field label="当日連絡先の電話">
+              <TextInput
+                value={draft.operator?.tel?.display ?? ''}
+                onChange={(v) =>
+                  patch({
+                    operator: { ...(draft.operator ?? { name: '' }), tel: telFromDisplay(v) },
+                  })
+                }
+                placeholder="052-XXX-XXXX"
+              />
+            </Field>
+          </div>
+          <Field label="連絡先の補足(任意)" hint="例: 当日連絡先(6:30〜)。お名前と乗車地をお伝えください">
+            <TextInput
+              value={draft.operator?.note ?? ''}
+              onChange={(v) =>
+                patch({ operator: { ...(draft.operator ?? { name: '' }), note: v || undefined } })
+              }
+            />
+          </Field>
+        </>
       )}
       <div className="form-grid2">
         <Field label="宿の名前">

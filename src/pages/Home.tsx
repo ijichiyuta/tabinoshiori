@@ -34,7 +34,11 @@ export function Home() {
             </h2>
             <div className="sub mono">
               {s.shareUrl}
-              {s.kind === 'group' ? `　${s.members.length}名(名簿・出欠あり)` : '　2名(割り勘・予約控え)'}
+              {s.kind === 'group'
+                ? `　${s.members.length}名(名簿・出欠あり)`
+                : s.kind === 'tour'
+                  ? `　${s.members.length}名(バスツアー・乗車地/点呼/案内)`
+                  : '　2名(割り勘・予約控え)'}
             </div>
             <div className="home-links">
               <Link className="primary" to={`/s/${s.slug}`}>
@@ -46,6 +50,12 @@ export function Home() {
                 <>
                   <Link to={`/s/${s.slug}/rsvp/who`}>出欠の回答</Link>
                   <Link to={`/s/${s.slug}?photo=1`}>表紙(写真あり案)</Link>
+                </>
+              )}
+              {s.kind === 'tour' && (
+                <>
+                  <Link to={`/manage/${s.slug}/checkin`}>添乗員: 点呼</Link>
+                  <Link to={`/s/${s.slug}/notices`}>ご案内(キャンセル規定)</Link>
                 </>
               )}
             </div>

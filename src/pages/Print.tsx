@@ -94,13 +94,50 @@ export function Print({ shiori }: { shiori: Shiori }) {
                     `${counts.total}名(参加${counts.attend}／不参加${counts.absent}／未回答${counts.pending})`,
                   ],
                 ]
-              : [
-                  ['日程', shiori.dateLabel],
-                  ['宿', shiori.lodging?.name ?? ''],
-                  ['同行', shiori.members.map((m) => m.name).join(' ・ ')],
-                ]
+              : shiori.kind === 'tour'
+                ? [
+                    ['日程', shiori.dateLabel],
+                    ['行き先', shiori.destination ?? ''],
+                    ['参加', `${shiori.members.length}名`],
+                    ['催行', shiori.operator?.name ?? ''],
+                  ]
+                : [
+                    ['日程', shiori.dateLabel],
+                    ['宿', shiori.lodging?.name ?? ''],
+                    ['同行', shiori.members.map((m) => m.name).join(' ・ ')],
+                  ]
           }
         />
+        {shiori.kind === 'tour' && (shiori.boardingPoints ?? []).length > 0 && (
+          <div style={{ marginTop: 24 }}>
+            <div className="field-label">乗車地</div>
+            <div className="hairline-block">
+              {(shiori.boardingPoints ?? []).map((bp) => (
+                <div
+                  key={bp.id}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '56px 1fr',
+                    columnGap: 12,
+                    padding: '9px 2px',
+                    borderBottom: '1px solid var(--line-lt)',
+                    fontSize: 14.5,
+                  }}
+                >
+                  <span className="tnum" style={{ fontWeight: 700 }}>
+                    {bp.time}
+                  </span>
+                  <span>
+                    {bp.name}
+                    {bp.desc && (
+                      <span style={{ color: 'var(--muted)', fontSize: 13 }}>　{bp.desc}</span>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div
           style={{
             marginTop: 28,
@@ -163,9 +200,45 @@ export function Print({ shiori }: { shiori: Shiori }) {
         </div>
       </Sheet>
 
+      {/* ご案内(ツアー: 旅行条件・FAQ) */}
+      {(shiori.notices ?? []).length > 0 && (
+        <Sheet watermark={watermark}>
+          <h3 className="serif" style={{ fontSize: 22, fontWeight: 600, margin: '0 0 18px' }}>
+            ご案内
+          </h3>
+          {(shiori.notices ?? []).map((n) => (
+            <div key={n.id} style={{ marginBottom: 18 }}>
+              <div
+                className="serif"
+                style={{
+                  fontSize: 15.5,
+                  fontWeight: 600,
+                  borderBottom: '1px solid var(--line)',
+                  paddingBottom: 4,
+                }}
+              >
+                {n.title}
+              </div>
+              <div
+                className="tnum"
+                style={{
+                  fontSize: 13.5,
+                  color: 'var(--sub)',
+                  lineHeight: 1.8,
+                  whiteSpace: 'pre-line',
+                  marginTop: 6,
+                }}
+              >
+                {n.body}
+              </div>
+            </div>
+          ))}
+        </Sheet>
+      )}
+
       {/* 連絡先 / 費用と予約 */}
       <Sheet watermark={watermark}>
-        {shiori.kind === 'group' ? (
+        {shiori.kind !== 'duo' ? (
           <>
             <h3 className="serif" style={{ fontSize: 22, fontWeight: 600, margin: '0 0 18px' }}>
               連絡先

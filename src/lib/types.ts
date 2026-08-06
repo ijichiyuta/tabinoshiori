@@ -1,10 +1,34 @@
-export type ShioriKind = 'group' | 'duo'
+export type ShioriKind = 'group' | 'duo' | 'tour'
 
 export interface Member {
   id: string
   name: string
   role?: string // 幹事 など
   category?: string // 一般 / 学生
+  boardingPointId?: string // ツアー: 乗車地
+  bus?: string // ツアー: 号車(例 "1")
+  seat?: string // ツアー: 座席(例 "12A")
+  tel?: { display: string; href: string } // ツアー: 点呼時の連絡用
+}
+
+export interface BoardingPoint {
+  id: string
+  name: string // 名古屋駅 太閤通口 観光バスのりば
+  time: string // "7:10"
+  desc?: string
+  mapUrl?: string
+}
+
+export interface Notice {
+  id: string
+  title: string // キャンセル規定 など
+  body: string // 本文(改行可)
+}
+
+export interface Survey {
+  rating: number // 1-5
+  comment?: string
+  at: string // ISO
 }
 
 export interface RsvpAnswer {
@@ -97,6 +121,10 @@ export interface Shiori {
   reservations?: string[]
   coverBadge?: string // 宿代 前払済 ✓
   shareUrl: string // trip-shiori.jp/s/tob2026
+  // ツアー(事業者)向け
+  boardingPoints?: BoardingPoint[]
+  operator?: { name: string; tel?: { display: string; href: string }; note?: string }
+  notices?: Notice[]
 }
 
 export interface Billing {

@@ -13,6 +13,9 @@ import { ManageEditBasic } from './pages/ManageEdit'
 import { ManageContacts, ManageCosts, ManageItems, ManageUpdates } from './pages/ManageLists'
 import { ManageMembers } from './pages/ManageMembers'
 import { ManageSchedule } from './pages/ManageSchedule'
+import { ManageBoarding, ManageCheckin, ManageNotices, ManageSurveyResults } from './pages/ManageTour'
+import { Notices } from './pages/Notices'
+import { SurveyPage } from './pages/Survey'
 import { Print } from './pages/Print'
 import { PublishDone, PublishPay, PublishPlan, Receipt } from './pages/Publish'
 import { RsvpDone, RsvpForm, RsvpWho } from './pages/Rsvp'
@@ -44,6 +47,12 @@ const ManageItemsR = withShiori(ManageItems)
 const ManageContactsR = withShiori(ManageContacts)
 const ManageUpdatesR = withShiori(ManageUpdates)
 const ManageCostsR = withShiori(ManageCosts)
+const NoticesR = withShiori(Notices)
+const SurveyR = withShiori(SurveyPage)
+const ManageBoardingR = withShiori(ManageBoarding)
+const ManageNoticesR = withShiori(ManageNotices)
+const ManageCheckinR = withShiori(ManageCheckin)
+const ManageSurveyR = withShiori(ManageSurveyResults)
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -62,6 +71,8 @@ const SECTION_TITLES: Record<string, string> = {
   print: '印刷',
   card: '共有カード',
   updates: 'お知らせ',
+  notices: 'ご案内',
+  survey: 'アンケート',
 }
 
 /** ルートに応じて document.title を設定する */
@@ -109,6 +120,8 @@ export default function App() {
         <Route path="/s/:slug/print" element={<PrintR />} />
         <Route path="/s/:slug/card" element={<ShareCardR />} />
         <Route path="/s/:slug/updates" element={<UpdatesR />} />
+        <Route path="/s/:slug/notices" element={<NoticesR />} />
+        <Route path="/s/:slug/survey" element={<SurveyR />} />
         <Route path="/publish/:slug" element={<PublishPlanR />} />
         <Route path="/publish/:slug/pay" element={<PublishPayR />} />
         <Route path="/publish/:slug/done" element={<PublishDoneR />} />
@@ -122,6 +135,10 @@ export default function App() {
         <Route path="/manage/:slug/contacts" element={<ManageContactsR />} />
         <Route path="/manage/:slug/updates" element={<ManageUpdatesR />} />
         <Route path="/manage/:slug/costs" element={<ManageCostsR />} />
+        <Route path="/manage/:slug/boarding" element={<ManageBoardingR />} />
+        <Route path="/manage/:slug/notices" element={<ManageNoticesR />} />
+        <Route path="/manage/:slug/checkin" element={<ManageCheckinR />} />
+        <Route path="/manage/:slug/survey" element={<ManageSurveyR />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </ErrorBoundary>

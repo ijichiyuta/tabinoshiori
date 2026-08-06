@@ -37,7 +37,7 @@ function isShioriDoc(x: unknown): x is Shiori {
   return (
     typeof s.slug === 'string' &&
     typeof s.title === 'string' &&
-    (s.kind === 'group' || s.kind === 'duo') &&
+    (s.kind === 'group' || s.kind === 'duo' || s.kind === 'tour') &&
     Array.isArray(s.members) &&
     s.members.every((m) => typeof m === 'object' && m !== null) &&
     Array.isArray(s.days) &&
@@ -131,6 +131,16 @@ export function dateLabelRange(dates: string[]): string {
   return `${head} 〜 ${f(lastStr)}　${nights}泊${valid.length}日`
 }
 
+/** 既存しおりの複製(定期催行・翌年の旅行向け)。複製後の文書を保存して返す。 */
+export function duplicateShiori(src: Shiori): Shiori {
+  const copy = structuredClone(src)
+  copy.slug = uid('s')
+  copy.shareUrl = `trip-shiori.jp/s/${copy.slug}`
+  copy.title = `${src.title}(コピー)`
+  saveDoc(copy)
+  return copy
+}
+
 /** 新規しおりのテンプレート */
 export function createShiori(kind: ShioriKind): Shiori {
   const slug = uid('s')
@@ -143,9 +153,9 @@ export function createShiori(kind: ShioriKind): Shiori {
     kind,
     coverLabel: kind === 'duo' ? 'た　び　の　記　録' : 'し　お　り',
     cornerNote: kind === 'duo' ? '2名' : `No. ${ym}`,
-    eyebrow: kind === 'duo' ? 'ふたりの旅' : '団体名',
-    title: '新しい旅',
-    subtitle: '行き先',
+    eyebrow: kind === 'duo' ? 'ふたりの旅' : kind === 'tour' ? '催行会社名' : '団体名',
+    title: kind === 'tour' ? '新しいツアー' : '新しい旅',
+    subtitle: kind === 'tour' ? '日帰りバスツアー' : '行き先',
     dateLabel: dateLabelRange([date]),
     organizerId: 'm1',
     members:
@@ -154,10 +164,12 @@ export function createShiori(kind: ShioriKind): Shiori {
             { id: 'm1', name: '同行者1' },
             { id: 'm2', name: '同行者2' },
           ]
-        : [{ id: 'm1', name: '幹事', role: '幹事' }],
+        : kind === 'tour'
+          ? [{ id: 'm1', name: 'お客様1', boardingPointId: 'bp1' }]
+          : [{ id: 'm1', name: '幹事', role: '幹事' }],
     seedRsvps: {},
-    attendanceOptions: kind === 'duo' ? [] : ['参加', '不参加'],
-    transportOptions: kind === 'duo' ? [] : ['自家用車', '電車', '現地集合'],
+    attendanceOptions: kind === 'group' ? ['参加', '不参加'] : [],
+    transportOptions: kind === 'group' ? ['自家用車', '電車', '現地集合'] : [],
     days: [
       {
         id: uid('d'),
@@ -181,6 +193,11 @@ export function createShiori(kind: ShioriKind): Shiori {
   if (kind === 'duo') {
     base.expenses = []
     base.reservations = []
+  } else if (kind === 'tour') {
+    base.destination = ''
+    base.boardingPoints = [{ id: 'bp1', name: '乗車地1', time: '8:00' }]
+    base.operator = { name: '催行会社名' }
+    base.notices = []
   } else {
     base.fee = { rows: [{ category: '一般', amount: 0 }] }
     base.destination = ''
