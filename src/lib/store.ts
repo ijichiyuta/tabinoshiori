@@ -12,13 +12,44 @@ export interface StoredState {
 
 const key = (slug: string) => `shiori:${slug}`
 
+const isRecord = (x: unknown): x is Record<string, unknown> =>
+  typeof x === 'object' && x !== null && !Array.isArray(x)
+
+/** localStorageの値は型が壊れている可能性があるので、読み込み時に必ず矯正する */
+function sanitize(raw: unknown, shiori: Shiori): StoredState {
+  const fresh: StoredState = { answers: {}, checked: [...(shiori.checklistSeedChecked ?? [])] }
+  if (!isRecord(raw)) return fresh
+  const answers: Record<string, RsvpAnswer> = {}
+  if (isRecord(raw.answers)) {
+    for (const [k, v] of Object.entries(raw.answers)) {
+      if (isRecord(v) && typeof v.attendance === 'string') answers[k] = v as unknown as RsvpAnswer
+    }
+  }
+  const billing = raw.billing
+  const validBilling =
+    isRecord(billing) &&
+    (billing.plan === 'free' || billing.plan === 'one' || billing.plan === 'year') &&
+    typeof billing.paidAt === 'string'
+      ? (billing as unknown as Billing)
+      : undefined
+  return {
+    memberId: typeof raw.memberId === 'string' ? raw.memberId : undefined,
+    answers,
+    checked: Array.isArray(raw.checked)
+      ? raw.checked.filter((x): x is string => typeof x === 'string')
+      : fresh.checked,
+    billing: validBilling,
+    settled: raw.settled === true,
+    dismissedUpdates: Array.isArray(raw.dismissedUpdates)
+      ? raw.dismissedUpdates.filter((x): x is string => typeof x === 'string')
+      : undefined,
+  }
+}
+
 function load(shiori: Shiori): StoredState {
   try {
     const raw = localStorage.getItem(key(shiori.slug))
-    if (raw) {
-      const parsed = JSON.parse(raw) as StoredState
-      return { ...parsed, answers: parsed.answers ?? {}, checked: parsed.checked ?? [] }
-    }
+    if (raw) return sanitize(JSON.parse(raw), shiori)
   } catch {
     // 壊れたデータは初期状態に戻す
   }
@@ -79,9 +110,9 @@ export function rosterNote(shiori: Shiori, state: StoredState, memberId: string)
 }
 
 export function feeFor(shiori: Shiori, memberId: string): { category: string; amount: number } | null {
-  if (!shiori.fee || shiori.fee.rows.length === 0) return null
+  if (!shiori.fee) return null
   const m = shiori.members.find((x) => x.id === memberId)
   const row =
     shiori.fee.rows.find((r) => r.category === (m?.category ?? '一般')) ?? shiori.fee.rows[0]
-  return row
+  return row ?? null
 }

@@ -43,6 +43,7 @@ export function PublishPlan({ shiori }: { shiori: Shiori }) {
 
   if (state.billing) return <Navigate to={`/publish/${shiori.slug}/done`} replace />
 
+  const firstFee = shiori.fee?.rows[0]
   const amount = plan === 'free' ? 0 : PAID_PLANS[plan].price
 
   const proceed = () => {
@@ -139,8 +140,8 @@ export function PublishPlan({ shiori }: { shiori: Shiori }) {
         </button>
 
         <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>
-          {shiori.fee
-            ? `参加費の集金(${yen(shiori.fee.rows[0].amount)} など)とは別のお支払いです。参加者に請求は行きません。`
+          {firstFee
+            ? `参加費の集金(${yen(firstFee.amount)} など)とは別のお支払いです。参加者に請求は行きません。`
             : '旅の費用の精算とは別のお支払いです。同行者に請求は行きません。'}
         </div>
       </div>

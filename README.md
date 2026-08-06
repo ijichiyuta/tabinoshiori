@@ -64,9 +64,17 @@ Service Worker で本体・アセット・Googleフォントをキャッシュ�
 
 ```sh
 npm run preview -- --port 4173 &
-node scripts/flow-test.mjs        # 25項目のE2Eチェック(要 playwright-core)
+node scripts/flow-test.mjs        # 38項目のE2Eチェック(要 playwright-core)
+node scripts/error-crawl.mjs      # 全46ルート×6状態(壊れたstorage等)でJSエラーゼロを検証
 node scripts/screenshot-demo.mjs  # 全画面のスクリーンショットを /tmp/shiori-shots へ
 ```
+
+堅牢化の方針:
+
+- TypeScriptは `strict` + `noUncheckedIndexedAccess`(未ガードの添字アクセスをコンパイルエラーに)
+- localStorageの読み込みはすべてサニタイズ(壊れたJSON・型違いの値・改ざんされた文書は初期値/組み込みデモへフォールバック)
+- 空データ耐性(行程0日・持ち物0件・参加費区分0件・名簿から消えた本人ID など)
+- 最上位に ErrorBoundary(未知のエラーでも白画面にせず再読み込み導線を表示)
 
 ## iOSシミュレーターで確認する
 

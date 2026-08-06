@@ -182,6 +182,42 @@ await page.reload()
 await page.waitForTimeout(300)
 check('リロード後も既読が保持される', (await page.locator('.update-banner').count()) === 0)
 
+// 16b) カード未入力で支払いを押すとエラー表示(遷移しない)
+await page.goto(base + '/publish/kino2026')
+await page.click('button:has-text("お支払いへ進む")')
+await page.waitForURL('**/pay**')
+await page.click('button:has-text("を支払う")')
+await page.waitForTimeout(200)
+check('未入力エラーが表示される', (await page.locator('text=カード情報を入力してください').count()) > 0)
+check('支払いページに留まる', page.url().includes('/pay'))
+
+// 16c) 行程を全削除しても行程ページが壊れない
+await page.goto(base + '/manage/kino2026/schedule')
+for (let i = 0; i < 3; i++) {
+  if ((await page.locator('button:has-text("日を削除")').count()) === 0) break
+  await page.locator('button:has-text("日を削除")').first().click()
+  await page.waitForTimeout(100)
+}
+await page.click('.save-bar button')
+await page.waitForSelector('.saved-note')
+await page.goto(base + '/s/kino2026/schedule')
+check('空の行程は案内文を表示', (await page.locator('text=行程はまだ登録されていません').count()) > 0)
+await page.goto(base + '/manage/kino2026')
+await page.click('button:has-text("編集をリセットしてデモに戻す")')
+await page.waitForURL('**/manage')
+
+// 16d) 選択済みメンバーが名簿から消えたら選び直しへ
+await page.goto(base + '/')
+await page.evaluate(() => {
+  const s = JSON.parse(localStorage.getItem('shiori:tob2026') || '{}')
+  s.memberId = 'ghost-no-longer-exists'
+  localStorage.setItem('shiori:tob2026', JSON.stringify(s))
+})
+await page.goto(base + '/s/tob2026')
+await page.waitForURL('**/rsvp/who')
+check('消えた本人IDは本人選択へ戻る', true)
+await page.click('.roster button:has-text("高橋")')
+
 // 17) PWA: オフラインでもしおりが開ける
 await page.goto(base + '/')
 await page.evaluate(() => navigator.serviceWorker.ready.then(() => true))

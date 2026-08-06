@@ -18,7 +18,8 @@ function emphasize(text: string) {
 
 export function latestUnread(updates: Update[], dismissed: string[]): Update | null {
   for (let i = updates.length - 1; i >= 0; i--) {
-    if (!dismissed.includes(updates[i].id)) return updates[i]
+    const u = updates[i]
+    if (u && !dismissed.includes(u.id)) return u
   }
   return null
 }

@@ -19,6 +19,7 @@ export function ManageMembers({ shiori }: { shiori: Shiori }) {
 
   const removeMember = (i: number) => {
     const m = draft.members[i]
+    if (!m) return
     if (draft.members.length <= (draft.kind === 'duo' ? 2 : 1)) {
       window.alert(draft.kind === 'duo' ? '少人数のしおりは2名以上にしてください' : '最低1名は必要です')
       return

@@ -34,8 +34,9 @@ export function localDateString(d: Date): string {
 }
 
 export function toMinutes(t: string): number {
+  if (typeof t !== 'string') return 0
   const [h, m] = t.split(':').map(Number)
-  return h * 60 + (m || 0)
+  return (h ?? 0) * 60 + (m || 0)
 }
 
 export function nowHM(d: Date): string {
@@ -43,7 +44,8 @@ export function nowHM(d: Date): string {
 }
 
 export function eventDateTime(day: ItineraryDay, ev: ItineraryEvent): Date {
-  return new Date(`${day.date}T${ev.time.padStart(5, '0')}:00`)
+  const time = typeof ev.time === 'string' ? ev.time : '0:00'
+  return new Date(`${day.date}T${time.padStart(5, '0')}:00`)
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']

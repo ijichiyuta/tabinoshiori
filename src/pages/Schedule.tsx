@@ -20,15 +20,21 @@ export function Schedule({ shiori }: { shiori: Shiori }) {
       <div style={{ padding: '14px 18px 0' }}>
         <h1 className="page-title">行程</h1>
       </div>
-      <div style={{ margin: '12px 18px 0' }} className="seg">
-        {shiori.days.map((d, i) => (
-          <button key={d.id} className={i === dayIdx ? 'on' : ''} onClick={() => setDayIdx(i)}>
-            {d.label}
-          </button>
-        ))}
-      </div>
+      {shiori.days.length > 1 && (
+        <div style={{ margin: '12px 18px 0' }} className="seg">
+          {shiori.days.map((d, i) => (
+            <button key={d.id} className={i === dayIdx ? 'on' : ''} onClick={() => setDayIdx(i)}>
+              {d.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div style={{ padding: '16px 18px 24px' }}>
-        <TimelineDay day={day} now={now} />
+        {day ? (
+          <TimelineDay day={day} now={now} />
+        ) : (
+          <p style={{ color: 'var(--muted)', fontSize: 14.5 }}>行程はまだ登録されていません。</p>
+        )}
       </div>
     </AppFrame>
   )

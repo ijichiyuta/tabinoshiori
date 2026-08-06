@@ -8,8 +8,8 @@ export interface Settlement {
 
 /** 立替額から均等割りの精算を計算する(端数は幹事側が吸収)。 */
 export function computeSettlement(expenses: Expense[], members: Member[]): Settlement {
-  const total = expenses.reduce((s, e) => s + e.amount, 0)
-  const perHead = Math.round(total / members.length)
+  const total = expenses.reduce((s, e) => s + (Number.isFinite(e.amount) ? e.amount : 0), 0)
+  const perHead = members.length > 0 ? Math.round(total / members.length) : total
   const balance = new Map<string, number>()
   for (const m of members) balance.set(m.id, -perHead)
   for (const e of expenses) balance.set(e.payerId, (balance.get(e.payerId) ?? 0) + e.amount)
@@ -25,12 +25,15 @@ export function computeSettlement(expenses: Expense[], members: Member[]): Settl
   let i = 0
   let j = 0
   while (i < debtors.length && j < creditors.length) {
-    const pay = Math.min(debtors[i].amt, creditors[j].amt)
-    if (pay > 0) transfers.push({ fromId: debtors[i].id, toId: creditors[j].id, amount: pay })
-    debtors[i].amt -= pay
-    creditors[j].amt -= pay
-    if (debtors[i].amt <= 0) i++
-    if (creditors[j].amt <= 0) j++
+    const d = debtors[i]
+    const c = creditors[j]
+    if (!d || !c) break
+    const pay = Math.min(d.amt, c.amt)
+    if (pay > 0) transfers.push({ fromId: d.id, toId: c.id, amount: pay })
+    d.amt -= pay
+    c.amt -= pay
+    if (d.amt <= 0) i++
+    if (c.amt <= 0) j++
   }
   return { total, perHead, transfers }
 }

@@ -22,9 +22,11 @@ export function useDraft(shiori: Shiori) {
 
 export function arrayMove<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   const j = i + dir
-  if (j < 0 || j >= arr.length) return arr
+  if (i < 0 || i >= arr.length || j < 0 || j >= arr.length) return arr
   const next = [...arr]
-  ;[next[i], next[j]] = [next[j], next[i]]
+  const [item] = next.splice(i, 1)
+  if (item === undefined) return arr
+  next.splice(j, 0, item)
   return next
 }
 

@@ -18,9 +18,18 @@ export function Items({ shiori }: { shiori: Shiori }) {
       <div style={{ padding: '14px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <h1 className="page-title">持ち物</h1>
         <span style={{ fontSize: 14, color: remaining > 0 ? 'var(--warn)' : 'var(--muted)' }} className="tnum">
-          {remaining > 0 ? `未チェック ${remaining}件` : 'すべてチェック済 ✓'}
+          {shiori.checklist.length === 0
+            ? ''
+            : remaining > 0
+              ? `未チェック ${remaining}件`
+              : 'すべてチェック済 ✓'}
         </span>
       </div>
+      {shiori.checklist.length === 0 && (
+        <p style={{ padding: '14px 20px 0', margin: 0, color: 'var(--muted)', fontSize: 14.5 }}>
+          持ち物はまだ登録されていません。
+        </p>
+      )}
       <div style={{ margin: '14px 20px 0' }} className="check-list">
         {shiori.checklist.map((item) => {
           const on = checked.has(item.id)

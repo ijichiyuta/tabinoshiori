@@ -8,10 +8,13 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
   const setDay = (di: number, d: Partial<ItineraryDay>) =>
     patch({ days: draft.days.map((day, i) => (i === di ? { ...day, ...d } : day)) })
 
-  const setEvent = (di: number, ei: number, e: Partial<ItineraryEvent>) =>
+  const setEvent = (di: number, ei: number, e: Partial<ItineraryEvent>) => {
+    const day = draft.days[di]
+    if (!day) return
     setDay(di, {
-      events: draft.days[di].events.map((ev, i) => (i === ei ? { ...ev, ...e } : ev)),
+      events: day.events.map((ev, i) => (i === ei ? { ...ev, ...e } : ev)),
     })
+  }
 
   const addDay = () => {
     const last = draft.days[draft.days.length - 1]
@@ -30,7 +33,8 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
   }
 
   const addEvent = (di: number) => {
-    const evs = draft.days[di].events
+    const evs = draft.days[di]?.events
+    if (!evs) return
     const lastTime = evs[evs.length - 1]?.time ?? '9:00'
     setDay(di, {
       events: [...evs, { id: uid('e'), time: lastTime, title: '', kind: 'event' }],

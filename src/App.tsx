@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { withShiori } from './components/ShioriRoute'
 import { findShiori } from './lib/docs'
 import { Contacts } from './pages/Contacts'
@@ -92,7 +93,7 @@ function TitleManager() {
 
 export default function App() {
   return (
-    <>
+    <ErrorBoundary>
       <ScrollToTop />
       <TitleManager />
       <Routes>
@@ -123,6 +124,6 @@ export default function App() {
         <Route path="/manage/:slug/costs" element={<ManageCostsR />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </ErrorBoundary>
   )
 }

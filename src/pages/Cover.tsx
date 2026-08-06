@@ -136,8 +136,10 @@ export function Cover({ shiori }: { shiori: Shiori }) {
   const [state] = useShioriState(shiori)
   const [sp] = useSearchParams()
 
-  // 名簿から本人を選ぶまでは表紙を出さない(ログインの代わり)
-  if (shiori.kind === 'group' && !state.memberId) {
+  // 名簿から本人を選ぶまでは表紙を出さない(ログインの代わり)。
+  // 幹事の編集で名簿から消された場合も選び直してもらう。
+  const meExists = shiori.members.some((m) => m.id === state.memberId)
+  if (shiori.kind === 'group' && (!state.memberId || !meExists)) {
     return <Navigate to={`/s/${shiori.slug}/rsvp/who`} replace />
   }
 

@@ -30,10 +30,33 @@ function writeIndex(slugs: string[]) {
   localStorage.setItem(INDEX_KEY, JSON.stringify([...new Set(slugs)]))
 }
 
+/** 手で改ざんされた文書でも描画がクラッシュしない最低限の形を検証する */
+function isShioriDoc(x: unknown): x is Shiori {
+  if (typeof x !== 'object' || x === null) return false
+  const s = x as Record<string, unknown>
+  return (
+    typeof s.slug === 'string' &&
+    typeof s.title === 'string' &&
+    (s.kind === 'group' || s.kind === 'duo') &&
+    Array.isArray(s.members) &&
+    s.members.every((m) => typeof m === 'object' && m !== null) &&
+    Array.isArray(s.days) &&
+    s.days.every(
+      (d) => typeof d === 'object' && d !== null && Array.isArray((d as { events?: unknown }).events),
+    ) &&
+    Array.isArray(s.checklist) &&
+    Array.isArray(s.contacts) &&
+    Array.isArray(s.updates)
+  )
+}
+
 export function loadDoc(slug: string): Shiori | null {
   try {
     const raw = localStorage.getItem(docKey(slug))
-    if (raw) return JSON.parse(raw) as Shiori
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (isShioriDoc(parsed)) return parsed
+    }
   } catch {
     // 壊れた文書は無視して組み込みへフォールバック
   }
@@ -93,16 +116,19 @@ export function dayLabelFromDate(date: string, index: number): string {
 }
 
 export function dateLabelRange(dates: string[]): string {
-  if (dates.length === 0) return ''
+  const valid = dates.filter((s) => !isNaN(new Date(`${s}T00:00:00`).getTime()))
+  const firstStr = valid[0]
+  if (!firstStr) return ''
+  const lastStr = valid[valid.length - 1] ?? firstStr
   const f = (s: string) => {
     const d = new Date(`${s}T00:00:00`)
-    return `${d.getMonth() + 1}月${d.getDate()}日(${WEEKDAYS[d.getDay()]})`
+    return `${d.getMonth() + 1}月${d.getDate()}日(${WEEKDAYS[d.getDay()] ?? ''})`
   }
-  const first = new Date(`${dates[0]}T00:00:00`)
-  const head = `${first.getFullYear()}年${f(dates[0])}`
-  if (dates.length === 1) return `${head}　日帰り`
-  const nights = dates.length - 1
-  return `${head} 〜 ${f(dates[dates.length - 1])}　${nights}泊${dates.length}日`
+  const first = new Date(`${firstStr}T00:00:00`)
+  const head = `${first.getFullYear()}年${f(firstStr)}`
+  if (valid.length === 1) return `${head}　日帰り`
+  const nights = valid.length - 1
+  return `${head} 〜 ${f(lastStr)}　${nights}泊${valid.length}日`
 }
 
 /** 新規しおりのテンプレート */
