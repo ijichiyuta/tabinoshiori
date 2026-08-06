@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#EFEDE7; font-family:"Noto Sans JP", sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#2C4A7C; text-decoration:underline; text-underline-offset:2px; }
+  a:hover { color:#1E3557; }
+</style>
+</helmet>
+
+<section style="padding:56px 56px 80px; display:flex; flex-direction:column; gap:32px">
+  <div id="1a" style="display:flex; flex-direction:column; gap:28px">
+    <div style="display:flex; align-items:flex-start; gap:20px; max-width:1180px">
+      <span style="font-family:'Noto Sans Mono',monospace; font-size:12px; letter-spacing:.08em; border:1px solid #2C4A7C; color:#2C4A7C; padding:4px 8px; border-radius:4px">1a</span>
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <h1 style="margin:0; font-family:'Noto Serif JP',serif; font-weight:600; font-size:34px; letter-spacing:.02em; color:#1F1D1A">紙のしおりの記憶を持つデジタル</h1>
+        <p style="margin:0; font-size:15px; line-height:1.85; color:#413D37; max-width:760px; text-wrap:pretty">アクセントは<strong style="font-weight:700">藍色 #2C4A7C</strong> 一色。理由：朱色は「変更・警告・未払い」を伝える役に取っておきたいのに、地の色に使うとその区別が消えます。藍は本文の濃インク（#1F1D1A）と地色（#FBFAF7）の間に自然に収まり、単色印刷でも濃度差だけで階層が残ります。見出し＝明朝、本文＝ゴシック。影・グラデーションなし、区切りは1pxのhairlineのみ。</p>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:32px; align-items:flex-start">
+
+      <!-- ============ 1. 表紙（タイポグラフィのみ・告知バーあり） ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">01 しおりトップ / タイポグラフィ案（推奨）</div>
+        <div data-screen-label="01" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden; display:flex; flex-direction:column">
+          <sc-if value="{{ showLineBars }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute; top:0; left:0; right:0; height:56px; background:#2E2C29; color:#F2F0EC; display:flex; align-items:center; justify-content:space-between; padding:0 14px; font-size:13px; z-index:9">
+              <span>‹ しおり</span><span style="opacity:.6">trip-shiori.jp</span><span style="opacity:.6">×</span>
+            </div>
+            <div style="position:absolute; bottom:0; left:0; right:0; height:56px; background:#2E2C29; color:#F2F0EC; display:flex; align-items:center; justify-content:center; gap:36px; font-size:13px; z-index:9">
+              <span>‹</span><span>›</span><span>共有</span><span>ブラウザで開く</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showUpdateBanner }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex; gap:8px; align-items:baseline; padding:11px 16px; background:#F3EFE4; border-bottom:1px solid #DBD6CC">
+              <span style="font-size:12px; font-weight:700; border:1px solid #C2452D; color:#C2452D; padding:1px 5px; border-radius:3px; white-space:nowrap">更新</span>
+              <span style="font-size:14px; line-height:1.5; color:#413D37">8/20　集合時刻が <span style="font-variant-numeric:tabular-nums; font-weight:700">7:30</span> に変更されました</span>
+            </div>
+          </sc-if>
+
+          <div style="flex:1; overflow:hidden; padding:26px 22px 78px; display:flex; flex-direction:column">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid #DBD6CC; padding-bottom:8px">
+              <span style="font-family:'Noto Serif JP',serif; font-size:14px; letter-spacing:.28em; color:#6B655C">し　お　り</span>
+              <span style="font-family:'Noto Sans Mono',monospace; font-size:11px; color:#6B655C; font-variant-numeric:tabular-nums">No. 2026-08</span>
+            </div>
+
+            <div style="padding:18px 0 16px">
+              <div style="font-size:14px; letter-spacing:.14em; color:#2C4A7C; font-weight:500">バドミントンサークル</div>
+              <h2 style="margin:8px 0 0; font-family:'Noto Serif JP',serif; font-weight:600; font-size:40px; line-height:1.22; letter-spacing:.02em">夏合宿 2026<br><span style="font-size:29px">三重・鳥羽</span></h2>
+            </div>
+
+            <div style="border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC; padding:12px 0; display:grid; grid-template-columns:auto 1fr; row-gap:7px; column-gap:14px; font-size:15px">
+              <span style="color:#6B655C">日程</span><span style="font-variant-numeric:tabular-nums">2026年8月22日(土) 〜 23日(日)　1泊2日</span>
+              <span style="color:#6B655C">行き先</span><span>三重県 鳥羽　鳥羽シーサイドホテル</span>
+              <span style="color:#6B655C">参加</span><span style="font-variant-numeric:tabular-nums">12名（参加10／不参加1／未回答1）</span>
+            </div>
+
+            <div style="margin-top:18px; border:1px solid #2C4A7C; border-radius:6px; overflow:hidden">
+              <div style="background:#2C4A7C; color:#FBFAF7; padding:8px 14px; font-size:14px; font-weight:700; display:flex; justify-content:space-between">
+                <span>高橋 さんの予定</span><span style="font-weight:400; opacity:.85">参加</span>
+              </div>
+              <div style="padding:14px; display:flex; flex-direction:column; gap:12px">
+                <div>
+                  <div style="font-size:13px; color:#6B655C">次の集合</div>
+                  <div style="font-family:'Noto Serif JP',serif; font-size:25px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.3">8/22 (土) 7:30</div>
+                  <div style="font-size:15px; line-height:1.6">名古屋駅 太閤通口 バスロータリー</div>
+                </div>
+                <div style="border-top:1px solid #DBD6CC; padding-top:10px; display:flex; justify-content:space-between; align-items:flex-end">
+                  <div>
+                    <div style="font-size:13px; color:#6B655C">あなたの参加費（一般）</div>
+                    <div style="font-family:'Noto Serif JP',serif; font-size:25px; font-weight:600; font-variant-numeric:tabular-nums">¥12,500</div>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; border:1px solid #C2452D; color:#C2452D; padding:4px 8px; border-radius:3px">未払い ／ 要対応</span>
+                </div>
+                <a href="#1a" style="display:block; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:16px; font-weight:700; padding:13px; border-radius:5px">支払いに進む</a>
+              </div>
+            </div>
+          </div>
+
+          <div style="position:absolute; bottom:0; left:0; right:0; height:64px; background:#FBFAF7; border-top:1px solid #DBD6CC; display:grid; grid-template-columns:repeat(4,1fr)">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; font-weight:700; color:#2C4A7C; border-top:2px solid #2C4A7C; margin-top:-1px"><span style="width:6px; height:6px; border-radius:50%; background:#2C4A7C"></span>しおり</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; color:#6B655C"><span style="width:6px; height:6px; border-radius:50%; border:1px solid #6B655C"></span>行程</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; color:#6B655C"><span style="width:6px; height:6px; border-radius:50%; border:1px solid #6B655C"></span>持ち物</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; color:#6B655C"><span style="width:6px; height:6px; border-radius:50%; border:1px solid #6B655C"></span>連絡先</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 1b. 表紙（写真あり）＋朱色比較 ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">01' 表紙 写真あり案 / 告知バーなし</div>
+        <div data-screen-label="01-photo" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="height:212px; background:repeating-linear-gradient(135deg,#E6E2D8 0 8px,#DCD7CB 8px 16px); border-bottom:1px solid #DBD6CC; display:flex; align-items:flex-end; padding:18px">
+            <span style="font-family:'Noto Sans Mono',monospace; font-size:11px; color:#5C5750; background:#FBFAF7; border:1px solid #DBD6CC; padding:3px 7px">photo — 幹事が用意（未設定時は 01 の表紙に自動で切替）</span>
+          </div>
+          <div style="padding:20px 22px 78px">
+            <div style="font-size:13.5px; letter-spacing:.14em; color:#2C4A7C; font-weight:500">バドミントンサークル</div>
+            <h2 style="margin:8px 0 0; font-family:'Noto Serif JP',serif; font-weight:600; font-size:36px; line-height:1.26">夏合宿 2026<br><span style="font-size:26px">三重・鳥羽</span></h2>
+            <div style="margin-top:14px; border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC; padding:11px 0; display:grid; grid-template-columns:auto 1fr; row-gap:6px; column-gap:14px; font-size:15px">
+              <span style="color:#6B655C">日程</span><span style="font-variant-numeric:tabular-nums">8/22(土) 〜 8/23(日)　1泊2日</span>
+              <span style="color:#6B655C">参加</span><span style="font-variant-numeric:tabular-nums">12名</span>
+            </div>
+            <div style="margin-top:16px; border:1px solid #DBD6CC; border-radius:6px; padding:14px; display:flex; flex-direction:column; gap:10px">
+              <div style="font-size:13px; color:#6B655C">高橋 さん — 次の集合</div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:25px; font-weight:600; font-variant-numeric:tabular-nums">8/22 (土) 7:30</div>
+              <div style="font-size:15px">名古屋駅 太閤通口 バスロータリー</div>
+              <div style="border-top:1px solid #DBD6CC; padding-top:10px; display:flex; justify-content:space-between; align-items:center">
+                <span style="font-size:15px; font-variant-numeric:tabular-nums">参加費 ¥12,500</span>
+                <span style="font-size:13px; font-weight:700; border:1px solid #1F1D1A; padding:3px 7px; border-radius:3px">支払い済 ✓</span>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; height:64px; background:#FBFAF7; border-top:1px solid #DBD6CC; display:grid; grid-template-columns:repeat(4,1fr)">
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#2C4A7C; border-top:2px solid #2C4A7C; margin-top:-1px">しおり</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">行程</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">持ち物</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">連絡先</div>
+          </div>
+        </div>
+        <sc-if value="{{ showVermilionCompare }}" hint-placeholder-val="{{ true }}">
+          <div style="width:375px; border:1px solid #DBD6CC; border-radius:6px; background:#FBFAF7; padding:16px">
+            <div style="font-family:'Noto Sans Mono',monospace; font-size:11px; color:#6B655C; margin-bottom:10px">比較：朱色 #C2452D をアクセントにした場合</div>
+            <div style="border:1px solid #C2452D; border-radius:6px; overflow:hidden">
+              <div style="background:#C2452D; color:#FBFAF7; padding:8px 14px; font-size:14px; font-weight:700; display:flex; justify-content:space-between"><span>高橋 さんの予定</span><span style="font-weight:400; opacity:.85">参加</span></div>
+              <div style="padding:13px 14px; display:flex; flex-direction:column; gap:10px">
+                <div style="font-family:'Noto Serif JP',serif; font-size:24px; font-weight:600; font-variant-numeric:tabular-nums">8/22 (土) 7:30</div>
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                  <span style="font-size:15px; font-variant-numeric:tabular-nums">参加費 ¥12,500</span>
+                  <span style="font-size:13px; font-weight:700; border:1px solid #C2452D; color:#C2452D; padding:3px 7px; border-radius:3px">未払い</span>
+                </div>
+                <div style="font-size:13px; line-height:1.6; color:#6B655C">地の色と警告色が同じになり、「未払い」の強さが埋もれます。朱を採るなら警告は罫線の太さと記号のみで表す必要があります。</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- ============ 2. 行程ビュー ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">02 行程 / 1日目・当日「いま」表示</div>
+        <div data-screen-label="02" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:14px 18px 0">
+            <div style="font-family:'Noto Serif JP',serif; font-size:20px; font-weight:600">行程</div>
+          </div>
+          <div style="display:flex; gap:0; margin:12px 18px 0; border:1px solid #2C4A7C; border-radius:5px; overflow:hidden">
+            <div style="flex:1; text-align:center; padding:9px 0; font-size:15px; font-weight:700; background:#2C4A7C; color:#FBFAF7; font-variant-numeric:tabular-nums">1日目 8/22</div>
+            <div style="flex:1; text-align:center; padding:9px 0; font-size:15px; color:#2C4A7C; font-variant-numeric:tabular-nums">2日目 8/23</div>
+          </div>
+          <div style="padding:16px 18px 78px; display:flex; flex-direction:column">
+            <div style="display:grid; grid-template-columns:52px 16px 1fr; column-gap:10px">
+              <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">7:30</div>
+              <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+              <div style="padding-bottom:18px">
+                <div style="font-size:16.5px; font-weight:700">集合</div>
+                <div style="font-size:14.5px; color:#413D37; line-height:1.6">名古屋駅 太閤通口 バスロータリー　<a href="#1a" style="font-size:13.5px">地図</a></div>
+                <div style="margin-top:6px; font-size:13.5px; border-left:2px solid #C2452D; padding-left:8px; color:#413D37">7:20までに集合。遅れる場合は田中まで連絡</div>
+              </div>
+
+              <div style="font-size:14.5px; color:#6B655C; font-variant-numeric:tabular-nums; padding-top:1px">7:45</div>
+              <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; border:1px solid #6B655C; background:#FBFAF7; margin-top:5px"></span><span style="flex:1; width:0; border-left:1px dashed #A8A29A"></span></div>
+              <div style="padding-bottom:18px">
+                <div style="display:flex; align-items:center; gap:7px"><span style="font-size:11.5px; border:1px solid #A8A29A; color:#5C5750; padding:1px 5px; border-radius:3px">移動</span><span style="font-size:15px; color:#413D37">貸切バス　約2時間15分</span></div>
+              </div>
+
+              <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">10:00</div>
+              <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+              <div style="padding-bottom:14px">
+                <div style="font-size:16.5px; font-weight:700">鳥羽 着</div>
+                <div style="font-size:14.5px; color:#413D37">鳥羽市体育館 前　<a href="#1a" style="font-size:13.5px">地図</a></div>
+              </div>
+            </div>
+
+            <sc-if value="{{ showNowMarker }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid; grid-template-columns:52px 16px 1fr; column-gap:10px; align-items:center; margin:2px 0 8px">
+                <div style="font-size:13px; font-weight:700; color:#2C4A7C; font-variant-numeric:tabular-nums">10:42</div>
+                <div style="display:flex; justify-content:center"><span style="width:0; height:0; border-left:7px solid #2C4A7C; border-top:5px solid transparent; border-bottom:5px solid transparent"></span></div>
+                <div style="display:flex; align-items:center; gap:8px"><span style="font-size:12px; font-weight:700; color:#FBFAF7; background:#2C4A7C; padding:2px 7px; border-radius:3px">いま</span><span style="flex:1; height:1px; background:#2C4A7C"></span></div>
+              </div>
+            </sc-if>
+
+            <div style="display:grid; grid-template-columns:52px 16px 1fr; column-gap:10px">
+              <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">11:00</div>
+              <div style="display:flex; flex-direction:column; align-items:center"><span style="width:11px; height:11px; border-radius:50%; background:#2C4A7C; box-sizing:border-box; margin-top:5px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+              <div style="padding-bottom:18px">
+                <div style="display:flex; align-items:baseline; gap:8px"><span style="font-size:16.5px; font-weight:700">体育館で練習</span><span style="font-size:13px; color:#2C4A7C; font-weight:700">進行中</span></div>
+                <div style="font-size:14.5px; color:#413D37; font-variant-numeric:tabular-nums">11:00 – 16:00　鳥羽市体育館</div>
+                <div style="margin-top:6px; font-size:13.5px; border-left:2px solid #A8A29A; padding-left:8px; color:#413D37">体育館シューズ必須（外履き不可）</div>
+              </div>
+
+              <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">17:00</div>
+              <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+              <div style="padding-bottom:18px">
+                <div style="font-size:16.5px; font-weight:700">宿 チェックイン</div>
+                <div style="font-size:14.5px; color:#413D37">鳥羽シーサイドホテル　<a href="#1a" style="font-size:13.5px">地図</a>　<a href="tel:0599000000" style="font-size:13.5px">電話</a></div>
+              </div>
+
+              <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">18:30</div>
+              <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span></div>
+              <div>
+                <div style="font-size:16.5px; font-weight:700">夕食・懇親会</div>
+                <div style="font-size:14.5px; color:#413D37">宿 2階 大広間</div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; height:64px; background:#FBFAF7; border-top:1px solid #DBD6CC; display:grid; grid-template-columns:repeat(4,1fr)">
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">しおり</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#2C4A7C; border-top:2px solid #2C4A7C; margin-top:-1px">行程</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">持ち物</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">連絡先</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 2'. 行程 2日目（当日でない状態・自由参加あり） ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">02' 行程 / 2日目・「いま」なし</div>
+        <div data-screen-label="02-day2" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:14px 18px 0"><div style="font-family:'Noto Serif JP',serif; font-size:20px; font-weight:600">行程</div></div>
+          <div style="display:flex; margin:12px 18px 0; border:1px solid #2C4A7C; border-radius:5px; overflow:hidden">
+            <div style="flex:1; text-align:center; padding:9px 0; font-size:15px; color:#2C4A7C; font-variant-numeric:tabular-nums">1日目 8/22</div>
+            <div style="flex:1; text-align:center; padding:9px 0; font-size:15px; font-weight:700; background:#2C4A7C; color:#FBFAF7; font-variant-numeric:tabular-nums">2日目 8/23</div>
+          </div>
+          <div style="padding:16px 18px 78px; display:grid; grid-template-columns:52px 16px 1fr; column-gap:10px">
+            <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">8:00</div>
+            <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+            <div style="padding-bottom:18px"><div style="font-size:16.5px; font-weight:700">朝食</div><div style="font-size:14.5px; color:#413D37">宿 1階 食堂</div></div>
+
+            <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">9:30</div>
+            <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+            <div style="padding-bottom:18px">
+              <div style="font-size:16.5px; font-weight:700">練習</div>
+              <div style="font-size:14.5px; color:#413D37; font-variant-numeric:tabular-nums">9:30 – 12:00　鳥羽市体育館</div>
+              <div style="margin-top:6px; font-size:13.5px; border-left:2px solid #A8A29A; padding-left:8px; color:#413D37">10:00 チェックアウト。荷物はバスへ先に積みます</div>
+            </div>
+
+            <div style="font-size:14.5px; color:#6B655C; font-variant-numeric:tabular-nums; padding-top:1px">12:20</div>
+            <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; border:1px solid #6B655C; background:#FBFAF7; margin-top:5px"></span><span style="flex:1; width:0; border-left:1px dashed #A8A29A"></span></div>
+            <div style="padding-bottom:18px"><div style="display:flex; align-items:center; gap:7px"><span style="font-size:11.5px; border:1px solid #A8A29A; color:#5C5750; padding:1px 5px; border-radius:3px">移動</span><span style="font-size:15px; color:#413D37">徒歩＋バス　約40分</span></div></div>
+
+            <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">13:00</div>
+            <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span><span style="flex:1; width:1px; background:#1F1D1A"></span></div>
+            <div style="padding-bottom:18px">
+              <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap"><span style="font-size:16.5px; font-weight:700">鳥羽水族館</span><span style="font-size:11.5px; border:1px dashed #5C5750; color:#5C5750; padding:1px 5px; border-radius:3px">自由参加</span></div>
+              <div style="font-size:14.5px; color:#413D37">入館料 ¥2,800（各自払い）　<a href="#1a" style="font-size:13.5px">地図</a></div>
+            </div>
+
+            <div style="font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; padding-top:1px">17:00</div>
+            <div style="display:flex; flex-direction:column; align-items:center"><span style="width:9px; height:9px; border-radius:50%; background:#1F1D1A; margin-top:6px"></span></div>
+            <div><div style="font-size:16.5px; font-weight:700">名古屋 着・解散</div><div style="font-size:14.5px; color:#413D37">名古屋駅 太閤通口</div></div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; height:64px; background:#FBFAF7; border-top:1px solid #DBD6CC; display:grid; grid-template-columns:repeat(4,1fr)">
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">しおり</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#2C4A7C; border-top:2px solid #2C4A7C; margin-top:-1px">行程</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">持ち物</div>
+            <div style="display:flex; align-items:center; justify-content:center; font-size:13px; color:#6B655C">連絡先</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 3a. 名簿から自分を選ぶ ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">03 出欠 / 本人選択（ログインの代わり）</div>
+        <div data-screen-label="03-who" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:18px 20px 0">
+            <h3 style="margin:0; font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600">あなたは どなたですか？</h3>
+            <p style="margin:7px 0 0; font-size:14.5px; line-height:1.65; color:#413D37">名簿からお名前を選んでください。登録やログインは不要です。名前がない場合は幹事（田中 090-XXXX-XXXX）までご連絡ください。</p>
+          </div>
+          <div style="margin:14px 20px 0; border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC">
+            <sc-for list="{{ roster }}" as="m" hint-placeholder-count="12">
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 2px; border-bottom:1px solid #EAE6DE; font-size:16.5px">
+                <span>{{ m.name }}</span>
+                <span style="font-size:13px; color:#6B655C">{{ m.note }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 3b. 回答フォーム（回答前） ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">03' 出欠・支払い / 回答前</div>
+        <div data-screen-label="03-form" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:16px 20px; border-bottom:1px solid #DBD6CC; display:flex; justify-content:space-between; align-items:baseline">
+            <span style="font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">出欠のご回答</span>
+            <span style="font-size:14px; color:#413D37">高橋 さん　<a href="#1a" style="font-size:13px">変更</a></span>
+          </div>
+          <div style="padding:18px 20px; display:flex; flex-direction:column; gap:20px">
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#413D37; margin-bottom:8px">出欠</div>
+              <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">
+                <div style="text-align:center; padding:14px 0; font-size:15.5px; font-weight:700; border:2px solid #2C4A7C; border-radius:5px; background:#2C4A7C; color:#FBFAF7">参加</div>
+                <div style="text-align:center; padding:14px 0; font-size:15.5px; border:1px solid #A8A29A; border-radius:5px">不参加</div>
+                <div style="text-align:center; padding:14px 0; font-size:15.5px; border:1px solid #A8A29A; border-radius:5px">1日目のみ</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#413D37; margin-bottom:8px">交通手段</div>
+              <div style="display:flex; flex-direction:column; gap:8px">
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 14px; border:1px solid #A8A29A; border-radius:5px; font-size:15.5px"><span style="width:14px; height:14px; border-radius:50%; border:1px solid #5C5750"></span>自家用車</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 14px; border:2px solid #2C4A7C; border-radius:5px; font-size:15.5px; font-weight:700"><span style="width:14px; height:14px; border-radius:50%; border:4px solid #2C4A7C"></span>新幹線・電車</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 14px; border:1px solid #A8A29A; border-radius:5px; font-size:15.5px"><span style="width:14px; height:14px; border-radius:50%; border:1px solid #5C5750"></span>現地集合</div>
+              </div>
+            </div>
+            <div style="border:1px solid #DBD6CC; border-radius:6px; padding:14px">
+              <div style="display:flex; justify-content:space-between; align-items:baseline">
+                <span style="font-size:14px; color:#6B655C">参加費（一般）</span>
+                <span style="font-size:13px; font-weight:700; border:1px solid #C2452D; color:#C2452D; padding:2px 6px; border-radius:3px">未払い</span>
+              </div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:30px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:4px">¥12,500</div>
+              <div style="font-size:13.5px; color:#413D37; margin-top:2px">学生は ¥9,000。締切 8/15</div>
+              <a href="#1a" style="display:block; margin-top:12px; text-align:center; text-decoration:none; border:1px solid #2C4A7C; color:#2C4A7C; font-size:15.5px; font-weight:700; padding:12px; border-radius:5px">PayPay で送金する</a>
+            </div>
+            <a href="#1a" style="display:block; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:17px; font-weight:700; padding:15px; border-radius:5px">この内容で回答する</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 3c. 回答後 ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">03'' 回答後・支払い済</div>
+        <div data-screen-label="03-done" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:16px 20px; border-bottom:1px solid #DBD6CC; font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">出欠のご回答</div>
+          <div style="padding:22px 20px; display:flex; flex-direction:column; gap:18px">
+            <div style="border:1px solid #2C4A7C; border-radius:6px; padding:16px">
+              <div style="display:flex; align-items:center; gap:9px">
+                <span style="width:22px; height:22px; border-radius:50%; border:2px solid #2C4A7C; color:#2C4A7C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center">✓</span>
+                <span style="font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">回答を受け付けました</span>
+              </div>
+              <div style="font-size:14px; color:#6B655C; margin-top:8px; font-variant-numeric:tabular-nums">8/12 21:04 送信　高橋 さん</div>
+            </div>
+            <div style="border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC; display:grid; grid-template-columns:auto 1fr; row-gap:12px; column-gap:16px; padding:14px 0; font-size:16px">
+              <span style="color:#6B655C">出欠</span><span style="font-weight:700">参加（2日間）</span>
+              <span style="color:#6B655C">交通</span><span>新幹線・電車</span>
+              <span style="color:#6B655C">参加費</span><span style="font-variant-numeric:tabular-nums">¥12,500　<span style="font-size:13px; font-weight:700; border:1px solid #1F1D1A; padding:2px 6px; border-radius:3px; white-space:nowrap">支払い済 ✓</span></span>
+              <span style="color:#6B655C">集合</span><span style="font-variant-numeric:tabular-nums">8/22 7:30　名古屋駅 太閤通口</span>
+            </div>
+            <div style="font-size:14.5px; line-height:1.8; color:#413D37">回答は締切（8/15）まで変更できます。変更があった場合はしおりに反映され、上部に告知が出ます。</div>
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <a href="#1a" style="display:block; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:16.5px; font-weight:700; padding:14px; border-radius:5px">しおりを見る</a>
+              <a href="#1a" style="display:block; text-align:center; text-decoration:none; border:1px solid #A8A29A; color:#1F1D1A; font-size:15.5px; padding:13px; border-radius:5px">回答を修正する</a>
+            </div>
+            <div style="border:1px solid #DBD6CC; border-radius:6px; padding:13px 14px; font-size:14px; line-height:1.75; color:#413D37">
+              <div style="font-weight:700; margin-bottom:4px">持ち物（未チェック 3件）</div>
+              ラケット・体育館シューズ・保険証のコピー　<a href="#1a" style="font-size:13.5px">確認する</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 04 課金：プラン選択（幹事のみ） ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">04 課金 / プラン選択（幹事のみ・参加者には出ない）</div>
+        <div data-screen-label="04-plan" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:18px 20px 0">
+            <h3 style="margin:0; font-family:'Noto Serif JP',serif; font-size:23px; font-weight:600">しおりを公開する</h3>
+            <p style="margin:7px 0 0; font-size:14.5px; line-height:1.7; color:#413D37">お支払いは<strong style="font-weight:700">幹事だけ</strong>。参加者は無料で、登録もなくURLを開くだけです。</p>
+          </div>
+          <div style="padding:14px 20px 0; display:flex; flex-direction:column; gap:9px">
+            <div style="border:1px solid #DBD6CC; border-radius:6px; padding:12px 14px">
+              <div style="display:flex; justify-content:space-between; align-items:baseline">
+                <span style="font-size:16px; font-weight:700">無料</span>
+                <span style="font-size:16px; font-variant-numeric:tabular-nums">¥0</span>
+              </div>
+              <div style="font-size:13.5px; color:#413D37; line-height:1.65; margin-top:3px">参加者6名まで／印刷PDFは透かし入り</div>
+              <div style="font-size:13px; color:#C2452D; margin-top:5px; border-left:2px solid #C2452D; padding-left:7px">この旅行は12名のため上限を超えています</div>
+            </div>
+            <div style="border:2px solid #2C4A7C; border-radius:6px; overflow:hidden">
+              <div style="background:#2C4A7C; color:#FBFAF7; padding:6px 14px; font-size:12.5px; font-weight:700; display:flex; justify-content:space-between">
+                <span>この旅行に必要なプラン</span><span style="font-weight:400">選択中</span>
+              </div>
+              <div style="padding:12px 14px">
+                <div style="display:flex; justify-content:space-between; align-items:baseline">
+                  <span style="font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">しおり 1冊（買い切り）</span>
+                  <span style="font-family:'Noto Serif JP',serif; font-size:26px; font-weight:600; font-variant-numeric:tabular-nums">¥480</span>
+                </div>
+                <div style="font-size:13.5px; color:#413D37; line-height:1.8; margin-top:4px">人数無制限／A4印刷PDF（透かしなし）<br>QRコード・更新告知・共有カード</div>
+              </div>
+            </div>
+            <div style="border:1px solid #DBD6CC; border-radius:6px; padding:12px 14px">
+              <div style="display:flex; justify-content:space-between; align-items:baseline">
+                <span style="font-size:16px; font-weight:700">年間パス</span>
+                <span style="font-size:18px; font-weight:700; font-variant-numeric:tabular-nums">¥1,800<span style="font-size:13px; font-weight:400; color:#6B655C">／年</span></span>
+              </div>
+              <div style="font-size:13.5px; color:#413D37; line-height:1.65; margin-top:3px">しおり無制限・前年のしおりを複製。年3回以上作る方へ</div>
+            </div>
+            <div style="font-size:13px; color:#6B655C; line-height:1.7">参加費の集金（¥12,500 など）とは別のお支払いです。参加者に請求は行きません。</div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 20px 16px; background:#FBFAF7; border-top:1px solid #DBD6CC">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:15px; margin-bottom:9px">
+              <span style="color:#6B655C">お支払い金額（税込）</span>
+              <span style="font-family:'Noto Serif JP',serif; font-size:24px; font-weight:600; font-variant-numeric:tabular-nums">¥480</span>
+            </div>
+            <a href="#1a" style="display:block; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:17px; font-weight:700; padding:15px; border-radius:5px">お支払いへ進む</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 04' 課金：支払い方法 ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">04' 課金 / 支払い方法・確認</div>
+        <div data-screen-label="04-pay" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:16px 20px; border-bottom:1px solid #DBD6CC; display:flex; justify-content:space-between; align-items:baseline">
+            <span style="font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">お支払い</span>
+            <span style="font-size:14px; color:#6B655C">しおり 1冊 ¥480</span>
+          </div>
+          <div style="padding:18px 20px; display:flex; flex-direction:column; gap:18px">
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#413D37; margin-bottom:8px">支払い方法</div>
+              <div style="display:flex; flex-direction:column; gap:8px">
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 14px; border:2px solid #2C4A7C; border-radius:5px; font-size:15.5px; font-weight:700"><span style="width:14px; height:14px; border-radius:50%; border:4px solid #2C4A7C"></span>クレジットカード</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 14px; border:1px solid #A8A29A; border-radius:5px; font-size:15.5px"><span style="width:14px; height:14px; border-radius:50%; border:1px solid #5C5750"></span>PayPay</div>
+                <div style="display:flex; align-items:center; gap:10px; padding:13px 14px; border:1px solid #A8A29A; border-radius:5px; font-size:15.5px"><span style="width:14px; height:14px; border-radius:50%; border:1px solid #5C5750"></span>キャリア決済</div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <div>
+                <div style="font-size:13.5px; color:#6B655C; margin-bottom:4px">カード番号</div>
+                <div style="border:1px solid #A8A29A; border-radius:5px; padding:13px 12px; font-size:16px; font-variant-numeric:tabular-nums; color:#6B655C">1234 5678 9012 3456</div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px">
+                <div>
+                  <div style="font-size:13.5px; color:#6B655C; margin-bottom:4px">有効期限</div>
+                  <div style="border:1px solid #A8A29A; border-radius:5px; padding:13px 12px; font-size:16px; font-variant-numeric:tabular-nums; color:#6B655C">MM / YY</div>
+                </div>
+                <div>
+                  <div style="font-size:13.5px; color:#6B655C; margin-bottom:4px">セキュリティコード</div>
+                  <div style="border:1px solid #A8A29A; border-radius:5px; padding:13px 12px; font-size:16px; font-variant-numeric:tabular-nums; color:#6B655C">3桁</div>
+                </div>
+              </div>
+            </div>
+            <div style="border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC; padding:12px 0; display:grid; grid-template-columns:auto 1fr; row-gap:7px; column-gap:14px; font-size:15px">
+              <span style="color:#6B655C">内容</span><span>しおり 1冊　バドミントンサークル 夏合宿 2026</span>
+              <span style="color:#6B655C">形式</span><span>買い切り（自動更新なし）</span>
+              <span style="color:#6B655C">合計</span><span style="font-weight:700; font-variant-numeric:tabular-nums">¥480（税込）</span>
+            </div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; padding:12px 20px 16px; background:#FBFAF7; border-top:1px solid #DBD6CC">
+            <a href="#1a" style="display:block; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:17px; font-weight:700; padding:15px; border-radius:5px">¥480 を支払う</a>
+            <div style="font-size:12.5px; color:#6B655C; text-align:center; margin-top:8px">自動更新はありません。<a href="#1a" style="font-size:12.5px">特定商取引法に基づく表記</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 04'' 課金：完了 ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">04'' 課金 / 完了・公開</div>
+        <div data-screen-label="04-done" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:22px 20px; display:flex; flex-direction:column; gap:18px">
+            <div style="border:1px solid #2C4A7C; border-radius:6px; padding:16px">
+              <div style="display:flex; align-items:center; gap:9px">
+                <span style="width:22px; height:22px; border-radius:50%; border:2px solid #2C4A7C; color:#2C4A7C; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center">✓</span>
+                <span style="font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">お支払いが完了しました</span>
+              </div>
+              <div style="font-size:14px; color:#6B655C; margin-top:8px; font-variant-numeric:tabular-nums">8/12 21:11　¥480（税込）　カード末尾 3456</div>
+            </div>
+            <div style="border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC; padding:13px 0; display:grid; grid-template-columns:auto 1fr; row-gap:9px; column-gap:14px; font-size:15px">
+              <span style="color:#6B655C">しおり</span><span>バドミントンサークル 夏合宿 2026</span>
+              <span style="color:#6B655C">状態</span><span style="font-weight:700">公開中（人数無制限）</span>
+              <span style="color:#6B655C">印刷PDF</span><span>透かしなしで出力できます</span>
+              <span style="color:#6B655C">領収書</span><span><a href="#1a">PDFをダウンロード</a></span>
+            </div>
+            <div style="border:1px solid #DBD6CC; border-radius:6px; padding:14px">
+              <div style="font-size:13.5px; color:#6B655C">参加者用URL</div>
+              <div style="font-family:'Noto Sans Mono',monospace; font-size:14px; margin-top:5px; word-break:break-all">trip-shiori.jp/s/tob2026</div>
+              <a href="#1a" style="display:block; margin-top:11px; text-align:center; text-decoration:none; border:1px solid #2C4A7C; color:#2C4A7C; font-size:15.5px; font-weight:700; padding:12px; border-radius:5px">URLをコピーして共有</a>
+            </div>
+            <a href="#1a" style="display:block; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:17px; font-weight:700; padding:15px; border-radius:5px">しおりを見る</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 05 少人数版：表紙（夫婦2名） ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">05 少人数版 / 表紙（夫婦・2名）</div>
+        <div data-screen-label="05-cover" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden; display:flex; flex-direction:column">
+          <div style="flex:1; padding:26px 22px 78px; display:flex; flex-direction:column">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid #DBD6CC; padding-bottom:8px">
+              <span style="font-family:'Noto Serif JP',serif; font-size:14px; letter-spacing:.28em; color:#6B655C">た　び　の　記　録</span>
+              <span style="font-family:'Noto Sans Mono',monospace; font-size:11px; color:#6B655C">2名</span>
+            </div>
+            <div style="padding:20px 0 16px">
+              <div style="font-size:14px; letter-spacing:.14em; color:#2C4A7C; font-weight:500">結婚記念日の旅</div>
+              <h2 style="margin:8px 0 0; font-family:'Noto Serif JP',serif; font-weight:600; font-size:38px; line-height:1.24">城崎温泉<br><span style="font-size:27px">二泊三日の湯めぐり</span></h2>
+            </div>
+            <div style="border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC; padding:12px 0; display:grid; grid-template-columns:auto 1fr; row-gap:7px; column-gap:14px; font-size:15px">
+              <span style="color:#6B655C">日程</span><span style="font-variant-numeric:tabular-nums">2026年10月10日(土) 〜 12日(月)</span>
+              <span style="color:#6B655C">宿</span><span>柳湯の宿（架空）　TEL 0796-XX-XXXX</span>
+              <span style="color:#6B655C">同行</span><span>健一 ・ 美咲</span>
+            </div>
+            <div style="margin-top:16px; border:1px solid #2C4A7C; border-radius:6px; overflow:hidden">
+              <div style="background:#2C4A7C; color:#FBFAF7; padding:8px 14px; font-size:14px; font-weight:700">次の予定</div>
+              <div style="padding:14px; display:flex; flex-direction:column; gap:11px">
+                <div>
+                  <div style="font-family:'Noto Serif JP',serif; font-size:25px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.3">10/10 (土) 9:12</div>
+                  <div style="font-size:15px; line-height:1.6">京都駅 31番ホーム　特急きのさき5号</div>
+                  <div style="font-size:13.5px; color:#413D37; margin-top:4px; border-left:2px solid #A8A29A; padding-left:8px">指定席 4号車 3A・3B（きっぷは健一が保管）</div>
+                </div>
+                <div style="border-top:1px solid #DBD6CC; padding-top:11px; display:flex; justify-content:space-between; align-items:flex-end">
+                  <div>
+                    <div style="font-size:13px; color:#6B655C">ふたりの予算</div>
+                    <div style="font-family:'Noto Serif JP',serif; font-size:25px; font-weight:600; font-variant-numeric:tabular-nums">¥68,400</div>
+                    <div style="font-size:13px; color:#413D37">1人あたり ¥34,200</div>
+                  </div>
+                  <span style="font-size:13px; font-weight:700; border:1px solid #1F1D1A; padding:4px 8px; border-radius:3px">宿代 前払済 ✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute; bottom:0; left:0; right:0; height:64px; background:#FBFAF7; border-top:1px solid #DBD6CC; display:grid; grid-template-columns:repeat(4,1fr)">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; font-weight:700; color:#2C4A7C; border-top:2px solid #2C4A7C; margin-top:-1px"><span style="width:6px; height:6px; border-radius:50%; background:#2C4A7C"></span>しおり</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; color:#6B655C"><span style="width:6px; height:6px; border-radius:50%; border:1px solid #6B655C"></span>行程</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; color:#6B655C"><span style="width:6px; height:6px; border-radius:50%; border:1px solid #6B655C"></span>持ち物</div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:13px; color:#6B655C"><span style="width:6px; height:6px; border-radius:50%; border:1px solid #6B655C"></span>予約</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 05' 少人数版：割り勘＋予約控え ============ -->
+      <div style="display:flex; flex-direction:column; gap:10px">
+        <div style="font-family:'Noto Sans Mono',monospace; font-size:11.5px; letter-spacing:.06em; color:#6B655C">05' 少人数版 / 割り勘・予約控え（名簿も出欠もない）</div>
+        <div data-screen-label="05-split" style="position:relative; width:375px; height:760px; background:#FBFAF7; color:#1F1D1A; border:1px solid #DBD6CC; border-radius:6px; overflow:hidden">
+          <div style="padding:16px 20px; border-bottom:1px solid #DBD6CC; display:flex; justify-content:space-between; align-items:baseline">
+            <span style="font-family:'Noto Serif JP',serif; font-size:19px; font-weight:600">費用と予約</span>
+            <span style="font-size:14px; color:#6B655C">2名で割り勘</span>
+          </div>
+          <div style="padding:16px 20px; display:flex; flex-direction:column; gap:18px">
+            <div style="border-top:1px solid #DBD6CC; border-bottom:1px solid #DBD6CC">
+              <div style="display:grid; grid-template-columns:1fr auto auto; column-gap:12px; padding:10px 0; border-bottom:1px solid #EAE6DE; font-size:12.5px; color:#6B655C">
+                <span>項目</span><span>立替</span><span style="text-align:right">金額</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr auto auto; column-gap:12px; padding:11px 0; border-bottom:1px solid #EAE6DE; font-size:15.5px; align-items:baseline">
+                <span>宿 2泊（柳湯の宿）</span><span style="font-size:13.5px; color:#413D37">健一</span><span style="text-align:right; font-variant-numeric:tabular-nums">¥44,000</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr auto auto; column-gap:12px; padding:11px 0; border-bottom:1px solid #EAE6DE; font-size:15.5px; align-items:baseline">
+                <span>特急往復（2名）</span><span style="font-size:13.5px; color:#413D37">美咲</span><span style="text-align:right; font-variant-numeric:tabular-nums">¥18,400</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr auto auto; column-gap:12px; padding:11px 0; border-bottom:1px solid #EAE6DE; font-size:15.5px; align-items:baseline">
+                <span>外湯めぐり券・夕食追加</span><span style="font-size:13.5px; color:#413D37">健一</span><span style="text-align:right; font-variant-numeric:tabular-nums">¥6,000</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr auto; column-gap:12px; padding:12px 0; font-size:16px; font-weight:700; align-items:baseline">
+                <span>合計</span><span style="text-align:right; font-variant-numeric:tabular-nums">¥68,400</span>
+              </div>
+            </div>
+            <div style="border:1px solid #2C4A7C; border-radius:6px; padding:14px">
+              <div style="font-size:13.5px; color:#6B655C">精算</div>
+              <div style="font-family:'Noto Serif JP',serif; font-size:22px; font-weight:600; line-height:1.4; margin-top:3px">美咲 → 健一　<span style="font-variant-numeric:tabular-nums">¥15,800</span></div>
+              <div style="font-size:13.5px; color:#413D37; margin-top:4px">1人 ¥34,200 として計算</div>
+              <a href="#1a" style="display:block; margin-top:12px; text-align:center; text-decoration:none; background:#2C4A7C; color:#FBFAF7; font-size:16px; font-weight:700; padding:13px; border-radius:5px">PayPay で送金する</a>
+            </div>
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#413D37; margin-bottom:8px">予約控え</div>
+              <div style="border:1px solid #DBD6CC; border-radius:6px; padding:12px 14px; font-size:14.5px; line-height:1.8">
+                柳湯の宿　予約番号 <span style="font-family:'Noto Sans Mono',monospace">R-88214</span><br>
+                チェックイン 15:00 ／ 夕食 18:30<br>
+                特急きのさき5号　4号車 3A・3B
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showLineBars&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;表示条件&quot;},&quot;showUpdateBanner&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;表示条件&quot;},&quot;showNowMarker&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;表示条件&quot;},&quot;showVermilionCompare&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;表示条件&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const notes = { 田中: "幹事", 佐藤: "回答済", 鈴木: "回答済", 高橋: "未回答", 渡辺: "回答済", 伊藤: "回答済", 山本: "回答済", 中村: "回答済", 小林: "不参加", 加藤: "回答済", 吉田: "回答済", 山田: "回答済" };
+    return {
+      roster: Object.keys(notes).map(n => ({ name: n, note: notes[n] })),
+      showLineBars: this.props.showLineBars ?? false,
+      showUpdateBanner: this.props.showUpdateBanner ?? true,
+      showNowMarker: this.props.showNowMarker ?? true,
+      showVermilionCompare: this.props.showVermilionCompare ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>

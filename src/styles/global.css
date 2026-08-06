@@ -1,0 +1,976 @@
+/* ============================================================
+   旅のしおり — デザインシステム
+   「紙のしおりの記憶を持つデジタル」
+   アクセントは藍 #2C4A7C 一色。朱 #C2452D は変更・警告・未払い専用。
+   影・グラデーションなし。区切りは 1px hairline のみ。
+   ============================================================ */
+:root {
+  --ink: #1f1d1a;
+  --sub: #413d37;
+  --muted: #6b655c;
+  --paper: #fbfaf7;
+  --page: #efede7;
+  --line: #dbd6cc;
+  --line-lt: #eae6de;
+  --accent: #2c4a7c;
+  --accent-dk: #1e3557;
+  --warn: #c2452d;
+  --gray-bd: #a8a29a;
+  --gray-tx: #5c5750;
+  --banner: #f3efe4;
+  --serif: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+  --sans: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+  --mono: 'Noto Sans Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--accent-dk);
+}
+button {
+  font-family: inherit;
+}
+
+.serif {
+  font-family: var(--serif);
+}
+.mono {
+  font-family: var(--mono);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+.muted {
+  color: var(--muted);
+}
+
+/* ---------- アプリの枠 ---------- */
+.app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--paper);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+.app-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.app-body.with-tabbar {
+  padding-bottom: 84px;
+}
+
+/* ---------- 下部タブバー ---------- */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  height: 64px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  z-index: 20;
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.tabbar a .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+}
+.tabbar a.on {
+  color: var(--accent);
+  font-weight: 700;
+  border-top: 2px solid var(--accent);
+  margin-top: -1px;
+}
+.tabbar a.on .dot {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---------- 汎用パーツ ---------- */
+.btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  background: var(--accent);
+  color: var(--paper);
+  font-size: 17px;
+  font-weight: 700;
+  padding: 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.btn:hover {
+  color: var(--paper);
+  background: var(--accent-dk);
+}
+.btn.sm {
+  font-size: 16px;
+  padding: 13px;
+}
+.btn-outline {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 15.5px;
+  font-weight: 700;
+  padding: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.btn-ghost {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--gray-bd);
+  color: var(--ink);
+  font-size: 15.5px;
+  padding: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 3px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.badge.warn {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.chip {
+  display: inline-block;
+  font-size: 11.5px;
+  border: 1px solid var(--gray-bd);
+  color: var(--gray-tx);
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.5;
+}
+.chip.dashed {
+  border-style: dashed;
+  border-color: var(--gray-tx);
+}
+
+.hairline-block {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.igrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  row-gap: 7px;
+  column-gap: 14px;
+  font-size: 15px;
+  padding: 12px 0;
+}
+.igrid > .k {
+  color: var(--muted);
+}
+.igrid.roomy {
+  row-gap: 12px;
+  column-gap: 16px;
+  font-size: 16px;
+  padding: 14px 0;
+}
+
+.page-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.screen-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.screen-header .title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+/* ---------- 更新告知バー ---------- */
+.update-banner {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 11px 16px;
+  background: var(--banner);
+  border-bottom: 1px solid var(--line);
+}
+.update-banner .chip-update {
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.update-banner .text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sub);
+}
+
+/* ---------- 表紙 ---------- */
+.cover-rule {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.cover-rule .label {
+  font-family: var(--serif);
+  font-size: 14px;
+  letter-spacing: 0.28em;
+  color: var(--muted);
+}
+.cover-rule .corner {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.cover-eyebrow {
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-weight: 500;
+}
+.cover-title {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 1.22;
+  letter-spacing: 0.02em;
+}
+.cover-title .sub {
+  font-size: 29px;
+}
+.cover-title.compact {
+  font-size: 36px;
+  line-height: 1.26;
+}
+.cover-title.compact .sub {
+  font-size: 26px;
+}
+.cover-photo {
+  height: 212px;
+  background: repeating-linear-gradient(135deg, #e6e2d8 0 8px, #dcd7cb 8px 16px);
+  border-bottom: 1px solid var(--line);
+  background-size: cover;
+  background-position: center;
+}
+
+.panel {
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.panel-head {
+  background: var(--accent);
+  color: var(--paper);
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+}
+.panel-head .right {
+  font-weight: 400;
+  opacity: 0.85;
+}
+.panel-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.big-time {
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+}
+.big-amount {
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 14px;
+}
+.card.accent {
+  border-color: var(--accent);
+}
+
+.note-l {
+  font-size: 13.5px;
+  border-left: 2px solid var(--gray-bd);
+  padding-left: 8px;
+  color: var(--sub);
+  line-height: 1.6;
+}
+.note-l.warn {
+  border-left-color: var(--warn);
+}
+
+/* ---------- 行程タイムライン ---------- */
+.seg {
+  display: flex;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.seg button {
+  flex: 1;
+  text-align: center;
+  padding: 9px 0;
+  font-size: 15px;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.seg button.on {
+  font-weight: 700;
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.timeline {
+  display: grid;
+  grid-template-columns: 52px 16px 1fr;
+  column-gap: 10px;
+}
+.tl-time {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding-top: 1px;
+}
+.tl-time.transit {
+  font-size: 14.5px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.tl-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tl-marker .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.tl-marker .dot.hollow {
+  background: var(--paper);
+  border: 1px solid var(--muted);
+  margin-top: 5px;
+}
+.tl-marker .dot.current {
+  width: 11px;
+  height: 11px;
+  background: var(--accent);
+  margin-top: 5px;
+}
+.tl-marker .line {
+  flex: 1;
+  width: 1px;
+  background: var(--ink);
+}
+.tl-marker .line.dashed {
+  width: 0;
+  background: none;
+  border-left: 1px dashed var(--gray-bd);
+}
+.tl-body {
+  padding-bottom: 18px;
+}
+.tl-body.last {
+  padding-bottom: 0;
+}
+.tl-title {
+  font-size: 16.5px;
+  font-weight: 700;
+}
+.tl-desc {
+  font-size: 14.5px;
+  color: var(--sub);
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+.tl-desc a,
+.tl-note-links a {
+  font-size: 13.5px;
+}
+.tl-note {
+  margin-top: 6px;
+}
+.tl-live {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* いま マーカー */
+.now-row-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  align-self: center;
+}
+.now-row-tri {
+  display: flex;
+  justify-content: center;
+  align-self: center;
+}
+.now-row-tri span {
+  width: 0;
+  height: 0;
+  border-left: 7px solid var(--accent);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.now-row-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  margin: 2px 0 8px;
+}
+.now-row-line .pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--paper);
+  background: var(--accent);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.now-row-line .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--accent);
+}
+
+/* ---------- 名簿・リスト ---------- */
+.roster {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.roster button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line-lt);
+  background: transparent;
+  font-size: 16.5px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.roster button:last-child {
+  border-bottom: none;
+}
+.roster .note {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- フォーム ---------- */
+.field-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 8px;
+}
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.choice-grid button {
+  text-align: center;
+  padding: 14px 0;
+  font-size: 15.5px;
+  border: 1px solid var(--gray-bd);
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink);
+}
+.choice-grid button.on {
+  font-weight: 700;
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: var(--paper);
+}
+.radio-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.radio-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--gray-bd);
+  border-radius: 5px;
+  font-size: 15.5px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink);
+  text-align: left;
+}
+.radio-list button .radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--gray-tx);
+  flex-shrink: 0;
+}
+.radio-list button.on {
+  border: 2px solid var(--accent);
+  font-weight: 700;
+  padding: 12px 13px;
+}
+.radio-list button.on .radio {
+  border: 4px solid var(--accent);
+}
+
+.input-label {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.text-input {
+  width: 100%;
+  border: 1px solid var(--gray-bd);
+  border-radius: 5px;
+  padding: 13px 12px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+}
+.text-input::placeholder {
+  color: var(--muted);
+}
+.text-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ---------- 持ち物 ---------- */
+.check-list {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.check-list button {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 2px;
+  border: none;
+  border-bottom: 1px solid var(--line-lt);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+}
+.check-list button:last-child {
+  border-bottom: none;
+}
+.check-box {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--gray-tx);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--paper);
+}
+.check-box.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.check-label {
+  font-size: 16px;
+}
+.check-label.done {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--gray-bd);
+}
+.check-note {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- 費用テーブル ---------- */
+.cost-table {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.cost-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  column-gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-lt);
+  font-size: 15.5px;
+  align-items: baseline;
+}
+.cost-row.head {
+  padding: 10px 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cost-row .payer {
+  font-size: 13.5px;
+  color: var(--sub);
+}
+.cost-row .amt {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.cost-row.total {
+  grid-template-columns: 1fr auto;
+  padding: 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: none;
+}
+
+/* ---------- プラン ---------- */
+.plan-card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  cursor: pointer;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  color: var(--ink);
+  font-family: inherit;
+  display: block;
+}
+.plan-card.disabled {
+  cursor: default;
+}
+.plan-card .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.plan-card .name {
+  font-size: 16px;
+  font-weight: 700;
+}
+.plan-card .price {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.plan-card .desc {
+  font-size: 13.5px;
+  color: var(--sub);
+  line-height: 1.65;
+  margin-top: 3px;
+}
+.plan-card.selected-wrap {
+  padding: 0;
+  border: 2px solid var(--accent);
+  overflow: hidden;
+}
+.plan-selected-head {
+  background: var(--accent);
+  color: var(--paper);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+}
+.plan-selected-head .right {
+  font-weight: 400;
+}
+.plan-selected-body {
+  padding: 12px 14px;
+}
+.plan-selected-body .name {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+}
+.plan-selected-body .price {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sticky-footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  padding: 12px 20px 16px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  z-index: 20;
+}
+
+/* ---------- 完了バナー ---------- */
+.done-banner {
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 16px;
+}
+.done-banner .head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.done-banner .circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.done-banner .title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+}
+.done-banner .meta {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- ホーム(デモ索引) ---------- */
+.home {
+  background: var(--page);
+  min-height: 100dvh;
+  padding: 48px 24px 80px;
+}
+.home-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.home h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+}
+.home .lede {
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--sub);
+  max-width: 620px;
+}
+.home-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 20px;
+  margin-top: 20px;
+}
+.home-card h2 {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+.home-card .sub {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin-top: 2px;
+}
+.home-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.home-links a {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 9px 14px;
+  border-radius: 5px;
+}
+.home-links a.primary {
+  background: var(--accent);
+  color: var(--paper);
+}
+.home-note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-top: 16px;
+}
+.home-note code {
+  font-family: var(--mono);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ---------- 印刷ビュー ---------- */
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 30;
+}
+.print-sheet {
+  background: white;
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 48px 56px;
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.print-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transform: rotate(-28deg);
+  font-family: var(--serif);
+  font-size: 46px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  opacity: 0.16;
+  white-space: nowrap;
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .print-toolbar {
+    display: none;
+  }
+  .print-sheet {
+    border: none;
+    margin: 0 auto;
+    max-width: none;
+    page-break-after: always;
+    padding: 0;
+  }
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+}
