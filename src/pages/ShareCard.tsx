@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { useShioriState } from '../lib/store'
+import { themeClass } from '../lib/theme'
 import type { Shiori } from '../lib/types'
 
 /**
@@ -25,7 +26,7 @@ export function ShareCard({ shiori }: { shiori: Shiori }) {
 
   if (!paid) {
     return (
-      <div className="app">
+      <div className={`app${themeClass(shiori)}`}>
         <div className="app-body" style={{ padding: '48px 24px' }}>
           <h1 className="serif" style={{ fontSize: 23, fontWeight: 600, margin: 0 }}>
             共有カードは有料プランの機能です
@@ -48,7 +49,7 @@ export function ShareCard({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <div>
+    <div className={themeClass(shiori)}>
       <div className="print-toolbar">
         <Link to={`/manage/${shiori.slug}`} style={{ fontSize: 14 }}>
           ‹ 戻る

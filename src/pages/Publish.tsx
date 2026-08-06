@@ -4,6 +4,7 @@ import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
 import { yen } from '../lib/settle'
 import { useShioriState } from '../lib/store'
+import { themeClass } from '../lib/theme'
 import type { Shiori } from '../lib/types'
 
 const FREE_LIMIT = 6
@@ -56,7 +57,7 @@ export function PublishPlan({ shiori }: { shiori: Shiori }) {
   const selectedBorder = { border: '2px solid var(--accent)' } as const
 
   return (
-    <AppFrame>
+    <AppFrame shiori={shiori}>
       <div style={{ padding: '18px 20px 0' }}>
         <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
           しおりを公開する
@@ -199,7 +200,7 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <AppFrame>
+    <AppFrame shiori={shiori}>
       <div className="screen-header">
         <span className="title">お支払い</span>
         <span style={{ fontSize: 14, color: 'var(--muted)' }} className="tnum">
@@ -320,7 +321,7 @@ export function PublishDone({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <AppFrame>
+    <AppFrame shiori={shiori}>
       <div style={{ padding: '22px 20px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div className="done-banner">
           <div className="head">
@@ -392,7 +393,7 @@ export function Receipt({ shiori }: { shiori: Shiori }) {
   const price = billing.plan === 'year' ? 1800 : 480
   const d = new Date(billing.paidAt)
   return (
-    <div>
+    <div className={themeClass(shiori)}>
       <div className="print-toolbar">
         <Link to={`/publish/${shiori.slug}/done`} style={{ fontSize: 14 }}>
           ‹ 戻る

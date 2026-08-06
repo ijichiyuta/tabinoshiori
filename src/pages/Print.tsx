@@ -3,6 +3,7 @@ import { TimelineDay } from '../components/TimelineDay'
 import { InfoGrid } from '../components/InfoGrid'
 import { computeSettlement, yen } from '../lib/settle'
 import { attendanceCounts, useShioriState } from '../lib/store'
+import { themeClass } from '../lib/theme'
 import { useNow } from '../lib/time'
 import type { ReactNode } from 'react'
 import type { Shiori } from '../lib/types'
@@ -28,7 +29,7 @@ export function Print({ shiori }: { shiori: Shiori }) {
   const name = (id: string) => shiori.members.find((m) => m.id === id)?.name ?? id
 
   return (
-    <div>
+    <div className={themeClass(shiori)}>
       <div className="print-toolbar">
         <Link to={`/s/${shiori.slug}`} style={{ fontSize: 14 }}>
           ‹ しおりに戻る

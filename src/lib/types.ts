@@ -67,9 +67,12 @@ export interface Fee {
   deadline?: string // "8/15"
 }
 
+export type ShioriTheme = 'classic' | 'casual'
+
 export interface Shiori {
   slug: string
   kind: ShioriKind
+  theme?: ShioriTheme // 未設定は classic(和・明朝)
   coverLabel: string // し お り / た び の 記 録
   cornerNote: string // No. 2026-08 / 2名
   eyebrow: string // バドミントンサークル / 結婚記念日の旅

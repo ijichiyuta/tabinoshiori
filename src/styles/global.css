@@ -917,6 +917,61 @@ button {
   border-radius: 3px;
 }
 
+/* ---------- カジュアルテーマ(完全ゴシック) ---------- */
+.theme-casual {
+  --serif: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+  --paper: #ffffff;
+  --page: #f2f3f5;
+  --ink: #24221f;
+  --sub: #4a4740;
+  --muted: #77726a;
+  --line: #e4e3e0;
+  --line-lt: #efeeea;
+  --accent: #3565c0;
+  --accent-dk: #2a51a0;
+  --banner: #eef3fc;
+  --gray-bd: #b8b4ac;
+}
+.theme-casual .cover-title,
+.theme-casual .big-time,
+.theme-casual .big-amount {
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.theme-casual .cover-rule .label {
+  font-weight: 700;
+}
+.theme-casual .btn,
+.theme-casual .btn-outline,
+.theme-casual .btn-ghost,
+.theme-casual .add-btn {
+  border-radius: 12px;
+}
+.theme-casual .panel,
+.theme-casual .card,
+.theme-casual .plan-card,
+.theme-casual .done-banner,
+.theme-casual .print-sheet {
+  border-radius: 12px;
+}
+.theme-casual .panel {
+  overflow: hidden;
+}
+.theme-casual .seg,
+.theme-casual .choice-grid button,
+.theme-casual .radio-list button,
+.theme-casual .text-input {
+  border-radius: 10px;
+}
+.theme-casual .badge,
+.theme-casual .chip,
+.theme-casual .update-banner .chip-update {
+  border-radius: 6px;
+}
+.theme-casual .check-box {
+  border-radius: 6px;
+}
+
 /* ---------- 幹事エディタ ---------- */
 .manage-header {
   padding: 16px 20px;

@@ -30,6 +30,28 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
       onSave={save}
       saved={saved}
     >
+      <Field
+        label="テーマ"
+        hint="しおり全体(表紙・行程・印刷・共有カード)の雰囲気が切り替わります"
+      >
+        <div className="radio-list">
+          <button
+            className={draft.theme !== 'casual' ? 'on' : ''}
+            onClick={() => patch({ theme: 'classic' })}
+          >
+            <span className="radio" />
+            きっちり(和・明朝)
+          </button>
+          <button
+            className={draft.theme === 'casual' ? 'on' : ''}
+            onClick={() => patch({ theme: 'casual' })}
+          >
+            <span className="radio" />
+            カジュアル(ゴシック)
+          </button>
+        </div>
+      </Field>
+
       <Field label="上部ラベル(グループ名・旅の名前)">
         <TextInput value={draft.eyebrow} onChange={(v) => patch({ eyebrow: v })} />
       </Field>

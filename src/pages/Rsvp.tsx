@@ -26,7 +26,7 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <AppFrame>
+    <AppFrame shiori={shiori}>
       <div style={{ padding: '18px 20px 0' }}>
         <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
           あなたは どなたですか？
@@ -105,7 +105,7 @@ export function RsvpForm({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <AppFrame>
+    <AppFrame shiori={shiori}>
       <div className="screen-header">
         <span className="title">出欠のご回答</span>
         <span style={{ fontSize: 14, color: 'var(--sub)' }}>
@@ -200,7 +200,7 @@ export function RsvpDone({ shiori }: { shiori: Shiori }) {
       : answer.attendance
 
   return (
-    <AppFrame>
+    <AppFrame shiori={shiori}>
       <div className="screen-header">
         <span className="title">出欠のご回答</span>
       </div>
