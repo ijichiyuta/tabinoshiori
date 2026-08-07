@@ -114,7 +114,8 @@ async function handleApi(request, env, url) {
         env.DB.prepare("DELETE FROM docs WHERE slug = ?").bind(slug),
         env.DB.prepare("DELETE FROM answers WHERE slug = ?").bind(slug),
         env.DB.prepare("DELETE FROM checkin WHERE slug = ?").bind(slug),
-        env.DB.prepare("DELETE FROM surveys WHERE slug = ?").bind(slug)
+        env.DB.prepare("DELETE FROM surveys WHERE slug = ?").bind(slug),
+        env.DB.prepare("DELETE FROM billing WHERE slug = ?").bind(slug)
       ]);
       return json({ ok: true });
     }

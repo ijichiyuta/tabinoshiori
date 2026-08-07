@@ -180,6 +180,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
         env.DB.prepare('DELETE FROM answers WHERE slug = ?').bind(slug),
         env.DB.prepare('DELETE FROM checkin WHERE slug = ?').bind(slug),
         env.DB.prepare('DELETE FROM surveys WHERE slug = ?').bind(slug),
+        env.DB.prepare('DELETE FROM billing WHERE slug = ?').bind(slug),
       ])
       return json({ ok: true })
     }
