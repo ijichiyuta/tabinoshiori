@@ -229,3 +229,21 @@ export function pushFreeBilling(slug: string) {
     keepalive: true,
   })
 }
+
+/** 名前+電話下4桁の本人照合(サーバー版)。'nomatch'=不一致、null=オフライン等 */
+export async function verifyIdentity(
+  slug: string,
+  name: string,
+  digits: string,
+): Promise<{ memberId: string; token?: string } | 'nomatch' | null> {
+  const res = await api(`/api/verify/${slug}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name, digits }),
+  })
+  if (!res) return null
+  if (res.status === 404) return 'nomatch'
+  if (!res.ok) return null
+  const data = (await res.json().catch(() => null)) as { memberId?: string; token?: string } | null
+  return data?.memberId ? { memberId: data.memberId, token: data.token } : 'nomatch'
+}

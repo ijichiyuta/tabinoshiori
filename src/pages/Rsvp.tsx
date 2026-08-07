@@ -4,6 +4,8 @@ import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
 import { yen } from '../lib/settle'
 import { effectiveAnswer, feeFor, rosterNote, useShioriState } from '../lib/store'
+import { isBuiltin } from '../lib/docs'
+import { verifyIdentity } from '../lib/sync'
 import { nextEvent, shortDateLabel, useNow } from '../lib/time'
 import type { Member, Shiori } from '../lib/types'
 
@@ -13,24 +15,43 @@ function PrivateWhoGate({
   onMatch,
 }: {
   shiori: Shiori
-  onMatch: (memberId: string) => void
+  onMatch: (memberId: string, token?: string) => void
 }) {
   const [name, setName] = useState('')
   const [digits, setDigits] = useState('')
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
   const operatorContact = shiori.operator?.tel
     ? `${shiori.operator.name}(${shiori.operator.tel.display})`
     : '催行会社'
 
-  const submit = () => {
+  const submit = async () => {
     const n = name.trim()
     const d = digits.replace(/\D/g, '')
+    if (!n) return
+    setBusy(true)
+    // サーバー照合を優先(名簿もトークンも端末に出さない)
+    if (!isBuiltin(shiori.slug)) {
+      const res = await verifyIdentity(shiori.slug, n, d)
+      setBusy(false)
+      if (res === 'nomatch') {
+        setError(true)
+        return
+      }
+      if (res) {
+        onMatch(res.memberId, res.token)
+        return
+      }
+      // null=オフライン等はローカル照合へフォールバック
+    } else {
+      setBusy(false)
+    }
     const hit = shiori.members.find((m) => {
       if (m.name !== n) return false
       const l4 = m.tel?.href.replace(/\D/g, '').slice(-4)
       return l4 ? l4 === d : d === '' // 電話未登録のお客様は名前のみ
     })
-    if (hit) onMatch(hit.id)
+    if (hit) onMatch(hit.id, hit.token)
     else setError(true)
   }
 
@@ -65,8 +86,8 @@ function PrivateWhoGate({
             見つかりませんでした。{operatorContact}へご連絡ください。
           </div>
         )}
-        <button className="btn sm" onClick={submit}>
-          確認して開く
+        <button className="btn sm" onClick={() => void submit()} disabled={busy}>
+          {busy ? '確認しています…' : '確認して開く'}
         </button>
       </div>
     </AppFrame>
@@ -93,8 +114,8 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
   const security = shiori.security ?? {}
   const organizer = shiori.contacts.find((c) => c.label === '幹事')
 
-  const proceed = (memberId: string) => {
-    update({ memberId })
+  const proceed = (memberId: string, token?: string) => {
+    update({ memberId, ...(token ? { token } : {}) })
     if (isTour) {
       navigate(`/s/${shiori.slug}`)
       return
@@ -172,9 +193,10 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
     )
   }
 
-  // 名簿非公開モード: 一覧を出さず、名前+下4桁で照合
-  if (isTour && security.privateRoster) {
-    return <PrivateWhoGate shiori={shiori} onMatch={(id) => proceed(id)} />
+  // ツアーは名簿を一切表示しない(他のお客様の名前が見えてはいけない)。
+  // 入口は「個別リンク」か「名前+電話下4桁」のみ
+  if (isTour) {
+    return <PrivateWhoGate shiori={shiori} onMatch={(id, token) => proceed(id, token)} />
   }
 
   const members = query.trim()

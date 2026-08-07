@@ -278,27 +278,12 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
         />
       </Field>
       {draft.kind === 'tour' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 14 }}>
-          <label className="inline-check">
-            <input
-              type="checkbox"
-              checked={draft.security?.requireVerify ?? false}
-              onChange={(e) =>
-                patch({ security: { ...(draft.security ?? {}), requireVerify: e.target.checked } })
-              }
-            />
-            名簿から選んだあとに電話番号の下4桁で本人照合する(なりすまし防止)
-          </label>
-          <label className="inline-check">
-            <input
-              type="checkbox"
-              checked={draft.security?.privateRoster ?? false}
-              onChange={(e) =>
-                patch({ security: { ...(draft.security ?? {}), privateRoster: e.target.checked } })
-              }
-            />
-            名簿一覧を表示しない(個別リンクと「名前+下4桁」のみで開ける)
-          </label>
+        <div
+          className="note-l"
+          style={{ marginBottom: 14, fontSize: 13, lineHeight: 1.8 }}
+        >
+          ツアーの名簿は参加者には表示されません(標準仕様)。お客様は「招待リンク(個別URL)」
+          または「予約名の姓+電話番号下4桁」でご本人のしおりだけを開けます。
         </div>
       )}
     </EditorFrame>

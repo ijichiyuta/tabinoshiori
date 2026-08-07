@@ -260,10 +260,12 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     // 名簿非公開モード(privateRoster)ではトークン照合を必須にする
     try {
       const doc = JSON.parse(docRow.doc) as {
+        kind?: string
         security?: { privateRoster?: boolean }
         members?: MemberRow[]
       }
-      if (doc.security?.privateRoster) {
+      // ツアーは常に、名簿非公開モードのしおりも、本人トークンを要求する
+      if (doc.kind === 'tour' || doc.security?.privateRoster) {
         const member = (doc.members ?? []).find((m) => m.id === memberId)
         const isAdmin = request.headers.get('x-admin-key') === docRow.admin_key
         if (
@@ -303,6 +305,29 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       .bind(slug, memberId, body.checked ? 1 : 0, Date.now())
       .run()
     return json({ ok: true })
+  }
+
+  // POST /api/verify/:slug {name, digits} — 名前+電話下4桁の本人照合(名簿を露出させないための入口)
+  const verifyMatch = path.match(/^\/api\/verify\/([a-z0-9-]+)$/)
+  if (verifyMatch && method === 'POST') {
+    // 総当たり対策: 厳しめのレート制限
+    if (await rateLimited(env, request, 'verify', 15)) return err('too many requests', 429)
+    const slug = verifyMatch[1] as string
+    const body = (await readJson(request)) as { name?: unknown; digits?: unknown } | null
+    if (!body || typeof body.name !== 'string') return err('invalid body', 400)
+    const digits = typeof body.digits === 'string' ? body.digits.replace(/\D/g, '') : ''
+    const row = await env.DB.prepare('SELECT doc FROM docs WHERE slug = ?').bind(slug).first<{ doc: string }>()
+    if (!row) return err('not found', 404)
+    const doc = JSON.parse(row.doc) as { members?: MemberRow[] }
+    const name = body.name.trim()
+    const hit = (doc.members ?? []).find((m) => {
+      if (typeof m.name !== 'string' || m.name !== name) return false
+      const tel = m.tel as { href?: string } | undefined
+      const last4 = typeof tel?.href === 'string' ? tel.href.replace(/\D/g, '').slice(-4) : ''
+      return last4 ? last4 === digits : digits === ''
+    })
+    if (!hit || typeof hit.id !== 'string') return err('no match', 404)
+    return json({ memberId: hit.id, token: typeof hit.token === 'string' ? hit.token : undefined })
   }
 
   // GET /api/billing/health — Stripeが使えるか(クライアントのフォールバック判定)

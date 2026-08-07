@@ -107,31 +107,41 @@ for (let i = 0; i < 6 && !checkinSynced; i++) {
 }
 check('点呼が別端末で見える(1/1)', checkinSynced)
 
-// 7) 名簿非公開モードではトークンなしの書き込みを拒否する
-await A.goto(base + `/manage/${tourSlug}/edit`)
-await A.click('.inline-check:has-text("名簿一覧を表示しない") >> input')
-await A.click('.save-bar button')
-await A.waitForSelector('.saved-note')
-await A.waitForTimeout(2500)
+// 7) ツアーは標準でトークンなしの書き込みを拒否する(名簿非公開が標準仕様)
 const token = inviteUrl.split('?t=')[1]
 const noToken = await fetch(`${base}/api/state/${tourSlug}/answers/m1`, {
   method: 'PUT',
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ attendance: '参加', paid: false }),
 })
-check('非公開モード: トークンなし書き込みは403', noToken.status === 403)
+check('ツアー標準: トークンなし書き込みは403', noToken.status === 403)
 const withToken = await fetch(`${base}/api/state/${tourSlug}/answers/m1?t=${token}`, {
   method: 'PUT',
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ attendance: '参加', paid: false }),
 })
-check('非公開モード: トークン付き書き込みは200', withToken.status === 200)
+check('ツアー標準: トークン付き書き込みは200', withToken.status === 200)
 const orphan = await fetch(`${base}/api/state/nonexistent99/answers/m1`, {
   method: 'PUT',
   headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ attendance: '参加', paid: false }),
 })
 check('存在しないしおりへの書き込みは404', orphan.status === 404)
+
+// 8) 本人照合API(名前+下4桁→memberId+token)
+const vOk = await fetch(`${base}/api/verify/${tourSlug}`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ name: 'お客様1', digits: '' }),
+})
+const vData = await vOk.json()
+check('照合APIが本人にtokenを返す', vOk.status === 200 && vData.memberId === 'm1' && vData.token === token)
+const vBad = await fetch(`${base}/api/verify/${tourSlug}`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ name: 'お客様1', digits: '9999' }),
+})
+check('照合APIは不一致を404で弾く', vBad.status === 404)
 
 // 後片付け(サーバー側も削除)
 await A.goto(base + `/manage/${slug}`)

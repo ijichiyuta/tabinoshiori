@@ -170,7 +170,7 @@ async function handleApi(request, env, url) {
     if (!docRow) return err("not found", 404);
     try {
       const doc = JSON.parse(docRow.doc);
-      if (doc.security?.privateRoster) {
+      if (doc.kind === "tour" || doc.security?.privateRoster) {
         const member = (doc.members ?? []).find((m) => m.id === memberId);
         const isAdmin = request.headers.get("x-admin-key") === docRow.admin_key;
         if (!isAdmin && typeof member?.token === "string" && url.searchParams.get("t") !== member.token) {
@@ -199,6 +199,26 @@ async function handleApi(request, env, url) {
        ON CONFLICT (slug, member_id) DO UPDATE SET checked = excluded.checked, updated_at = excluded.updated_at`
     ).bind(slug, memberId, body.checked ? 1 : 0, Date.now()).run();
     return json({ ok: true });
+  }
+  const verifyMatch = path.match(/^\/api\/verify\/([a-z0-9-]+)$/);
+  if (verifyMatch && method === "POST") {
+    if (await rateLimited(env, request, "verify", 15)) return err("too many requests", 429);
+    const slug = verifyMatch[1];
+    const body = await readJson(request);
+    if (!body || typeof body.name !== "string") return err("invalid body", 400);
+    const digits = typeof body.digits === "string" ? body.digits.replace(/\D/g, "") : "";
+    const row = await env.DB.prepare("SELECT doc FROM docs WHERE slug = ?").bind(slug).first();
+    if (!row) return err("not found", 404);
+    const doc = JSON.parse(row.doc);
+    const name = body.name.trim();
+    const hit = (doc.members ?? []).find((m) => {
+      if (typeof m.name !== "string" || m.name !== name) return false;
+      const tel = m.tel;
+      const last4 = typeof tel?.href === "string" ? tel.href.replace(/\D/g, "").slice(-4) : "";
+      return last4 ? last4 === digits : digits === "";
+    });
+    if (!hit || typeof hit.id !== "string") return err("no match", 404);
+    return json({ memberId: hit.id, token: typeof hit.token === "string" ? hit.token : void 0 });
   }
   if (path === "/api/billing/health" && method === "GET") {
     return json({ stripe: !!env.STRIPE_SECRET_KEY });
