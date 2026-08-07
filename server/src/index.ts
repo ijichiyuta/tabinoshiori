@@ -13,6 +13,7 @@
 export interface Env {
   DB: D1Database
   ASSETS: Fetcher
+  RATE: KVNamespace // レート制限カウンタ
   STRIPE_SECRET_KEY?: string // wrangler secret。未設定なら課金APIは501(クライアントはデモ課金へフォールバック)
 }
 
@@ -108,6 +109,24 @@ async function readJson(request: Request): Promise<unknown | null> {
   }
 }
 
+/**
+ * IPベースの簡易レート制限(KV)。作成系の低頻度エンドポイント専用。
+ * KV無料枠(書き込み1,000/日)を守るため、高頻度の回答系には使わない。
+ */
+async function rateLimited(env: Env, request: Request, bucket: string, limit: number): Promise<boolean> {
+  try {
+    const ip = request.headers.get('cf-connecting-ip') ?? 'unknown'
+    const hour = Math.floor(Date.now() / 3_600_000)
+    const key = `${bucket}:${ip}:${hour}`
+    const n = parseInt((await env.RATE.get(key)) ?? '0', 10)
+    if (n >= limit) return true
+    await env.RATE.put(key, String(n + 1), { expirationTtl: 3700 })
+    return false
+  } catch {
+    return false // レート制限の障害でサービスを止めない
+  }
+}
+
 async function requireAdmin(env: Env, slug: string, request: Request): Promise<Response | null> {
   const key = request.headers.get('x-admin-key') ?? ''
   const row = await env.DB.prepare('SELECT admin_key FROM docs WHERE slug = ?').bind(slug).first<{
@@ -125,6 +144,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   // POST /api/docs — 新規作成。adminKeyはクライアント生成を優先
   // (応答がページ遷移で失われてもキーが迷子にならず、冪等にリトライできる)
   if (path === '/api/docs' && method === 'POST') {
+    if (await rateLimited(env, request, 'docs', 20)) return err('too many requests', 429)
     const body = (await readJson(request)) as { doc?: unknown; adminKey?: unknown } | null
     if (!body || !isDocShape(body.doc)) return err('invalid doc', 400)
     const doc = body.doc
@@ -295,6 +315,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (checkoutMatch && method === 'POST') {
     const slug = checkoutMatch[1] as string
     if (!env.STRIPE_SECRET_KEY) return err('stripe not configured', 501)
+    if (await rateLimited(env, request, 'checkout', 10)) return err('too many requests', 429)
     const body = (await readJson(request)) as { plan?: unknown } | null
     const plan = body?.plan === 'year' ? 'year' : 'one'
     const price = PLAN_PRICES[plan] as { amount: number; name: string }

@@ -60,6 +60,20 @@ async function readJson(request) {
   }
 }
 __name(readJson, "readJson");
+async function rateLimited(env, request, bucket, limit) {
+  try {
+    const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+    const hour = Math.floor(Date.now() / 36e5);
+    const key = `${bucket}:${ip}:${hour}`;
+    const n = parseInt(await env.RATE.get(key) ?? "0", 10);
+    if (n >= limit) return true;
+    await env.RATE.put(key, String(n + 1), { expirationTtl: 3700 });
+    return false;
+  } catch {
+    return false;
+  }
+}
+__name(rateLimited, "rateLimited");
 async function requireAdmin(env, slug, request) {
   const key = request.headers.get("x-admin-key") ?? "";
   const row = await env.DB.prepare("SELECT admin_key FROM docs WHERE slug = ?").bind(slug).first();
@@ -72,6 +86,7 @@ async function handleApi(request, env, url) {
   const path = url.pathname;
   const method = request.method;
   if (path === "/api/docs" && method === "POST") {
+    if (await rateLimited(env, request, "docs", 20)) return err("too many requests", 429);
     const body = await readJson(request);
     if (!body || !isDocShape(body.doc)) return err("invalid doc", 400);
     const doc = body.doc;
@@ -192,6 +207,7 @@ async function handleApi(request, env, url) {
   if (checkoutMatch && method === "POST") {
     const slug = checkoutMatch[1];
     if (!env.STRIPE_SECRET_KEY) return err("stripe not configured", 501);
+    if (await rateLimited(env, request, "checkout", 10)) return err("too many requests", 429);
     const body = await readJson(request);
     const plan = body?.plan === "year" ? "year" : "one";
     const price = PLAN_PRICES[plan];
@@ -325,7 +341,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-xvhiIU/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-lXCepD/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -357,7 +373,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-xvhiIU/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-lXCepD/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
