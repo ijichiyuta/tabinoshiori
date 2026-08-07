@@ -85,6 +85,10 @@ export function Home() {
             デモデータをリセット
           </a>
         </div>
+        <div className="home-note" style={{ marginTop: 28 }}>
+          <Link to="/terms">利用規約</Link>　<Link to="/privacy">プライバシーポリシー</Link>　
+          <Link to="/tokushoho">特定商取引法に基づく表記</Link>
+        </div>
       </div>
     </div>
   )

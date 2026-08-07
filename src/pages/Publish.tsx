@@ -284,16 +284,9 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
         </button>
         <div style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginTop: 8 }}>
           自動更新はありません。
-          <a
-            href="#tokushoho"
-            onClick={(e) => {
-              e.preventDefault()
-              window.alert('特定商取引法に基づく表記(デモのため省略)')
-            }}
-            style={{ fontSize: 12.5 }}
-          >
+          <Link to="/tokushoho" style={{ fontSize: 12.5 }}>
             特定商取引法に基づく表記
-          </a>
+          </Link>
         </div>
       </div>
     </AppFrame>

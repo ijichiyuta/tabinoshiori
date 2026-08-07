@@ -23,6 +23,7 @@ import { RsvpDone, RsvpForm, RsvpWho } from './pages/Rsvp'
 import { Schedule } from './pages/Schedule'
 import { ShareCard } from './pages/ShareCard'
 import { Updates } from './pages/Updates'
+import { Privacy, Terms, Tokushoho } from './pages/Legal'
 import { NotFound } from './components/ShioriRoute'
 
 const CoverR = withShiori(Cover)
@@ -128,6 +129,9 @@ export default function App() {
         <Route path="/publish/:slug/pay" element={<PublishPayR />} />
         <Route path="/publish/:slug/done" element={<PublishDoneR />} />
         <Route path="/publish/:slug/receipt" element={<ReceiptR />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/tokushoho" element={<Tokushoho />} />
         <Route path="/manage" element={<ManageHome />} />
         <Route path="/manage/:slug" element={<ManageHubR />} />
         <Route path="/manage/:slug/edit" element={<ManageEditBasicR />} />
