@@ -362,7 +362,24 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   return err('not found', 404)
 }
 
+/** 古いしおりの自動削除(毎日 3:00 JST)。最終更新から18ヶ月で文書と関連データを削除 */
+async function cleanup(env: Env): Promise<void> {
+  const cutoff = Date.now() - 540 * 24 * 60 * 60 * 1000
+  await env.DB.prepare('DELETE FROM docs WHERE updated_at < ?').bind(cutoff).run()
+  // 文書が消えたしおりの孤児データを掃除
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM answers WHERE slug NOT IN (SELECT slug FROM docs)'),
+    env.DB.prepare('DELETE FROM checkin WHERE slug NOT IN (SELECT slug FROM docs)'),
+    env.DB.prepare('DELETE FROM surveys WHERE slug NOT IN (SELECT slug FROM docs)'),
+    env.DB.prepare('DELETE FROM billing WHERE slug NOT IN (SELECT slug FROM docs)'),
+  ])
+}
+
 export default {
+  async scheduled(_event: unknown, env: Env): Promise<void> {
+    await cleanup(env)
+  },
+
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     if (url.pathname.startsWith('/api/')) {

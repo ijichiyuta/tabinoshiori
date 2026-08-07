@@ -15,6 +15,7 @@
       "database_id": "32c323bb-ff62-4761-aac7-94887043d3b3"
     }
   ],
+  "triggers": { "crons": ["0 18 * * *"] },
   "routes": [
     { "pattern": "tabiawase.com", "custom_domain": true },
     { "pattern": "www.tabiawase.com", "custom_domain": true }

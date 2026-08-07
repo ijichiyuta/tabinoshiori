@@ -248,7 +248,21 @@ async function handleApi(request, env, url) {
   return err("not found", 404);
 }
 __name(handleApi, "handleApi");
+async function cleanup(env) {
+  const cutoff = Date.now() - 540 * 24 * 60 * 60 * 1e3;
+  await env.DB.prepare("DELETE FROM docs WHERE updated_at < ?").bind(cutoff).run();
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM answers WHERE slug NOT IN (SELECT slug FROM docs)"),
+    env.DB.prepare("DELETE FROM checkin WHERE slug NOT IN (SELECT slug FROM docs)"),
+    env.DB.prepare("DELETE FROM surveys WHERE slug NOT IN (SELECT slug FROM docs)"),
+    env.DB.prepare("DELETE FROM billing WHERE slug NOT IN (SELECT slug FROM docs)")
+  ]);
+}
+__name(cleanup, "cleanup");
 var src_default = {
+  async scheduled(_event, env) {
+    await cleanup(env);
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/")) {
@@ -310,7 +324,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-LkWYqP/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-xvhiIU/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -342,7 +356,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-LkWYqP/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-xvhiIU/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
