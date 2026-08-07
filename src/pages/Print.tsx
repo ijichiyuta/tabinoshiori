@@ -6,6 +6,7 @@ import { InfoGrid } from '../components/InfoGrid'
 import { computeSettlement, yen } from '../lib/settle'
 import { attendanceCounts, useShioriState } from '../lib/store'
 import { themeClass } from '../lib/theme'
+import { shareDisplay, shareUrlFor } from '../lib/share'
 import { useNow } from '../lib/time'
 import type { Shiori } from '../lib/types'
 
@@ -13,7 +14,7 @@ import type { Shiori } from '../lib/types'
 function PrintQr({ url }: { url: string }) {
   const [qr, setQr] = useState('')
   useEffect(() => {
-    QRCode.toDataURL(`https://${url}`, {
+    QRCode.toDataURL(url, {
       width: 240,
       margin: 1,
       color: { dark: '#1F1D1A', light: '#FFFFFF' },
@@ -148,9 +149,9 @@ export function Print({ shiori }: { shiori: Shiori }) {
           }}
         >
           <div style={{ fontSize: 13, color: 'var(--muted)' }} className="mono">
-            {shiori.shareUrl}
+            {shareDisplay(shiori.slug)}
           </div>
-          {!watermark && <PrintQr url={shiori.shareUrl} />}
+          {!watermark && <PrintQr url={shareUrlFor(shiori.slug)} />}
         </div>
       </Sheet>
 

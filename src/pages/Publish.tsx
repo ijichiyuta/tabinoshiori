@@ -5,6 +5,7 @@ import { InfoGrid } from '../components/InfoGrid'
 import { yen } from '../lib/settle'
 import { useShioriState } from '../lib/store'
 import { themeClass } from '../lib/theme'
+import { shareDisplay, shareUrlFor } from '../lib/share'
 import { isBuiltin } from '../lib/docs'
 import { confirmCheckout, pushFreeBilling, startCheckout, stripeAvailable } from '../lib/sync'
 import type { Shiori } from '../lib/types'
@@ -336,11 +337,11 @@ export function PublishDone({ shiori }: { shiori: Shiori }) {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(`https://${shiori.shareUrl}`)
+      await navigator.clipboard.writeText(shareUrlFor(shiori.slug))
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      window.prompt('このURLをコピーしてください', `https://${shiori.shareUrl}`)
+      window.prompt('このURLをコピーしてください', shareUrlFor(shiori.slug))
     }
   }
 
@@ -389,7 +390,7 @@ export function PublishDone({ shiori }: { shiori: Shiori }) {
         <div className="card">
           <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>参加者用URL</div>
           <div className="mono" style={{ fontSize: 14, marginTop: 5, wordBreak: 'break-all' }}>
-            {shiori.shareUrl}
+            {shareDisplay(shiori.slug)}
           </div>
           <button className="btn-outline" style={{ marginTop: 11 }} onClick={copy}>
             {copied ? 'コピーしました ✓' : 'URLをコピーして共有'}
@@ -510,7 +511,7 @@ export function Receipt({ shiori }: { shiori: Shiori }) {
           <br />
           tabiawase.com ・ info@smcn-jp.com
           <br />
-          支払方法: {billing.method ?? '—'}
+          支払方法: {billing.method ?? 'クレジットカード(Stripe)'}
           {billing.last4 && `(末尾 ${billing.last4})`}
         </div>
       </div>

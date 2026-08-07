@@ -7,7 +7,7 @@ import { effectiveAnswer, feeFor, rosterNote, useShioriState } from '../lib/stor
 import { isBuiltin } from '../lib/docs'
 import { verifyIdentity } from '../lib/sync'
 import { nextEvent, shortDateLabel, useNow } from '../lib/time'
-import type { Member, Shiori } from '../lib/types'
+import type { Shiori } from '../lib/types'
 
 /** 名簿非公開モードの入口: 名前+電話下4桁で照合(一覧は見せない) */
 function PrivateWhoGate({
@@ -100,18 +100,12 @@ function fmtStamp(iso: string): string {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-const last4 = (m: Member) => m.tel?.href.replace(/\D/g, '').slice(-4)
-
 /* ---------- 03 本人選択(ログインの代わり) ---------- */
 export function RsvpWho({ shiori }: { shiori: Shiori }) {
   const [state, update] = useShioriState(shiori)
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const [pending, setPending] = useState<Member | null>(null) // 下4桁の照合待ち
-  const [digits, setDigits] = useState('')
-  const [verifyError, setVerifyError] = useState(false)
   const isTour = shiori.kind === 'tour'
-  const security = shiori.security ?? {}
   const organizer = shiori.contacts.find((c) => c.label === '幹事')
 
   const proceed = (memberId: string, token?: string) => {
@@ -124,77 +118,8 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
     navigate(answered ? `/s/${shiori.slug}` : `/s/${shiori.slug}/rsvp`)
   }
 
-  const choose = (memberId: string) => {
-    const m = shiori.members.find((x) => x.id === memberId)
-    if (!m) return
-    // ツアーで本人照合が有効かつ電話番号の登録がある場合は下4桁を確認
-    if (isTour && security.requireVerify && last4(m)) {
-      setPending(m)
-      setDigits('')
-      setVerifyError(false)
-      return
-    }
-    proceed(memberId)
-  }
-
-  const verify = () => {
-    if (!pending) return
-    if (digits.replace(/\D/g, '') === last4(pending)) {
-      proceed(pending.id)
-    } else {
-      setVerifyError(true)
-    }
-  }
-
-  const operatorContact = shiori.operator?.tel
-    ? `${shiori.operator.name}(${shiori.operator.tel.display})`
-    : '催行会社'
-
-  // 照合ステップ
-  if (pending) {
-    return (
-      <AppFrame shiori={shiori}>
-        <div style={{ padding: '18px 20px 0' }}>
-          <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
-            ご本人確認
-          </h1>
-          <p style={{ margin: '7px 0 0', fontSize: 14.5, lineHeight: 1.65, color: 'var(--sub)' }}>
-            <strong>{pending.name}</strong> 様ですね。なりすまし防止のため、
-            ご予約時の電話番号の<strong>下4桁</strong>を入力してください。
-          </p>
-        </div>
-        <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input
-            className="text-input"
-            inputMode="numeric"
-            maxLength={4}
-            placeholder="0000"
-            value={digits}
-            onChange={(e) => {
-              setDigits(e.target.value)
-              setVerifyError(false)
-            }}
-            style={{ fontSize: 22, textAlign: 'center', letterSpacing: '0.3em' }}
-          />
-          {verifyError && (
-            <div className="note-l warn" style={{ color: 'var(--warn)' }}>
-              一致しませんでした。ご予約時の電話番号をお確かめください。
-              ご不明な場合は{operatorContact}へご連絡ください。
-            </div>
-          )}
-          <button className="btn sm" onClick={verify}>
-            確認して開く
-          </button>
-          <button className="btn-ghost" onClick={() => setPending(null)}>
-            名簿にもどる
-          </button>
-        </div>
-      </AppFrame>
-    )
-  }
-
   // ツアーは名簿を一切表示しない(他のお客様の名前が見えてはいけない)。
-  // 入口は「個別リンク」か「名前+電話下4桁」のみ
+  // 入口は「個別リンク」か「姓+電話下4桁」のみ
   if (isTour) {
     return <PrivateWhoGate shiori={shiori} onMatch={(id, token) => proceed(id, token)} />
   }
@@ -203,17 +128,13 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
     ? shiori.members.filter((m) => m.name.includes(query.trim()))
     : shiori.members
 
-  const contactNote = isTour
-    ? shiori.operator?.tel
-      ? `お名前が見つからない場合は${shiori.operator.name}(${shiori.operator.tel.display})までご連絡ください。`
-      : 'お名前が見つからない場合は催行会社までご連絡ください。'
-    : `名前がない場合は幹事${organizer?.tel ? `(${organizer.name} ${organizer.tel.display})` : ''}までご連絡ください。`
+  const contactNote = `名前がない場合は幹事${organizer?.tel ? `(${organizer.name} ${organizer.tel.display})` : ''}までご連絡ください。`
 
   return (
     <AppFrame shiori={shiori}>
       <div style={{ padding: '18px 20px 0' }}>
         <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
-          {isTour ? 'ご予約のお名前をお選びください' : 'あなたは どなたですか？'}
+          あなたは どなたですか？
         </h1>
         <p style={{ margin: '7px 0 0', fontSize: 14.5, lineHeight: 1.65, color: 'var(--sub)' }}>
           名簿からお名前を選んでください。登録やログインは不要です。{contactNote}
@@ -231,7 +152,7 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
       )}
       <div style={{ margin: '14px 20px 24px' }} className="roster">
         {members.map((m) => (
-          <button key={m.id} onClick={() => choose(m.id)}>
+          <button key={m.id} onClick={() => proceed(m.id)}>
             <span>{m.name}</span>
             <span className="note tnum">{rosterNote(shiori, state, m.id)}</span>
           </button>

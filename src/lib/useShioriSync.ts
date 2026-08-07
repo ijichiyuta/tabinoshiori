@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { findShiori, isBuiltin, saveDocLocal } from './docs'
+import { docSavedAt, findShiori, isBuiltin, saveDocLocal } from './docs'
 import { mergeStateFromServer, pullDoc, pullState, setMemberIdLocal } from './sync'
 
 export type SyncStatus = 'ready' | 'loading' | 'missing'
@@ -33,8 +33,10 @@ export function useShioriSync(slug: string | undefined): SyncStatus {
       if (!alive) return
       if (docRes) {
         const localDoc = findShiori(slug)
-        if (!localDoc || JSON.stringify(localDoc) !== JSON.stringify(docRes.doc)) {
-          saveDocLocal(docRes.doc)
+        // ローカルの方が新しい(push未着地の編集がある)場合は巻き戻さない
+        const serverNewer = docRes.updatedAt >= docSavedAt(slug)
+        if (!localDoc || (serverNewer && JSON.stringify(localDoc) !== JSON.stringify(docRes.doc))) {
+          saveDocLocal(docRes.doc, docRes.updatedAt)
         }
         if (docRes.memberId) setMemberIdLocal(slug, docRes.memberId, token ?? undefined)
         if (stateRes) mergeStateFromServer(slug, stateRes, docRes.memberId)

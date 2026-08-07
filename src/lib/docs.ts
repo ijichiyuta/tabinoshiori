@@ -64,9 +64,25 @@ export function loadDoc(slug: string): Shiori | null {
   return null
 }
 
+const docTsKey = (slug: string) => `doc-ts:${slug}`
+
+/** ローカル文書の最終保存時刻(pullの巻き戻し防止に使う) */
+export function docSavedAt(slug: string): number {
+  try {
+    return Number(localStorage.getItem(docTsKey(slug)) ?? 0)
+  } catch {
+    return 0
+  }
+}
+
 /** ローカル保存のみ(サーバーからのpull反映用。pushしない) */
-export function saveDocLocal(doc: Shiori) {
+export function saveDocLocal(doc: Shiori, ts: number = Date.now()) {
   localStorage.setItem(docKey(doc.slug), JSON.stringify(doc))
+  try {
+    localStorage.setItem(docTsKey(doc.slug), String(ts))
+  } catch {
+    // no-op
+  }
   writeIndex([...readIndex(), doc.slug])
 }
 
@@ -144,7 +160,7 @@ export function dateLabelRange(dates: string[]): string {
 export function duplicateShiori(src: Shiori): Shiori {
   const copy = structuredClone(src)
   copy.slug = uid('s')
-  copy.shareUrl = `tabiawase.jp/s/${copy.slug}`
+  copy.shareUrl = `tabiawase.com/s/${copy.slug}`
   copy.title = `${src.title}(コピー)`
   saveDoc(copy)
   return copy
@@ -197,7 +213,7 @@ export function createShiori(kind: ShioriKind): Shiori {
     checklist: [],
     contacts: [],
     updates: [],
-    shareUrl: `tabiawase.jp/s/${slug}`,
+    shareUrl: `tabiawase.com/s/${slug}`,
   }
   if (kind === 'duo') {
     base.expenses = []

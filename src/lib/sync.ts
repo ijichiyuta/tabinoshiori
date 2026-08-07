@@ -68,13 +68,23 @@ export async function pushDoc(doc: Shiori): Promise<void> {
     keepalive,
   })
   if (res && res.status !== 404) return
-  await api('/api/docs', {
+  const created = await api('/api/docs', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ doc, adminKey: key }),
     keepalive,
   })
-  // 409(他人のslug)等は黙ってローカルのみ運用
+  // 409 = 遅延していた自分の旧POSTが先に着地した可能性。
+  // 同一のクライアント生成キーで作成されているはずなのでPUTで上書きを再試行し、
+  // 最新の内容(トークン等)に収束させる。他人のslugならPUTが403で自然に終わる
+  if (created?.status === 409) {
+    await api(`/api/docs/${doc.slug}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', 'x-admin-key': key },
+      body: putBody,
+      keepalive,
+    })
+  }
 }
 
 export async function deleteDocRemote(slug: string): Promise<void> {

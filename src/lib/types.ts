@@ -127,7 +127,7 @@ export interface Shiori {
   expenses?: Expense[]
   reservations?: string[]
   coverBadge?: string // 宿代 前払済 ✓
-  shareUrl: string // tabiawase.jp/s/tob2026
+  shareUrl: string // tabiawase.com/s/tob2026
   // ツアー(事業者)向け
   boardingPoints?: BoardingPoint[]
   operator?: { name: string; tel?: { display: string; href: string }; note?: string }

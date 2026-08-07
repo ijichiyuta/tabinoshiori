@@ -12,6 +12,7 @@ import {
   saveDoc,
 } from '../lib/docs'
 import { useShioriState } from '../lib/store'
+import { shareDisplay } from '../lib/share'
 import type { Shiori, ShioriKind } from '../lib/types'
 
 /* ---------- 幹事: しおり一覧・新規作成 ---------- */
@@ -111,7 +112,7 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
             'URL',
             <span key="u">
               <span className="mono" style={{ fontSize: 13 }}>
-                {shiori.shareUrl}
+                {shareDisplay(shiori.slug)}
               </span>
               {'　'}
               <Link to={`/s/${shiori.slug}`} style={{ fontSize: 13 }}>

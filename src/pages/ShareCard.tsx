@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { useShioriState } from '../lib/store'
 import { themeClass } from '../lib/theme'
+import { shareDisplay, shareUrlFor } from '../lib/share'
 import type { Shiori } from '../lib/types'
 
 /**
@@ -15,14 +16,14 @@ export function ShareCard({ shiori }: { shiori: Shiori }) {
 
   useEffect(() => {
     if (!paid) return
-    QRCode.toDataURL(`https://${shiori.shareUrl}`, {
+    QRCode.toDataURL(shareUrlFor(shiori.slug), {
       width: 480,
       margin: 1,
       color: { dark: '#1F1D1A', light: '#FFFFFF' },
     })
       .then(setQr)
       .catch(() => setQr(''))
-  }, [paid, shiori.shareUrl])
+  }, [paid, shiori.slug])
 
   if (!paid) {
     return (
@@ -87,7 +88,7 @@ export function ShareCard({ shiori }: { shiori: Shiori }) {
           />
         )}
         <div className="mono" style={{ fontSize: 14, marginTop: 14 }}>
-          {shiori.shareUrl}
+          {shareDisplay(shiori.slug)}
         </div>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, paddingBottom: 8 }}>
           スマホのカメラで読み取ってください。登録・ログインは不要です。

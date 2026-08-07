@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { SHIORI_LIST } from '../lib/data'
+import { shareDisplay } from '../lib/share'
 
 const FEATURES = [
   {
@@ -279,7 +280,7 @@ export function Home() {
               {s.eyebrow}　{s.title} {s.subtitle}
             </h2>
             <div className="sub mono">
-              {s.shareUrl}
+              {shareDisplay(s.slug)}
               {s.kind === 'group'
                 ? `　${s.members.length}名(名簿・出欠あり)`
                 : s.kind === 'tour'
