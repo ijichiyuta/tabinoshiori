@@ -5,7 +5,73 @@ import { InfoGrid } from '../components/InfoGrid'
 import { yen } from '../lib/settle'
 import { effectiveAnswer, feeFor, rosterNote, useShioriState } from '../lib/store'
 import { nextEvent, shortDateLabel, useNow } from '../lib/time'
-import type { Shiori } from '../lib/types'
+import type { Member, Shiori } from '../lib/types'
+
+/** 名簿非公開モードの入口: 名前+電話下4桁で照合(一覧は見せない) */
+function PrivateWhoGate({
+  shiori,
+  onMatch,
+}: {
+  shiori: Shiori
+  onMatch: (memberId: string) => void
+}) {
+  const [name, setName] = useState('')
+  const [digits, setDigits] = useState('')
+  const [error, setError] = useState(false)
+  const operatorContact = shiori.operator?.tel
+    ? `${shiori.operator.name}(${shiori.operator.tel.display})`
+    : '催行会社'
+
+  const submit = () => {
+    const n = name.trim()
+    const d = digits.replace(/\D/g, '')
+    const hit = shiori.members.find((m) => {
+      if (m.name !== n) return false
+      const l4 = m.tel?.href.replace(/\D/g, '').slice(-4)
+      return l4 ? l4 === d : d === '' // 電話未登録のお客様は名前のみ
+    })
+    if (hit) onMatch(hit.id)
+    else setError(true)
+  }
+
+  return (
+    <AppFrame shiori={shiori}>
+      <div style={{ padding: '18px 20px 0' }}>
+        <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
+          ご予約の確認
+        </h1>
+        <p style={{ margin: '7px 0 0', fontSize: 14.5, lineHeight: 1.65, color: 'var(--sub)' }}>
+          ご予約確認メールに記載の個別リンク(QRコード)からお開きください。
+          リンクがお手元にない場合は、ご予約のお名前と電話番号の下4桁でご確認いただけます。
+        </p>
+      </div>
+      <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <div className="input-label">ご予約のお名前(姓)</div>
+          <input className="text-input" value={name} onChange={(e) => { setName(e.target.value); setError(false) }} />
+        </div>
+        <div>
+          <div className="input-label">電話番号の下4桁</div>
+          <input
+            className="text-input"
+            inputMode="numeric"
+            maxLength={4}
+            value={digits}
+            onChange={(e) => { setDigits(e.target.value); setError(false) }}
+          />
+        </div>
+        {error && (
+          <div className="note-l warn" style={{ color: 'var(--warn)' }}>
+            見つかりませんでした。{operatorContact}へご連絡ください。
+          </div>
+        )}
+        <button className="btn sm" onClick={submit}>
+          確認して開く
+        </button>
+      </div>
+    </AppFrame>
+  )
+}
 
 function fmtStamp(iso: string): string {
   const d = new Date(iso)
@@ -13,15 +79,21 @@ function fmtStamp(iso: string): string {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
+const last4 = (m: Member) => m.tel?.href.replace(/\D/g, '').slice(-4)
+
 /* ---------- 03 本人選択(ログインの代わり) ---------- */
 export function RsvpWho({ shiori }: { shiori: Shiori }) {
   const [state, update] = useShioriState(shiori)
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+  const [pending, setPending] = useState<Member | null>(null) // 下4桁の照合待ち
+  const [digits, setDigits] = useState('')
+  const [verifyError, setVerifyError] = useState(false)
   const isTour = shiori.kind === 'tour'
+  const security = shiori.security ?? {}
   const organizer = shiori.contacts.find((c) => c.label === '幹事')
 
-  const choose = (memberId: string) => {
+  const proceed = (memberId: string) => {
     update({ memberId })
     if (isTour) {
       navigate(`/s/${shiori.slug}`)
@@ -29,6 +101,80 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
     }
     const answered = effectiveAnswer(shiori, state, memberId)
     navigate(answered ? `/s/${shiori.slug}` : `/s/${shiori.slug}/rsvp`)
+  }
+
+  const choose = (memberId: string) => {
+    const m = shiori.members.find((x) => x.id === memberId)
+    if (!m) return
+    // ツアーで本人照合が有効かつ電話番号の登録がある場合は下4桁を確認
+    if (isTour && security.requireVerify && last4(m)) {
+      setPending(m)
+      setDigits('')
+      setVerifyError(false)
+      return
+    }
+    proceed(memberId)
+  }
+
+  const verify = () => {
+    if (!pending) return
+    if (digits.replace(/\D/g, '') === last4(pending)) {
+      proceed(pending.id)
+    } else {
+      setVerifyError(true)
+    }
+  }
+
+  const operatorContact = shiori.operator?.tel
+    ? `${shiori.operator.name}(${shiori.operator.tel.display})`
+    : '催行会社'
+
+  // 照合ステップ
+  if (pending) {
+    return (
+      <AppFrame shiori={shiori}>
+        <div style={{ padding: '18px 20px 0' }}>
+          <h1 className="serif" style={{ margin: 0, fontSize: 23, fontWeight: 600 }}>
+            ご本人確認
+          </h1>
+          <p style={{ margin: '7px 0 0', fontSize: 14.5, lineHeight: 1.65, color: 'var(--sub)' }}>
+            <strong>{pending.name}</strong> 様ですね。なりすまし防止のため、
+            ご予約時の電話番号の<strong>下4桁</strong>を入力してください。
+          </p>
+        </div>
+        <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <input
+            className="text-input"
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="0000"
+            value={digits}
+            onChange={(e) => {
+              setDigits(e.target.value)
+              setVerifyError(false)
+            }}
+            style={{ fontSize: 22, textAlign: 'center', letterSpacing: '0.3em' }}
+          />
+          {verifyError && (
+            <div className="note-l warn" style={{ color: 'var(--warn)' }}>
+              一致しませんでした。ご予約時の電話番号をお確かめください。
+              ご不明な場合は{operatorContact}へご連絡ください。
+            </div>
+          )}
+          <button className="btn sm" onClick={verify}>
+            確認して開く
+          </button>
+          <button className="btn-ghost" onClick={() => setPending(null)}>
+            名簿にもどる
+          </button>
+        </div>
+      </AppFrame>
+    )
+  }
+
+  // 名簿非公開モード: 一覧を出さず、名前+下4桁で照合
+  if (isTour && security.privateRoster) {
+    return <PrivateWhoGate shiori={shiori} onMatch={(id) => proceed(id)} />
   }
 
   const members = query.trim()

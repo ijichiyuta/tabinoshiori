@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useMemo, type ReactNode } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
@@ -225,8 +225,21 @@ function DuoBudgetCard({ shiori }: { shiori: Shiori }) {
 }
 
 export function Cover({ shiori }: { shiori: Shiori }) {
-  const [state] = useShioriState(shiori)
+  const [state, update] = useShioriState(shiori)
   const [sp] = useSearchParams()
+
+  // 個別URL(?t=トークン): 本人選択を省略して自動ログイン
+  const tokenMember = useMemo(() => {
+    const t = sp.get('t')
+    if (!t) return null
+    return shiori.members.find((m) => m.token === t) ?? null
+  }, [sp, shiori])
+  useEffect(() => {
+    if (tokenMember && state.memberId !== tokenMember.id) {
+      update({ memberId: tokenMember.id })
+    }
+  }, [tokenMember, state.memberId, update])
+  if (tokenMember && state.memberId !== tokenMember.id) return null // 反映待ちの一瞬
 
   // 名簿から本人を選ぶまでは表紙を出さない(ログインの代わり)。
   // 幹事の編集で名簿から消された場合も選び直してもらう。

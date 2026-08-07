@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { withShiori } from './components/ShioriRoute'
+import { withManagedShiori, withShiori } from './components/ShioriRoute'
 import { findShiori } from './lib/docs'
 import { Contacts } from './pages/Contacts'
 import { Costs } from './pages/Costs'
@@ -14,6 +14,7 @@ import { ManageContacts, ManageCosts, ManageItems, ManageUpdates } from './pages
 import { ManageMembers } from './pages/ManageMembers'
 import { ManageSchedule } from './pages/ManageSchedule'
 import { ManageBoarding, ManageCheckin, ManageNotices, ManageSurveyResults } from './pages/ManageTour'
+import { ManageLinks } from './pages/ManageLinks'
 import { Notices } from './pages/Notices'
 import { SurveyPage } from './pages/Survey'
 import { Print } from './pages/Print'
@@ -33,26 +34,27 @@ const RsvpWhoR = withShiori(RsvpWho)
 const RsvpFormR = withShiori(RsvpForm)
 const RsvpDoneR = withShiori(RsvpDone)
 const PrintR = withShiori(Print)
-const PublishPlanR = withShiori(PublishPlan)
-const PublishPayR = withShiori(PublishPay)
-const PublishDoneR = withShiori(PublishDone)
-const ReceiptR = withShiori(Receipt)
+const PublishPlanR = withManagedShiori(PublishPlan)
+const PublishPayR = withManagedShiori(PublishPay)
+const PublishDoneR = withManagedShiori(PublishDone)
+const ReceiptR = withManagedShiori(Receipt)
 const ShareCardR = withShiori(ShareCard)
 const UpdatesR = withShiori(Updates)
-const ManageHubR = withShiori(ManageHub)
-const ManageEditBasicR = withShiori(ManageEditBasic)
-const ManageScheduleR = withShiori(ManageSchedule)
-const ManageMembersR = withShiori(ManageMembers)
-const ManageItemsR = withShiori(ManageItems)
-const ManageContactsR = withShiori(ManageContacts)
-const ManageUpdatesR = withShiori(ManageUpdates)
-const ManageCostsR = withShiori(ManageCosts)
+const ManageHubR = withManagedShiori(ManageHub)
+const ManageEditBasicR = withManagedShiori(ManageEditBasic)
+const ManageScheduleR = withManagedShiori(ManageSchedule)
+const ManageMembersR = withManagedShiori(ManageMembers)
+const ManageItemsR = withManagedShiori(ManageItems)
+const ManageContactsR = withManagedShiori(ManageContacts)
+const ManageUpdatesR = withManagedShiori(ManageUpdates)
+const ManageCostsR = withManagedShiori(ManageCosts)
 const NoticesR = withShiori(Notices)
 const SurveyR = withShiori(SurveyPage)
-const ManageBoardingR = withShiori(ManageBoarding)
-const ManageNoticesR = withShiori(ManageNotices)
-const ManageCheckinR = withShiori(ManageCheckin)
-const ManageSurveyR = withShiori(ManageSurveyResults)
+const ManageBoardingR = withManagedShiori(ManageBoarding)
+const ManageNoticesR = withManagedShiori(ManageNotices)
+const ManageCheckinR = withManagedShiori(ManageCheckin)
+const ManageSurveyR = withManagedShiori(ManageSurveyResults)
+const ManageLinksR = withManagedShiori(ManageLinks)
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -139,6 +141,7 @@ export default function App() {
         <Route path="/manage/:slug/notices" element={<ManageNoticesR />} />
         <Route path="/manage/:slug/checkin" element={<ManageCheckinR />} />
         <Route path="/manage/:slug/survey" element={<ManageSurveyR />} />
+        <Route path="/manage/:slug/links" element={<ManageLinksR />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </ErrorBoundary>

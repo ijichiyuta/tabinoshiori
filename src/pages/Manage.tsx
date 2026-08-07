@@ -190,6 +190,10 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
               <span>点呼・乗車確認(添乗員)</span>
               <span className="arrow">›</span>
             </Link>
+            <Link to={`${base}/links`}>
+              <span>招待リンク(お客様ごとの個別URL)</span>
+              <span className="arrow">›</span>
+            </Link>
             <Link to={`${base}/survey`}>
               <span>アンケート結果</span>
               <span className="arrow">›</span>

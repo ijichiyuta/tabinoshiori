@@ -324,7 +324,10 @@ const hamanako: Shiori = {
     bus,
     seat,
     tel: tel ? { display: tel, href: `tel:${tel.replace(/-/g, '')}` } : undefined,
+    // 個別URL用トークン(デモは決定的に生成。本番はサーバー発行に置き換え)
+    token: `hk${(((i + 7) * 2654435761) >>> 0).toString(36)}`,
   })),
+  security: { adminPin: '0829', requireVerify: true },
   seedRsvps: {},
   attendanceOptions: [],
   transportOptions: [],

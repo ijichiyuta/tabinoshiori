@@ -9,6 +9,13 @@ export interface Member {
   bus?: string // ツアー: 号車(例 "1")
   seat?: string // ツアー: 座席(例 "12A")
   tel?: { display: string; href: string } // ツアー: 点呼時の連絡用
+  token?: string // 個別URL(?t=)用トークン。本人選択を省略し名簿を露出させない
+}
+
+export interface SecuritySettings {
+  adminPin?: string // 管理画面(/manage)のロック。空なら無効
+  requireVerify?: boolean // 名簿選択後に電話番号下4桁で本人照合(ツアー)
+  privateRoster?: boolean // 名簿一覧を出さない。個別URLか名前+下4桁のみ(ツアー)
 }
 
 export interface BoardingPoint {
@@ -125,6 +132,7 @@ export interface Shiori {
   boardingPoints?: BoardingPoint[]
   operator?: { name: string; tel?: { display: string; href: string }; note?: string }
   notices?: Notice[]
+  security?: SecuritySettings
 }
 
 export interface Billing {

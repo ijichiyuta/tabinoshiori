@@ -59,6 +59,10 @@ export function Home() {
                 </>
               )}
             </div>
+            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 8 }}>
+              {s.kind === 'tour' &&
+                '管理画面の管理コード: 0829 ／ 名簿選択後は電話下4桁で本人照合(例: 木村→0008)'}
+            </div>
           </div>
         ))}
 

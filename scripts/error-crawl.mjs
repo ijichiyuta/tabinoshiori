@@ -49,6 +49,8 @@ const ROUTES = [
   '/manage/kino2026/members',
   '/manage/kino2026/costs',
   '/s/hama2026',
+  '/s/hama2026?t=invalidtoken',
+  '/manage/hama2026/links',
   '/s/hama2026/schedule',
   '/s/hama2026/schedule?now=2026-08-29T10:30',
   '/s/hama2026/items',
