@@ -86,7 +86,11 @@ export function Terms() {
         紛争は運営者所在地を管轄する裁判所を第一審の専属的合意管轄とします。
       </p>
       <p style={{ marginTop: 18, fontSize: 12.5, color: 'var(--muted)' }}>
-        制定日: 【要確認】　運営者: 【要確認】
+        制定日: 2026年8月7日　運営者: スマートコネクト(
+        <a href="https://smcn-jp.com" target="_blank" rel="noreferrer">
+          smcn-jp.com
+        </a>
+        )
       </p>
     </LegalFrame>
   )
@@ -118,7 +122,7 @@ export function Privacy() {
       <H>4. 第三者提供・委託</H>
       <p style={{ margin: 0 }}>
         法令に基づく場合を除き、本人の同意なく第三者に提供しません。
-        サービス運営のためのクラウド基盤・決済代行への委託を行うことがあります(委託先: 【要確認】)。
+        サービス運営のためのクラウド基盤(Cloudflare, Inc.)・決済代行(Stripe, Inc.)への委託を行っています。
       </p>
       <H>5. 保存期間・削除</H>
       <p style={{ margin: 0 }}>
@@ -126,9 +130,15 @@ export function Privacy() {
         最終更新から18ヶ月を経過したしおりは、関連する回答・点呼・アンケートとともに自動的に削除されます。
       </p>
       <H>6. お問い合わせ</H>
-      <p style={{ margin: 0 }}>個人情報の開示・訂正・削除のご請求: 【要確認(連絡先)】</p>
+      <p style={{ margin: 0 }}>
+        個人情報の開示・訂正・削除のご請求: info@smcn-jp.com(運営: スマートコネクト)
+      </p>
       <p style={{ marginTop: 18, fontSize: 12.5, color: 'var(--muted)' }}>
-        制定日: 【要確認】　運営者: 【要確認】
+        制定日: 2026年8月7日　運営者: スマートコネクト(
+        <a href="https://smcn-jp.com" target="_blank" rel="noreferrer">
+          smcn-jp.com
+        </a>
+        )
       </p>
     </LegalFrame>
   )
@@ -136,10 +146,10 @@ export function Privacy() {
 
 export function Tokushoho() {
   const rows: [string, string][] = [
-    ['販売事業者', '【要確認(氏名または法人名)】'],
-    ['運営責任者', '【要確認】'],
-    ['所在地', '【要確認(請求があれば遅滞なく開示します と記載も可)】'],
-    ['連絡先', '【要確認(メールアドレス)】'],
+    ['販売事業者', 'スマートコネクト(SMART CONNECT)'],
+    ['運営責任者', '請求があった場合、遅滞なく開示いたします'],
+    ['所在地', '愛知県名古屋市(詳細は請求があった場合、遅滞なく開示いたします)'],
+    ['連絡先', 'info@smcn-jp.com'],
     ['販売価格', 'しおり1冊 480円(税込) / 年間パス 1,800円(税込)。購入画面に表示'],
     ['商品代金以外の必要料金', 'インターネット接続にかかる通信料'],
     ['支払方法', 'クレジットカード等(購入画面に表示)'],
@@ -161,7 +171,11 @@ export function Tokushoho() {
         ))}
       </div>
       <p style={{ marginTop: 18, fontSize: 12.5, color: 'var(--muted)' }}>
-        ※ 有料プラン提供開始までに【要確認】箇所を確定してください。
+        旅合わせは スマートコネクト(
+        <a href="https://smcn-jp.com" target="_blank" rel="noreferrer">
+          smcn-jp.com
+        </a>
+        )が運営するサービスです。
       </p>
     </LegalFrame>
   )

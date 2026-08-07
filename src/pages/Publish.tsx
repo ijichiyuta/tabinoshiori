@@ -506,7 +506,9 @@ export function Receipt({ shiori }: { shiori: Shiori }) {
           上記正に領収いたしました
         </div>
         <div style={{ marginTop: 40, textAlign: 'right', fontSize: 13.5, lineHeight: 1.9, color: 'var(--sub)' }}>
-          旅合わせ tabiawase.jp(デモ)
+          旅合わせ(運営: スマートコネクト)
+          <br />
+          tabiawase.com ・ info@smcn-jp.com
           <br />
           支払方法: {billing.method ?? '—'}
           {billing.last4 && `(末尾 ${billing.last4})`}

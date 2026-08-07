@@ -329,6 +329,13 @@ export function Home() {
         <Link to="/terms">利用規約</Link>　<Link to="/privacy">プライバシーポリシー</Link>
         <Link to="/tokushoho">特定商取引法に基づく表記</Link>
         <br />
+        運営:{' '}
+        <a href="https://smcn-jp.com" target="_blank" rel="noreferrer">
+          スマートコネクト
+        </a>
+        (ホームページ制作・公式LINE構築・MEO対策) ／ お問い合わせ:{' '}
+        <a href="mailto:info@smcn-jp.com">info@smcn-jp.com</a>
+        <br />
         写真: Unsplash(商用利用可のフリー画像) ／ © 旅合わせ tabiawase.com
       </footer>
     </div>
