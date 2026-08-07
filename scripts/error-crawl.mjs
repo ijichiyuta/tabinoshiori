@@ -3,7 +3,7 @@
 // 未捕捉例外(pageerror)と console.error がゼロであることを検証する。
 import { chromium } from 'playwright-core'
 
-const base = 'http://localhost:4173'
+const base = process.env.BASE || 'http://localhost:4173'
 
 const ROUTES = [
   '/',

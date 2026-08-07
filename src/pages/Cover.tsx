@@ -1,5 +1,6 @@
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { isBuiltin } from '../lib/docs'
 import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
 import { UpdateBanner } from '../components/UpdateBanner'
@@ -239,11 +240,36 @@ export function Cover({ shiori }: { shiori: Shiori }) {
       update({ memberId: tokenMember.id })
     }
   }, [tokenMember, state.memberId, update])
+  // サーバー同期のしおりはトークン照合がサーバー側(pull)なので、少し待つ
+  const [tokenWait, setTokenWait] = useState(true)
+  useEffect(() => {
+    const id = setTimeout(() => setTokenWait(false), 5000)
+    return () => clearTimeout(id)
+  }, [])
   if (tokenMember && state.memberId !== tokenMember.id) return null // 反映待ちの一瞬
 
   // 名簿から本人を選ぶまでは表紙を出さない(ログインの代わり)。
   // 幹事の編集で名簿から消された場合も選び直してもらう。
   const meExists = shiori.members.some((m) => m.id === state.memberId)
+  if (
+    shiori.kind !== 'duo' &&
+    !meExists &&
+    sp.get('t') &&
+    !tokenMember &&
+    !isBuiltin(shiori.slug) &&
+    tokenWait
+  ) {
+    return (
+      <div className="app">
+        <div
+          className="app-body"
+          style={{ alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 14.5 }}
+        >
+          しおりを開いています…
+        </div>
+      </div>
+    )
+  }
   if (shiori.kind !== 'duo' && (!state.memberId || !meExists)) {
     return <Navigate to={`/s/${shiori.slug}/rsvp/who`} replace />
   }

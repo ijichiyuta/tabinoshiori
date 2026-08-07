@@ -1,5 +1,7 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Billing, RsvpAnswer, Shiori, Survey } from './types'
+import { isBuiltin } from './docs'
+import { pushAnswer, pushCheckin, pushSurvey, syncEvent } from './sync'
 
 export interface StoredState {
   memberId?: string
@@ -72,10 +74,39 @@ function load(shiori: Shiori): StoredState {
   return { answers: {}, checked: [...(shiori.checklistSeedChecked ?? [])] }
 }
 
+/** update()で変わった answers/checkin/surveys だけをサーバーへ送る */
+function pushDiffs(slug: string, patch: Partial<StoredState>, next: StoredState) {
+  if (patch.answers) {
+    for (const [id, a] of Object.entries(next.answers)) {
+      if (patch.answers[id] === a) pushAnswer(slug, id, a)
+    }
+  }
+  if (patch.surveys) {
+    for (const [id, sv] of Object.entries(next.surveys ?? {})) {
+      if (patch.surveys[id] === sv) pushSurvey(slug, id, sv)
+    }
+  }
+  if (patch.checkin) {
+    for (const [id, c] of Object.entries(next.checkin ?? {})) {
+      if (patch.checkin[id] === c) pushCheckin(slug, id, c)
+    }
+  }
+}
+
 export function useShioriState(shiori: Shiori) {
   const [state, setState] = useState<StoredState>(() => load(shiori))
   const ref = useRef(state)
   ref.current = state
+  // サーバー同期でlocalStorageが変わったら読み直す
+  useEffect(() => {
+    const h = () => {
+      const next = load(shiori)
+      ref.current = next
+      setState(next)
+    }
+    window.addEventListener(syncEvent(shiori.slug), h)
+    return () => window.removeEventListener(syncEvent(shiori.slug), h)
+  }, [shiori])
   // 更新直後に navigate してアンマウントされても保存が確実に走るよう、
   // setState のアップデータ内ではなく同期的に localStorage へ書き込む
   const update = useCallback(
@@ -89,6 +120,8 @@ export function useShioriState(shiori: Shiori) {
         // プライベートモード等で保存できなくても表示は継続
       }
       setState(next)
+      // 変更ぶんをサーバーへ(組み込みデモは同期しない)
+      if (!isBuiltin(shiori.slug)) pushDiffs(shiori.slug, p, next)
     },
     [shiori.slug],
   )

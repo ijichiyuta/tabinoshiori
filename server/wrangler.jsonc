@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tabiawase",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tabiawase",
+      "database_id": "32c323bb-ff62-4761-aac7-94887043d3b3"
+    }
+  ],
+  "routes": [
+    { "pattern": "tabiawase.com", "custom_domain": true },
+    { "pattern": "www.tabiawase.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}

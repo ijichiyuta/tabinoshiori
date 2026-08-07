@@ -1,4 +1,5 @@
 import { SHIORI_LIST } from './data'
+import { deleteDocRemote, pushDoc } from './sync'
 import type { Shiori, ShioriKind } from './types'
 
 /**
@@ -63,14 +64,22 @@ export function loadDoc(slug: string): Shiori | null {
   return null
 }
 
-export function saveDoc(doc: Shiori) {
+/** ローカル保存のみ(サーバーからのpull反映用。pushしない) */
+export function saveDocLocal(doc: Shiori) {
   localStorage.setItem(docKey(doc.slug), JSON.stringify(doc))
   writeIndex([...readIndex(), doc.slug])
+}
+
+export function saveDoc(doc: Shiori) {
+  saveDocLocal(doc)
+  // 組み込みデモはバンドル同梱なので同期しない(slug衝突も防ぐ)
+  if (!isBuiltin(doc.slug)) void pushDoc(doc)
 }
 
 export function deleteDoc(slug: string) {
   localStorage.removeItem(docKey(slug))
   writeIndex(readIndex().filter((s) => s !== slug))
+  if (!isBuiltin(slug)) void deleteDocRemote(slug)
 }
 
 export function isBuiltin(slug: string): boolean {

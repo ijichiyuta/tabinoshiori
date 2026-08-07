@@ -1,7 +1,21 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { findShiori } from '../lib/docs'
+import { useShioriSync } from '../lib/useShioriSync'
 import type { Shiori } from '../lib/types'
+
+function LoadingScreen() {
+  return (
+    <div className="app">
+      <div
+        className="app-body"
+        style={{ alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: 14.5 }}
+      >
+        しおりを開いています…
+      </div>
+    </div>
+  )
+}
 
 const pinKey = (slug: string) => `pin:${slug}`
 
@@ -98,22 +112,24 @@ export function NotFound() {
   )
 }
 
-/** URLの :slug からしおりを解決してページに渡す */
+/** URLの :slug からしおりを解決してページに渡す(サーバー同期つき) */
 export function withShiori(Inner: (props: { shiori: Shiori }) => JSX.Element | null) {
   return function ShioriRoute() {
     const { slug } = useParams()
+    const status = useShioriSync(slug)
     const shiori = findShiori(slug)
-    if (!shiori) return <NotFound />
+    if (!shiori) return status === 'loading' ? <LoadingScreen /> : <NotFound />
     return <Inner shiori={shiori} />
   }
 }
 
-/** 管理画面用: しおり解決+管理コードゲート */
+/** 管理画面用: しおり解決+サーバー同期+管理コードゲート */
 export function withManagedShiori(Inner: (props: { shiori: Shiori }) => JSX.Element | null) {
   return function ManagedShioriRoute() {
     const { slug } = useParams()
+    const status = useShioriSync(slug)
     const shiori = findShiori(slug)
-    if (!shiori) return <NotFound />
+    if (!shiori) return status === 'loading' ? <LoadingScreen /> : <NotFound />
     return (
       <PinGate shiori={shiori}>
         <Inner shiori={shiori} />

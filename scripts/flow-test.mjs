@@ -1,7 +1,7 @@
 // 主要フローの動作確認スクリプト(要: npm run preview -- --port 4173)
 import { chromium } from 'playwright-core'
 
-const base = 'http://localhost:4173'
+const base = process.env.BASE || 'http://localhost:4173'
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 390, height: 900 } })
 page.on('dialog', (d) => d.accept())
@@ -71,7 +71,8 @@ check('精算済みバッジ', (await page.locator('.badge:has-text("精算済�
 
 // 7) 未知のslugは404
 await page.goto(base + '/s/unknown')
-check('しおりが見つかりません', (await page.locator('text=しおりが見つかりません').count()) > 0)
+await page.waitForSelector('text=しおりが見つかりません', { timeout: 10000 })
+check('しおりが見つかりません', true)
 
 // 8) 幹事: デモしおりの編集(copy-on-write)とリセット
 await page.goto(base + '/manage/tob2026')
@@ -151,7 +152,8 @@ await page.goto(base + `/manage/${newSlug}`)
 await page.click('button:has-text("このしおりを削除")')
 await page.waitForURL('**/manage')
 await page.goto(base + `/s/${newSlug}`)
-check('削除後は404', (await page.locator('text=しおりが見つかりません').count()) > 0)
+await page.waitForSelector('text=しおりが見つかりません', { timeout: 10000 })
+check('削除後は404', true)
 
 // 15) テーマ切り替え(カジュアル=完全ゴシック)
 await page.goto(base + '/manage/tob2026/edit')
