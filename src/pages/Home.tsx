@@ -3,112 +3,276 @@ import { SHIORI_LIST } from '../lib/data'
 
 const FEATURES = [
   {
-    title: 'URLひとつで、全員に届く',
-    body: '参加者は登録もアプリのインストールも不要。URLを開いて名簿から自分の名前を選ぶだけ。年配の方でも迷いません。',
+    img: '/img/app-cover.png',
+    eyebrow: 'ひとりずつの表紙',
+    title: '開いた人の「知りたいこと」だけが、最初にある。',
+    body: '次の集合はいつ・どこか。自分の参加費は払ったか。名簿から名前を選ぶだけで、その人専用のしおりに。集合時刻が変われば、上部の告知バナーで全員に知らせます。',
   },
   {
-    title: '変更は、その場で全員へ',
-    body: '集合時刻が変わったら、しおりの上に告知バナー。幹事の編集は参加者のスマホに即反映されます。',
+    img: '/img/app-schedule.png',
+    eyebrow: '行程表',
+    title: '当日は「いま」が動く行程表。',
+    body: '紙のしおりの美しさそのままに、当日は現在時刻のマーカーが行程を追いかけます。「いまどのへん?」の問い合わせが消えます。地図・電話へのリンクもワンタップ。',
+    rev: true,
   },
   {
-    title: '圏外でも、開ける',
-    body: '一度開いたしおりは端末に残ります。山道でもトンネルでも、行程と連絡先はいつでも確認できます。',
+    img: '/img/app-costs.png',
+    eyebrow: '割り勘・精算',
+    title: '「誰がいくら立て替えた」も、しおりの中で。',
+    body: '立替を記録すると合計・1人あたり・精算(誰が誰へいくら)を自動計算。旅のあとの気まずい集計が、その場で終わります。',
+  },
+  {
+    img: '/img/app-casual.png',
+    eyebrow: 'テーマ',
+    title: '旅に合わせて、しおりが着替える。',
+    body: '結婚記念日の温泉旅は端正な明朝の「きっちり」。サークル合宿は明るい「カジュアル」。ワンタップで切り替わります。',
+    rev: true,
   },
 ]
 
-const TOUR_FEATURES = [
-  '乗車地ごとの集合案内(お客様には自分の乗車地だけを表示)',
-  '号車・座席の割り当てと、添乗員向けのワンタップ点呼',
-  'お客様ごとの個別URL(名簿を見せない・なりすまし防止)',
-  'キャンセル規定・旅行条件の電子交付、ツアー後アンケート',
-  '予約名簿のCSV取り込み、定期催行向けのしおり複製',
+const STEPS = [
+  {
+    title: '作る',
+    body: '行程・持ち物・名簿を入力。予約システムからのCSV貼り付けや、前回のしおりの複製もできます。',
+  },
+  {
+    title: '配る',
+    body: 'URLかQRコードを共有するだけ。ひとりずつの個別リンクを発行すれば、名簿を見せずになりすましも防げます。',
+  },
+  {
+    title: '当日',
+    body: '「いま」マーカー付きの行程、遅延の告知、添乗員の点呼。圏外でも一度開いたしおりは表示できます。',
+  },
+]
+
+const FAQS = [
+  {
+    q: '参加者はアプリのインストールが必要ですか?',
+    a: 'いいえ。URLを開くだけで、登録もログインも不要です。ホーム画面に追加すればアプリのように使え、圏外でも表示できます。',
+  },
+  {
+    q: '年配の参加者でも使えますか?',
+    a: '「URLを開いて自分の名前を選ぶ」の2手だけで、その人専用のしおりが表示されます。紙のしおりに近い見た目を大切にしているので、スマホが苦手な方でも迷いません。印刷用のA4しおりも出力できます。',
+  },
+  {
+    q: '圏外(山間部・トンネル)ではどうなりますか?',
+    a: '一度開いたしおりは端末に保存されるため、圏外でも行程・持ち物・連絡先を確認できます。',
+  },
+  {
+    q: '参加費の集金もできますか?',
+    a: '参加費の金額と支払い状況をしおりで管理できます。送金自体はPayPayなどで参加者同士が直接行う方式のため、当サービスがお金を預かることはありません。',
+  },
+  {
+    q: '名簿の個人情報は大丈夫ですか?',
+    a: '個別リンク方式では名簿は表示されず、本人しか自分のしおりを開けません。名簿選択方式でも電話番号下4桁での本人確認を挟めます。管理画面は管理コードでロックできます。',
+  },
 ]
 
 export function Home() {
-  const reset = () => {
-    for (const s of SHIORI_LIST) localStorage.removeItem(`shiori:${s.slug}`)
-    window.location.reload()
-  }
-
   return (
-    <div className="home">
-      <div className="home-inner">
-        {/* ヒーロー */}
-        <div style={{ padding: '24px 0 8px' }}>
-          <div
-            className="serif"
-            style={{ fontSize: 14, letterSpacing: '0.28em', color: 'var(--muted)' }}
-          >
-            た　び　あ　わ　せ
+    <div className="lp">
+      {/* ナビ */}
+      <nav className="lp-nav">
+        <Link to="/" className="brand">
+          旅合わせ
+        </Link>
+        <div className="links">
+          <a href="#features">機能</a>
+          <a href="#tour">事業者向け</a>
+          <a href="#pricing">料金</a>
+          <a href="#demos">デモ</a>
+          <Link to="/manage" className="cta">
+            しおりを作る
+          </Link>
+        </div>
+      </nav>
+
+      {/* ヒーロー */}
+      <header className="lp-hero">
+        <div className="lp-hero-inner">
+          <div className="copy">
+            <div className="eyebrow">た　び　あ　わ　せ</div>
+            <h1>
+              旅のしおりを、
+              <br />
+              ひとつに合わせる。
+            </h1>
+            <p className="sub">
+              集合も、持ち物も、割り勘も。参加者はURLを開くだけ——
+              登録もアプリも不要。紙のしおりの美しさを持つ、旅のしおりサービス。
+            </p>
+            <div className="ctas">
+              <Link to="/manage" className="lp-btn-white">
+                しおりを作る(無料)
+              </Link>
+              <a href="#demos" className="lp-btn-ghost">
+                デモを見る
+              </a>
+            </div>
+            <div className="note">クレジットカード登録不要・6名までずっと無料</div>
           </div>
-          <h1 style={{ fontSize: 40, margin: '10px 0 0' }}>旅合わせ</h1>
-          <p className="lede" style={{ fontSize: 16.5, marginTop: 14 }}>
-            集合も、持ち物も、割り勘も。旅をひとつに合わせる。
-            <br />
-            紙のしおりの記憶を持つ、旅のしおりサービス。
-          </p>
-          <div className="home-links" style={{ marginTop: 18 }}>
-            <Link className="primary" to="/manage">
-              しおりを作る(無料)
-            </Link>
-            <a href="#demos">デモを見る</a>
+          <div className="lp-phones">
+            <div className="lp-phone">
+              <img src="/img/app-cover.png" alt="しおりの表紙画面" />
+            </div>
+            <div className="lp-phone tilt">
+              <img src="/img/app-schedule.png" alt="行程画面(いまマーカー)" />
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* 特徴 */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 12,
-            marginTop: 28,
-          }}
-        >
-          {FEATURES.map((f) => (
-            <div key={f.title} className="home-card" style={{ marginTop: 0 }}>
-              <h2 style={{ fontSize: 17 }}>{f.title}</h2>
-              <p style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--sub)', margin: '8px 0 0' }}>
-                {f.body}
-              </p>
+      {/* 数字バンド */}
+      <div className="lp-stats">
+        <div className="lp-stat">
+          <div className="num">0秒</div>
+          <div className="cap">参加者の登録時間——URLを開くだけ</div>
+        </div>
+        <div className="lp-stat">
+          <div className="num">圏外OK</div>
+          <div className="cap">一度開いたしおりはトンネルでも表示</div>
+        </div>
+        <div className="lp-stat">
+          <div className="num">¥0〜</div>
+          <div className="cap">6名まで無料。有料でも1冊¥480だけ</div>
+        </div>
+      </div>
+
+      {/* 機能 */}
+      <section className="lp-section" id="features">
+        <div className="lp-eyebrow">FEATURES</div>
+        <h2 className="lp-h2">幹事の仕事が、しおりひとつで終わる。</h2>
+        <p className="lp-lede">
+          出欠の回収、集合案内、持ち物の連絡、割り勘の計算、変更の周知——
+          バラバラのLINEとスプレッドシートでやっていたことを、一枚のしおりに。
+        </p>
+        {FEATURES.map((f) => (
+          <div key={f.title} className={`lp-feature${f.rev ? ' rev' : ''}`}>
+            <div className="txt">
+              <div className="lp-eyebrow">{f.eyebrow}</div>
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </div>
+            <div className="lp-phone">
+              <img src={f.img} alt={f.title} loading="lazy" />
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* 事業者向け */}
+      <section className="lp-band" id="tour">
+        <div className="lp-band-inner">
+          <div className="copy">
+            <div className="lp-eyebrow" style={{ color: 'rgba(251,250,247,.8)' }}>
+              FOR BUS TOUR OPERATORS
+            </div>
+            <h2>
+              「集合場所どこ?」の電話を、
+              <br />
+              なくす。
+            </h2>
+            <ul>
+              <li>乗車地ごとの集合案内——お客様には自分の乗車地だけを表示</li>
+              <li>号車・座席の割り当てと、添乗員のワンタップ点呼</li>
+              <li>お客様ごとの個別URL(名簿を見せない・なりすまし防止)</li>
+              <li>キャンセル規定・旅行条件の電子交付、ツアー後アンケート</li>
+              <li>予約名簿のCSV取り込み、定期催行のしおり複製</li>
+            </ul>
+            <div className="ctas" style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
+              <Link to="/s/hama2026" className="lp-btn-white">
+                バスツアーのデモを体験
+              </Link>
+              <Link to="/manage/hama2026/checkin" className="lp-btn-ghost">
+                添乗員の点呼画面
+              </Link>
+            </div>
+          </div>
+          <div className="lp-phones">
+            <div className="lp-phone">
+              <img src="/img/app-tour.png" alt="バスツアーのしおり(乗車地・座席)" loading="lazy" />
+            </div>
+            <div className="lp-phone tilt">
+              <img src="/img/app-checkin.png" alt="添乗員の点呼画面" loading="lazy" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 使い方 */}
+      <section className="lp-section">
+        <div className="lp-eyebrow">HOW IT WORKS</div>
+        <h2 className="lp-h2">使い方は、3つだけ。</h2>
+        <div className="lp-steps">
+          {STEPS.map((s, i) => (
+            <div key={s.title} className="lp-step">
+              <div className="n">{i + 1}</div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
             </div>
           ))}
         </div>
+      </section>
 
-        {/* 事業者向け */}
-        <div className="home-card" style={{ borderColor: 'var(--accent)' }}>
-          <div style={{ fontSize: 13, letterSpacing: '0.1em', color: 'var(--accent)', fontWeight: 700 }}>
-            バスツアー・旅行会社さまへ
+      {/* 料金 */}
+      <section className="lp-section" id="pricing">
+        <div className="lp-eyebrow">PRICING</div>
+        <h2 className="lp-h2">参加者はずっと無料。支払うのは幹事だけ。</h2>
+        <div className="lp-pricing">
+          <div className="lp-price">
+            <div className="name">無料</div>
+            <div className="price">¥0</div>
+            <ul>
+              <li>参加者6名まで</li>
+              <li>出欠・行程・持ち物・割り勘</li>
+              <li>印刷PDFは透かし入り</li>
+            </ul>
           </div>
-          <h2 style={{ marginTop: 6 }}>「集合場所どこ?」の電話を、なくす。</h2>
-          <ul style={{ margin: '10px 0 0', paddingLeft: 20, fontSize: 14, lineHeight: 2, color: 'var(--sub)' }}>
-            {TOUR_FEATURES.map((t) => (
-              <li key={t}>{t}</li>
-            ))}
-          </ul>
-          <div className="home-links">
-            <Link className="primary" to="/s/hama2026">
-              バスツアーのデモを体験
-            </Link>
-            <Link to="/manage/hama2026/checkin">添乗員の点呼画面</Link>
+          <div className="lp-price featured">
+            <div className="tag">いちばん人気</div>
+            <div className="name">しおり1冊(買い切り)</div>
+            <div className="price">
+              ¥480<small>/冊・税込</small>
+            </div>
+            <ul>
+              <li>人数無制限</li>
+              <li>A4印刷PDF(透かしなし)</li>
+              <li>QRコード・共有カード</li>
+              <li>自動更新なし・買い切り</li>
+            </ul>
+          </div>
+          <div className="lp-price">
+            <div className="name">年間パス</div>
+            <div className="price">
+              ¥1,800<small>/年・税込</small>
+            </div>
+            <ul>
+              <li>しおり作り放題</li>
+              <li>前年のしおりを複製</li>
+              <li>年3回以上つくる方・事業者に</li>
+            </ul>
           </div>
         </div>
+      </section>
 
-        {/* 料金 */}
-        <div className="home-card">
-          <h2>料金</h2>
-          <p style={{ fontSize: 14, lineHeight: 1.9, color: 'var(--sub)', margin: '8px 0 0' }}>
-            参加者はずっと無料。しおりを公開する幹事・主催者のみ:
-            <br />
-            <strong style={{ color: 'var(--ink)' }}>無料</strong>(参加者6名まで・印刷は透かし入り)／
-            <strong style={{ color: 'var(--ink)' }}>しおり1冊 ¥480</strong>(買い切り・人数無制限・QR共有)／
-            <strong style={{ color: 'var(--ink)' }}>年間パス ¥1,800</strong>(しおり無制限・複製)
-          </p>
+      {/* FAQ */}
+      <section className="lp-section">
+        <div className="lp-eyebrow">FAQ</div>
+        <h2 className="lp-h2">よくある質問</h2>
+        <div className="lp-faq">
+          {FAQS.map((f) => (
+            <details key={f.q}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
         </div>
+      </section>
 
-        {/* デモ */}
-        <h2 id="demos" className="serif" style={{ fontSize: 22, fontWeight: 600, margin: '36px 0 0' }}>
-          デモしおり
-        </h2>
+      {/* デモ */}
+      <section className="lp-section" id="demos">
+        <div className="lp-eyebrow">DEMO</div>
+        <h2 className="lp-h2">3つのデモしおりを、そのまま触れます。</h2>
         {SHIORI_LIST.map((s) => (
           <div key={s.slug} className="home-card">
             <h2>
@@ -131,7 +295,7 @@ export function Home() {
               {s.kind === 'group' && (
                 <>
                   <Link to={`/s/${s.slug}/rsvp/who`}>出欠の回答</Link>
-                  <Link to={`/s/${s.slug}?photo=1`}>表紙(写真あり案)</Link>
+                  <Link to={`/s/${s.slug}/schedule?now=2026-08-22T10:42`}>当日の行程(いま)</Link>
                 </>
               )}
               {s.kind === 'tour' && (
@@ -147,33 +311,26 @@ export function Home() {
             </div>
           </div>
         ))}
+      </section>
 
-        <div className="home-note">
-          デモの操作:
-          <br />
-          ・「いま」マーカーの確認 →{' '}
-          <Link to="/s/tob2026/schedule?now=2026-08-22T10:42">
-            <code>?now=2026-08-22T10:42</code> を付けて行程を開く
+      {/* 締めCTA */}
+      <section className="lp-cta">
+        <div className="lp-cta-inner">
+          <h2>次の旅から、旅合わせ。</h2>
+          <p>しおり作りは5分。参加者への案内はURLひとつ。</p>
+          <Link to="/manage" className="lp-btn-white">
+            無料でしおりを作る
           </Link>
-          <br />
-          ・デモしおりの回答・チェックはこの端末にだけ保存されます。{' '}
-          <a
-            href="#reset"
-            onClick={(e) => {
-              e.preventDefault()
-              reset()
-            }}
-          >
-            デモデータをリセット
-          </a>
         </div>
+      </section>
 
-        <div className="home-note" style={{ marginTop: 28 }}>
-          <Link to="/terms">利用規約</Link>　<Link to="/privacy">プライバシーポリシー</Link>
-          <Link to="/tokushoho">特定商取引法に基づく表記</Link>
-          <br />© 旅合わせ(tabiawase.com)
-        </div>
-      </div>
+      {/* フッター */}
+      <footer className="lp-footer">
+        <Link to="/terms">利用規約</Link>　<Link to="/privacy">プライバシーポリシー</Link>
+        <Link to="/tokushoho">特定商取引法に基づく表記</Link>
+        <br />
+        写真: Unsplash(商用利用可のフリー画像) ／ © 旅合わせ tabiawase.com
+      </footer>
     </div>
   )
 }
