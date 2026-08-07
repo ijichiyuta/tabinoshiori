@@ -18,7 +18,7 @@ import { ManageLinks } from './pages/ManageLinks'
 import { Notices } from './pages/Notices'
 import { SurveyPage } from './pages/Survey'
 import { Print } from './pages/Print'
-import { PublishDone, PublishPay, PublishPlan, Receipt } from './pages/Publish'
+import { PublishDone, PublishPay, PublishPlan, PublishStripeReturn, Receipt } from './pages/Publish'
 import { RsvpDone, RsvpForm, RsvpWho } from './pages/Rsvp'
 import { Schedule } from './pages/Schedule'
 import { ShareCard } from './pages/ShareCard'
@@ -39,6 +39,7 @@ const PublishPlanR = withManagedShiori(PublishPlan)
 const PublishPayR = withManagedShiori(PublishPay)
 const PublishDoneR = withManagedShiori(PublishDone)
 const ReceiptR = withManagedShiori(Receipt)
+const PublishStripeR = withShiori(PublishStripeReturn)
 const ShareCardR = withShiori(ShareCard)
 const UpdatesR = withShiori(Updates)
 const ManageHubR = withManagedShiori(ManageHub)
@@ -129,6 +130,7 @@ export default function App() {
         <Route path="/publish/:slug/pay" element={<PublishPayR />} />
         <Route path="/publish/:slug/done" element={<PublishDoneR />} />
         <Route path="/publish/:slug/receipt" element={<ReceiptR />} />
+        <Route path="/publish/:slug/stripe" element={<PublishStripeR />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/tokushoho" element={<Tokushoho />} />

@@ -1,10 +1,12 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
 import { yen } from '../lib/settle'
 import { useShioriState } from '../lib/store'
 import { themeClass } from '../lib/theme'
+import { isBuiltin } from '../lib/docs'
+import { confirmCheckout, pushFreeBilling, startCheckout, stripeAvailable } from '../lib/sync'
 import type { Shiori } from '../lib/types'
 
 const FREE_LIMIT = 6
@@ -49,6 +51,7 @@ export function PublishPlan({ shiori }: { shiori: Shiori }) {
   const proceed = () => {
     if (plan === 'free') {
       update({ billing: { plan: 'free', paidAt: new Date().toISOString() } })
+      if (!isBuiltin(shiori.slug)) pushFreeBilling(shiori.slug)
       navigate(`/publish/${shiori.slug}/done`)
     } else {
       navigate(`/publish/${shiori.slug}/pay?plan=${plan}`)
@@ -181,10 +184,32 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
   const [exp, setExp] = useState('')
   const [cvc, setCvc] = useState('')
   const [error, setError] = useState('')
+  // Stripeが設定済みで、かつデモしおりでなければ本物の決済へ
+  const [stripeReady, setStripeReady] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
+  useEffect(() => {
+    if (isBuiltin(shiori.slug)) return
+    void stripeAvailable().then(setStripeReady)
+  }, [shiori.slug])
 
   if (state.billing) return <Navigate to={`/publish/${shiori.slug}/done`} replace />
 
+  const payStripe = async () => {
+    setRedirecting(true)
+    const url = await startCheckout(shiori.slug, planKey)
+    if (url) {
+      window.location.href = url
+    } else {
+      setRedirecting(false)
+      setError('決済ページを開けませんでした。時間をおいてお試しください')
+    }
+  }
+
   const pay = () => {
+    if (stripeReady) {
+      void payStripe()
+      return
+    }
     let last4: string | undefined
     if (method === 'クレジットカード') {
       const digits = cardNo.replace(/\D/g, '')
@@ -220,7 +245,7 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
             ))}
           </div>
         </div>
-        {method === 'クレジットカード' && (
+        {method === 'クレジットカード' && !stripeReady && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             <div>
               <div className="input-label">カード番号</div>
@@ -255,9 +280,14 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
             </div>
           </div>
         )}
-        {method !== 'クレジットカード' && (
+        {method !== 'クレジットカード' && !stripeReady && (
           <div style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.7 }}>
             デモのため、{method}のお支払い画面へは遷移せずにそのまま完了します。
+          </div>
+        )}
+        {stripeReady && (
+          <div style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.7 }}>
+            お支払いはStripeの安全な決済ページで行います。カード情報が当サービスに保存されることはありません。
           </div>
         )}
         <InfoGrid
@@ -279,8 +309,8 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
         )}
       </div>
       <div className="sticky-footer">
-        <button className="btn" onClick={pay}>
-          {yen(plan.price)} を支払う
+        <button className="btn" onClick={pay} disabled={redirecting}>
+          {redirecting ? '決済ページへ移動中…' : `${yen(plan.price)} を支払う`}
         </button>
         <div style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginTop: 8 }}>
           自動更新はありません。
@@ -373,6 +403,65 @@ export function PublishDone({ shiori }: { shiori: Shiori }) {
             <Link to={`/s/${shiori.slug}/card`}>共有カード(QR)</Link>
             <Link to={`/s/${shiori.slug}/print`}>印刷PDF</Link>
           </div>
+        )}
+      </div>
+    </AppFrame>
+  )
+}
+
+/* ---------- Stripe決済からの戻り(支払い確認) ---------- */
+export function PublishStripeReturn({ shiori }: { shiori: Shiori }) {
+  const [, update] = useShioriState(shiori)
+  const [sp] = useSearchParams()
+  const navigate = useNavigate()
+  const [failed, setFailed] = useState(false)
+  const sessionId = sp.get('session_id')
+
+  useEffect(() => {
+    if (!sessionId) {
+      setFailed(true)
+      return
+    }
+    let alive = true
+    void (async () => {
+      // 反映まで少し時間がかかることがあるので3回まで確認
+      for (let i = 0; i < 3; i++) {
+        const billing = await confirmCheckout(shiori.slug, sessionId)
+        if (!alive) return
+        if (billing && billing.plan !== 'free') {
+          update({ billing: { plan: billing.plan, paidAt: billing.paidAt } })
+          navigate(`/publish/${shiori.slug}/done`, { replace: true })
+          return
+        }
+        await new Promise((r) => setTimeout(r, 1500))
+      }
+      if (alive) setFailed(true)
+    })()
+    return () => {
+      alive = false
+    }
+  }, [sessionId, shiori.slug, update, navigate])
+
+  return (
+    <AppFrame shiori={shiori}>
+      <div style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {failed ? (
+          <>
+            <h1 className="serif" style={{ fontSize: 21, fontWeight: 600, margin: 0 }}>
+              お支払いの確認ができませんでした
+            </h1>
+            <p style={{ color: 'var(--sub)', fontSize: 14.5, lineHeight: 1.8, margin: 0 }}>
+              決済が完了している場合は、少し時間をおいてこのページを再読み込みしてください。
+              キャンセルした場合はお支払いは発生していません。
+            </p>
+            <Link className="btn-ghost" to={`/publish/${shiori.slug}/pay`}>
+              お支払いにもどる
+            </Link>
+          </>
+        ) : (
+          <p style={{ color: 'var(--muted)', fontSize: 14.5, textAlign: 'center' }}>
+            お支払いを確認しています…
+          </p>
         )}
       </div>
     </AppFrame>

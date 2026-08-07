@@ -104,10 +104,17 @@ export async function pullDoc(slug: string, token: string | null): Promise<Pulle
   return data && data.doc ? data : null
 }
 
+export interface ServerBilling {
+  plan: 'free' | 'one' | 'year'
+  paidAt: string
+  amount?: number
+}
+
 export interface PulledState {
   answers: Record<string, unknown>
   checkin: Record<string, boolean>
   surveys: Record<string, unknown>
+  billing?: ServerBilling | null
 }
 
 export async function pullState(slug: string): Promise<PulledState | null> {
@@ -155,6 +162,8 @@ export function mergeStateFromServer(slug: string, server: PulledState, memberId
       answers: { ...((local.answers as object) ?? {}), ...server.answers },
       checkin: { ...((local.checkin as object) ?? {}), ...server.checkin },
       surveys: { ...((local.surveys as object) ?? {}), ...server.surveys },
+      // サーバーに課金記録があればそちらを正とする(全端末で透かし・QRが解放される)
+      ...(server.billing ? { billing: server.billing } : {}),
       ...(memberId ? { memberId } : {}),
     }
     localStorage.setItem(stateKey(slug), JSON.stringify(next))
@@ -176,4 +185,47 @@ export function setMemberIdLocal(slug: string, memberId: string, token?: string)
   } catch {
     // no-op
   }
+}
+
+/** Stripeが設定済みか(未設定・オフラインならfalse=デモ課金にフォールバック) */
+export async function stripeAvailable(): Promise<boolean> {
+  const res = await api('/api/billing/health')
+  if (!res || !res.ok) return false
+  const data = (await res.json().catch(() => null)) as { stripe?: boolean } | null
+  return !!data?.stripe
+}
+
+/** Stripe Checkoutを開始してリダイレクトURLを返す */
+export async function startCheckout(slug: string, plan: 'one' | 'year'): Promise<string | null> {
+  const res = await api(`/api/billing/${slug}/checkout`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ plan }),
+  })
+  if (!res || !res.ok) return null
+  const data = (await res.json().catch(() => null)) as { url?: string } | null
+  return data?.url ?? null
+}
+
+/** 決済からの戻りで支払いを確認し、課金状態を返す */
+export async function confirmCheckout(
+  slug: string,
+  sessionId: string,
+): Promise<ServerBilling | null> {
+  const res = await api(`/api/billing/${slug}?session_id=${encodeURIComponent(sessionId)}`)
+  if (!res || !res.ok) return null
+  const data = (await res.json().catch(() => null)) as { billing?: ServerBilling | null } | null
+  return data?.billing ?? null
+}
+
+/** 無料公開の記録(幹事キーで) */
+export function pushFreeBilling(slug: string) {
+  const key = getAdminKey(slug)
+  if (!key) return
+  void api(`/api/billing/${slug}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json', 'x-admin-key': key },
+    body: JSON.stringify({ plan: 'free' }),
+    keepalive: true,
+  })
 }

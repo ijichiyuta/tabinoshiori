@@ -2,6 +2,28 @@ var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
 // src/index.ts
+var PLAN_PRICES = {
+  one: { amount: 480, name: "\u65C5\u5408\u308F\u305B \u3057\u304A\u308A1\u518A(\u8CB7\u3044\u5207\u308A)" },
+  year: { amount: 1800, name: "\u65C5\u5408\u308F\u305B \u5E74\u9593\u30D1\u30B9(1\u5E74\u30FB\u81EA\u52D5\u66F4\u65B0\u306A\u3057)" }
+};
+var billingJson = /* @__PURE__ */ __name((row) => row ? {
+  plan: row.plan,
+  paidAt: new Date(row.paid_at).toISOString(),
+  amount: row.amount ?? void 0
+} : null, "billingJson");
+async function stripe(key, method, path, params) {
+  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+    method,
+    headers: {
+      authorization: `Bearer ${key}`,
+      ...method === "POST" ? { "content-type": "application/x-www-form-urlencoded" } : {}
+    },
+    body: method === "POST" && params ? new URLSearchParams(params) : void 0
+  });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, data };
+}
+__name(stripe, "stripe");
 var MAX_DOC_BYTES = 9e5;
 var SLUG_RE = /^[a-z0-9][a-z0-9-]{2,39}$/;
 var json = /* @__PURE__ */ __name((data, status = 200) => new Response(JSON.stringify(data), {
@@ -100,10 +122,11 @@ async function handleApi(request, env, url) {
   const stateMatch = path.match(/^\/api\/state\/([a-z0-9-]+)$/);
   if (stateMatch && method === "GET") {
     const slug = stateMatch[1];
-    const [answers, checkin, surveys] = await Promise.all([
+    const [answers, checkin, surveys, billingRow] = await Promise.all([
       env.DB.prepare("SELECT member_id, data FROM answers WHERE slug = ?").bind(slug).all(),
       env.DB.prepare("SELECT member_id, checked FROM checkin WHERE slug = ?").bind(slug).all(),
-      env.DB.prepare("SELECT member_id, data FROM surveys WHERE slug = ?").bind(slug).all()
+      env.DB.prepare("SELECT member_id, data FROM surveys WHERE slug = ?").bind(slug).all(),
+      env.DB.prepare("SELECT slug, plan, paid_at, amount FROM billing WHERE slug = ?").bind(slug).first()
     ]);
     const toMap = /* @__PURE__ */ __name((rows) => {
       const out = {};
@@ -120,7 +143,8 @@ async function handleApi(request, env, url) {
     return json({
       answers: toMap(answers.results),
       checkin: checkinMap,
-      surveys: toMap(surveys.results)
+      surveys: toMap(surveys.results),
+      billing: billingJson(billingRow)
     });
   }
   const entryMatch = path.match(/^\/api\/state\/([a-z0-9-]+)\/(answers|surveys)\/([A-Za-z0-9_-]+)$/);
@@ -158,6 +182,67 @@ async function handleApi(request, env, url) {
       `INSERT INTO checkin (slug, member_id, checked, updated_at) VALUES (?, ?, ?, ?)
        ON CONFLICT (slug, member_id) DO UPDATE SET checked = excluded.checked, updated_at = excluded.updated_at`
     ).bind(slug, memberId, body.checked ? 1 : 0, Date.now()).run();
+    return json({ ok: true });
+  }
+  if (path === "/api/billing/health" && method === "GET") {
+    return json({ stripe: !!env.STRIPE_SECRET_KEY });
+  }
+  const checkoutMatch = path.match(/^\/api\/billing\/([a-z0-9-]+)\/checkout$/);
+  if (checkoutMatch && method === "POST") {
+    const slug = checkoutMatch[1];
+    if (!env.STRIPE_SECRET_KEY) return err("stripe not configured", 501);
+    const body = await readJson(request);
+    const plan = body?.plan === "year" ? "year" : "one";
+    const price = PLAN_PRICES[plan];
+    const docRow = await env.DB.prepare("SELECT slug FROM docs WHERE slug = ?").bind(slug).first();
+    if (!docRow) return err("not found", 404);
+    const origin = url.origin;
+    const { ok, data } = await stripe(env.STRIPE_SECRET_KEY, "POST", "/checkout/sessions", {
+      mode: "payment",
+      "line_items[0][price_data][currency]": "jpy",
+      "line_items[0][price_data][product_data][name]": price.name,
+      "line_items[0][price_data][unit_amount]": String(price.amount),
+      "line_items[0][quantity]": "1",
+      success_url: `${origin}/publish/${slug}/stripe?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/publish/${slug}/pay`,
+      "metadata[slug]": slug,
+      "metadata[plan]": plan
+    });
+    if (!ok || typeof data.url !== "string") {
+      console.error("stripe checkout error", JSON.stringify(data.error ?? data).slice(0, 300));
+      return err("stripe error", 502);
+    }
+    return json({ url: data.url });
+  }
+  const billingMatch = path.match(/^\/api\/billing\/([a-z0-9-]+)$/);
+  if (billingMatch && method === "GET") {
+    const slug = billingMatch[1];
+    const sessionId = url.searchParams.get("session_id");
+    if (sessionId && env.STRIPE_SECRET_KEY && /^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
+      const { ok, data } = await stripe(env.STRIPE_SECRET_KEY, "GET", `/checkout/sessions/${sessionId}`);
+      const meta = data.metadata ?? {};
+      if (ok && data.payment_status === "paid" && meta.slug === slug) {
+        const plan = meta.plan === "year" ? "year" : "one";
+        await env.DB.prepare(
+          `INSERT INTO billing (slug, plan, paid_at, session_id, amount) VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT (slug) DO UPDATE SET plan = excluded.plan, paid_at = excluded.paid_at,
+             session_id = excluded.session_id, amount = excluded.amount`
+        ).bind(slug, plan, Date.now(), sessionId, Number(data.amount_total) || null).run();
+      }
+    }
+    const row = await env.DB.prepare("SELECT slug, plan, paid_at, amount FROM billing WHERE slug = ?").bind(slug).first();
+    return json({ billing: billingJson(row) });
+  }
+  if (billingMatch && method === "PUT") {
+    const slug = billingMatch[1];
+    const forbidden = await requireAdmin(env, slug, request);
+    if (forbidden) return forbidden;
+    const body = await readJson(request);
+    if (body?.plan !== "free") return err("invalid plan", 400);
+    await env.DB.prepare(
+      `INSERT INTO billing (slug, plan, paid_at, session_id, amount) VALUES (?, 'free', ?, NULL, 0)
+       ON CONFLICT (slug) DO UPDATE SET plan = 'free', paid_at = excluded.paid_at`
+    ).bind(slug, Date.now()).run();
     return json({ ok: true });
   }
   return err("not found", 404);

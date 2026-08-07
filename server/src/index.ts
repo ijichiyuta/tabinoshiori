@@ -13,6 +13,47 @@
 export interface Env {
   DB: D1Database
   ASSETS: Fetcher
+  STRIPE_SECRET_KEY?: string // wrangler secret。未設定なら課金APIは501(クライアントはデモ課金へフォールバック)
+}
+
+const PLAN_PRICES: Record<string, { amount: number; name: string }> = {
+  one: { amount: 480, name: '旅合わせ しおり1冊(買い切り)' },
+  year: { amount: 1800, name: '旅合わせ 年間パス(1年・自動更新なし)' },
+}
+
+interface BillingRow {
+  slug: string
+  plan: string
+  paid_at: number
+  amount: number | null
+}
+
+const billingJson = (row: BillingRow | null) =>
+  row
+    ? {
+        plan: row.plan,
+        paidAt: new Date(row.paid_at).toISOString(),
+        amount: row.amount ?? undefined,
+      }
+    : null
+
+/** Stripe APIをSDKなしで呼ぶ(WorkerはfetchのみでOK) */
+async function stripe(
+  key: string,
+  method: 'GET' | 'POST',
+  path: string,
+  params?: Record<string, string>,
+): Promise<{ ok: boolean; data: Record<string, unknown> }> {
+  const res = await fetch(`https://api.stripe.com/v1${path}`, {
+    method,
+    headers: {
+      authorization: `Bearer ${key}`,
+      ...(method === 'POST' ? { 'content-type': 'application/x-www-form-urlencoded' } : {}),
+    },
+    body: method === 'POST' && params ? new URLSearchParams(params) : undefined,
+  })
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>
+  return { ok: res.ok, data }
 }
 
 const MAX_DOC_BYTES = 900_000 // D1の1行上限(1MB)への安全マージン
@@ -148,7 +189,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   const stateMatch = path.match(/^\/api\/state\/([a-z0-9-]+)$/)
   if (stateMatch && method === 'GET') {
     const slug = stateMatch[1] as string
-    const [answers, checkin, surveys] = await Promise.all([
+    const [answers, checkin, surveys, billingRow] = await Promise.all([
       env.DB.prepare('SELECT member_id, data FROM answers WHERE slug = ?').bind(slug).all<{
         member_id: string
         data: string
@@ -161,6 +202,9 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
         member_id: string
         data: string
       }>(),
+      env.DB.prepare('SELECT slug, plan, paid_at, amount FROM billing WHERE slug = ?')
+        .bind(slug)
+        .first<BillingRow>(),
     ])
     const toMap = (rows: { member_id: string; data: string }[] | undefined) => {
       const out: Record<string, unknown> = {}
@@ -179,6 +223,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       answers: toMap(answers.results),
       checkin: checkinMap,
       surveys: toMap(surveys.results),
+      billing: billingJson(billingRow),
     })
   }
 
@@ -235,6 +280,81 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
        ON CONFLICT (slug, member_id) DO UPDATE SET checked = excluded.checked, updated_at = excluded.updated_at`,
     )
       .bind(slug, memberId, body.checked ? 1 : 0, Date.now())
+      .run()
+    return json({ ok: true })
+  }
+
+  // GET /api/billing/health — Stripeが使えるか(クライアントのフォールバック判定)
+  if (path === '/api/billing/health' && method === 'GET') {
+    return json({ stripe: !!env.STRIPE_SECRET_KEY })
+  }
+
+  // POST /api/billing/:slug/checkout {plan} — Stripe Checkoutセッションを作ってURLを返す
+  const checkoutMatch = path.match(/^\/api\/billing\/([a-z0-9-]+)\/checkout$/)
+  if (checkoutMatch && method === 'POST') {
+    const slug = checkoutMatch[1] as string
+    if (!env.STRIPE_SECRET_KEY) return err('stripe not configured', 501)
+    const body = (await readJson(request)) as { plan?: unknown } | null
+    const plan = body?.plan === 'year' ? 'year' : 'one'
+    const price = PLAN_PRICES[plan] as { amount: number; name: string }
+    const docRow = await env.DB.prepare('SELECT slug FROM docs WHERE slug = ?').bind(slug).first()
+    if (!docRow) return err('not found', 404)
+    const origin = url.origin
+    const { ok, data } = await stripe(env.STRIPE_SECRET_KEY, 'POST', '/checkout/sessions', {
+      mode: 'payment',
+      'line_items[0][price_data][currency]': 'jpy',
+      'line_items[0][price_data][product_data][name]': price.name,
+      'line_items[0][price_data][unit_amount]': String(price.amount),
+      'line_items[0][quantity]': '1',
+      success_url: `${origin}/publish/${slug}/stripe?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/publish/${slug}/pay`,
+      'metadata[slug]': slug,
+      'metadata[plan]': plan,
+    })
+    if (!ok || typeof data.url !== 'string') {
+      console.error('stripe checkout error', JSON.stringify(data.error ?? data).slice(0, 300))
+      return err('stripe error', 502)
+    }
+    return json({ url: data.url })
+  }
+
+  // GET /api/billing/:slug[?session_id=] — 課金状態。session_id付きなら支払い確認して記録
+  const billingMatch = path.match(/^\/api\/billing\/([a-z0-9-]+)$/)
+  if (billingMatch && method === 'GET') {
+    const slug = billingMatch[1] as string
+    const sessionId = url.searchParams.get('session_id')
+    if (sessionId && env.STRIPE_SECRET_KEY && /^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
+      const { ok, data } = await stripe(env.STRIPE_SECRET_KEY, 'GET', `/checkout/sessions/${sessionId}`)
+      const meta = (data.metadata ?? {}) as Record<string, unknown>
+      if (ok && data.payment_status === 'paid' && meta.slug === slug) {
+        const plan = meta.plan === 'year' ? 'year' : 'one'
+        await env.DB.prepare(
+          `INSERT INTO billing (slug, plan, paid_at, session_id, amount) VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT (slug) DO UPDATE SET plan = excluded.plan, paid_at = excluded.paid_at,
+             session_id = excluded.session_id, amount = excluded.amount`,
+        )
+          .bind(slug, plan, Date.now(), sessionId, Number(data.amount_total) || null)
+          .run()
+      }
+    }
+    const row = await env.DB.prepare('SELECT slug, plan, paid_at, amount FROM billing WHERE slug = ?')
+      .bind(slug)
+      .first<BillingRow>()
+    return json({ billing: billingJson(row) })
+  }
+
+  // PUT /api/billing/:slug {plan:'free'} — 無料公開の記録(幹事キー必須)
+  if (billingMatch && method === 'PUT') {
+    const slug = billingMatch[1] as string
+    const forbidden = await requireAdmin(env, slug, request)
+    if (forbidden) return forbidden
+    const body = (await readJson(request)) as { plan?: unknown } | null
+    if (body?.plan !== 'free') return err('invalid plan', 400)
+    await env.DB.prepare(
+      `INSERT INTO billing (slug, plan, paid_at, session_id, amount) VALUES (?, 'free', ?, NULL, 0)
+       ON CONFLICT (slug) DO UPDATE SET plan = 'free', paid_at = excluded.paid_at`,
+    )
+      .bind(slug, Date.now())
       .run()
     return json({ ok: true })
   }

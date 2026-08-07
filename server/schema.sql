@@ -26,3 +26,10 @@ CREATE TABLE IF NOT EXISTS surveys (
   updated_at INTEGER NOT NULL,
   PRIMARY KEY (slug, member_id)
 );
+CREATE TABLE IF NOT EXISTS billing (
+  slug TEXT PRIMARY KEY,
+  plan TEXT NOT NULL,           -- free | one | year
+  paid_at INTEGER NOT NULL,
+  session_id TEXT,              -- Stripe Checkout Session ID
+  amount INTEGER                -- 支払額(税込・円)
+);
