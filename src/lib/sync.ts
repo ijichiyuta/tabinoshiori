@@ -116,8 +116,8 @@ export async function pullState(slug: string): Promise<PulledState | null> {
   return (await res.json().catch(() => null)) as PulledState | null
 }
 
-export function pushAnswer(slug: string, memberId: string, data: unknown) {
-  void api(`/api/state/${slug}/answers/${memberId}`, {
+export function pushAnswer(slug: string, memberId: string, data: unknown, token?: string) {
+  void api(`/api/state/${slug}/answers/${memberId}${token ? `?t=${encodeURIComponent(token)}` : ''}`, {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
@@ -125,8 +125,8 @@ export function pushAnswer(slug: string, memberId: string, data: unknown) {
   })
 }
 
-export function pushSurvey(slug: string, memberId: string, data: unknown) {
-  void api(`/api/state/${slug}/surveys/${memberId}`, {
+export function pushSurvey(slug: string, memberId: string, data: unknown, token?: string) {
+  void api(`/api/state/${slug}/surveys/${memberId}${token ? `?t=${encodeURIComponent(token)}` : ''}`, {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
@@ -164,11 +164,14 @@ export function mergeStateFromServer(slug: string, server: PulledState, memberId
   }
 }
 
-export function setMemberIdLocal(slug: string, memberId: string) {
+export function setMemberIdLocal(slug: string, memberId: string, token?: string) {
   try {
     const raw = localStorage.getItem(stateKey(slug))
     const local = raw ? (JSON.parse(raw) as Record<string, unknown>) : {}
-    localStorage.setItem(stateKey(slug), JSON.stringify({ ...local, memberId }))
+    localStorage.setItem(
+      stateKey(slug),
+      JSON.stringify({ ...local, memberId, ...(token ? { token } : {}) }),
+    )
     notify(slug)
   } catch {
     // no-op

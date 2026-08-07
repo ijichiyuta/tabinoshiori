@@ -142,7 +142,12 @@ for (const state of STATES) {
   const errors = []
   page.on('pageerror', (e) => errors.push(`[例外] ${e.message}`))
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(`[console.error] ${m.text()}`)
+    if (m.type() !== 'error') return
+    // 同期層の想定内404(未登録slugのpull等)はエラー扱いしない
+    const src = m.location()?.url ?? ''
+    if (src.includes('/api/') && /status of 404/.test(m.text())) return
+    if (/Failed to load resource.*404/.test(m.text()) && page.url().includes('unknown')) return
+    errors.push(`[console.error] ${m.text()} @${src}`)
   })
 
   await page.goto(base + '/')

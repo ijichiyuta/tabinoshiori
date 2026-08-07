@@ -186,6 +186,31 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   const entryMatch = path.match(/^\/api\/state\/([a-z0-9-]+)\/(answers|surveys)\/([A-Za-z0-9_-]+)$/)
   if (entryMatch && method === 'PUT') {
     const [, slug, table, memberId] = entryMatch as unknown as [string, string, string, string]
+    // 文書が存在するしおりにしか書き込めない(孤児データ・スパム防止)
+    const docRow = await env.DB.prepare('SELECT doc, admin_key FROM docs WHERE slug = ?')
+      .bind(slug)
+      .first<{ doc: string; admin_key: string }>()
+    if (!docRow) return err('not found', 404)
+    // 名簿非公開モード(privateRoster)ではトークン照合を必須にする
+    try {
+      const doc = JSON.parse(docRow.doc) as {
+        security?: { privateRoster?: boolean }
+        members?: MemberRow[]
+      }
+      if (doc.security?.privateRoster) {
+        const member = (doc.members ?? []).find((m) => m.id === memberId)
+        const isAdmin = request.headers.get('x-admin-key') === docRow.admin_key
+        if (
+          !isAdmin &&
+          typeof member?.token === 'string' &&
+          url.searchParams.get('t') !== member.token
+        ) {
+          return err('token required', 403)
+        }
+      }
+    } catch {
+      // 文書が壊れていても書き込み自体は受ける
+    }
     const body = await readJson(request)
     if (typeof body !== 'object' || body === null) return err('invalid body', 400)
     await env.DB.prepare(

@@ -237,7 +237,7 @@ export function Cover({ shiori }: { shiori: Shiori }) {
   }, [sp, shiori])
   useEffect(() => {
     if (tokenMember && state.memberId !== tokenMember.id) {
-      update({ memberId: tokenMember.id })
+      update({ memberId: tokenMember.id, token: tokenMember.token })
     }
   }, [tokenMember, state.memberId, update])
   // サーバー同期のしおりはトークン照合がサーバー側(pull)なので、少し待つ

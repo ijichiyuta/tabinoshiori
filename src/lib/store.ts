@@ -12,6 +12,7 @@ export interface StoredState {
   dismissedUpdates?: string[] // 閉じた更新告知のid
   checkin?: Record<string, boolean> // ツアー: 点呼(乗車確認)
   surveys?: Record<string, Survey> // ツアー: アンケート回答
+  token?: string // 招待リンクの本人トークン(書き込み照合用)
 }
 
 const key = (slug: string) => `shiori:${slug}`
@@ -50,6 +51,7 @@ function sanitize(raw: unknown, shiori: Shiori): StoredState {
   }
   return {
     memberId: typeof raw.memberId === 'string' ? raw.memberId : undefined,
+    token: typeof raw.token === 'string' ? raw.token : undefined,
     answers,
     checked: Array.isArray(raw.checked)
       ? raw.checked.filter((x): x is string => typeof x === 'string')
@@ -78,12 +80,12 @@ function load(shiori: Shiori): StoredState {
 function pushDiffs(slug: string, patch: Partial<StoredState>, next: StoredState) {
   if (patch.answers) {
     for (const [id, a] of Object.entries(next.answers)) {
-      if (patch.answers[id] === a) pushAnswer(slug, id, a)
+      if (patch.answers[id] === a) pushAnswer(slug, id, a, next.token)
     }
   }
   if (patch.surveys) {
     for (const [id, sv] of Object.entries(next.surveys ?? {})) {
-      if (patch.surveys[id] === sv) pushSurvey(slug, id, sv)
+      if (patch.surveys[id] === sv) pushSurvey(slug, id, sv, next.token)
     }
   }
   if (patch.checkin) {

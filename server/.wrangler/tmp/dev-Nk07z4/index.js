@@ -126,6 +126,19 @@ async function handleApi(request, env, url) {
   const entryMatch = path.match(/^\/api\/state\/([a-z0-9-]+)\/(answers|surveys)\/([A-Za-z0-9_-]+)$/);
   if (entryMatch && method === "PUT") {
     const [, slug, table, memberId] = entryMatch;
+    const docRow = await env.DB.prepare("SELECT doc, admin_key FROM docs WHERE slug = ?").bind(slug).first();
+    if (!docRow) return err("not found", 404);
+    try {
+      const doc = JSON.parse(docRow.doc);
+      if (doc.security?.privateRoster) {
+        const member = (doc.members ?? []).find((m) => m.id === memberId);
+        const isAdmin = request.headers.get("x-admin-key") === docRow.admin_key;
+        if (!isAdmin && typeof member?.token === "string" && url.searchParams.get("t") !== member.token) {
+          return err("token required", 403);
+        }
+      }
+    } catch {
+    }
     const body = await readJson(request);
     if (typeof body !== "object" || body === null) return err("invalid body", 400);
     await env.DB.prepare(

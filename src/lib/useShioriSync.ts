@@ -36,7 +36,7 @@ export function useShioriSync(slug: string | undefined): SyncStatus {
         if (!localDoc || JSON.stringify(localDoc) !== JSON.stringify(docRes.doc)) {
           saveDocLocal(docRes.doc)
         }
-        if (docRes.memberId) setMemberIdLocal(slug, docRes.memberId)
+        if (docRes.memberId) setMemberIdLocal(slug, docRes.memberId, token ?? undefined)
         if (stateRes) mergeStateFromServer(slug, stateRes, docRes.memberId)
         setStatus('ready')
         setTick((n) => n + 1)
