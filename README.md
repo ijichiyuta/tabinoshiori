@@ -1,6 +1,6 @@
 # 旅合わせ(たびあわせ)
 
-旅のしおりサービス。ドメイン: tabiawase.jp(取得予定)。
+旅のしおりサービス。**本番: https://tabiawase.com**(Cloudflare Workers + D1)。
 紙のしおりの記憶を持つデジタル。参加者は登録もログインもなく、URLを開くだけで
 出欠の回答・行程・持ち物・連絡先をひとつの「しおり」で確認できるWebアプリ。
 
@@ -80,7 +80,25 @@ Service Worker で本体・アセット・Googleフォントをキャッシュ�
 
 朱色=警告専用のルールと画面構造は両テーマ共通です。
 
-しおり文書・回答・チェック・支払い状態はすべて localStorage に保存されます(サーバーなしのデモ実装)。
+しおり文書・回答・点呼・アンケートは**サーバー(D1)と同期**されます(幹事の編集が参加者に即反映)。
+持ち物チェック・既読・本人選択は端末ローカル。オフライン時はlocalStorageのみで動き続けます。
+
+## デプロイ
+
+```sh
+npm run build && cd server && npx wrangler deploy   # 要 wrangler login
+```
+
+サーバーは `server/`(Worker: API + SPA配信)。D1スキーマ変更時は
+`npx wrangler d1 execute tabiawase --file server/schema.sql --remote`。
+
+## サーバー同期の検証
+
+```sh
+cd server && npx wrangler dev --port 8787 &         # ローカルD1で全体起動
+BASE=http://localhost:8787 node scripts/flow-test.mjs
+node scripts/sync-test.mjs                          # 3端末同期テスト
+```
 
 ## 検証スクリプト
 
