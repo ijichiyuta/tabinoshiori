@@ -57,7 +57,8 @@ async function handleApi(request, env, url) {
     if (!SLUG_RE.test(slug)) return err("invalid slug", 400);
     const existing = await env.DB.prepare("SELECT slug FROM docs WHERE slug = ?").bind(slug).first();
     if (existing) return err("slug already exists", 409);
-    const adminKey = crypto.randomUUID();
+    const clientKey = typeof body.adminKey === "string" && /^[A-Za-z0-9-]{16,64}$/.test(body.adminKey) ? body.adminKey : null;
+    const adminKey = clientKey ?? crypto.randomUUID();
     await env.DB.prepare(
       "INSERT INTO docs (slug, doc, admin_key, updated_at) VALUES (?, ?, ?, ?)"
     ).bind(slug, JSON.stringify(doc), adminKey, Date.now()).run();

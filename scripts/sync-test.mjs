@@ -33,7 +33,7 @@ await A.goto(base + `/manage/${slug}/edit`)
 await A.fill('.form-row:has(.input-label:text-is("タイトル")) input', '同期テスト温泉旅行')
 await A.click('.save-bar button')
 await A.waitForSelector('.saved-note')
-await A.waitForTimeout(800) // push完了待ち
+await A.waitForTimeout(2500) // push完了待ち
 const adminKey = await A.evaluate((s) => localStorage.getItem(`admin-key:${s}`), slug)
 check('保存でサーバーのadminKeyが発行される', !!adminKey)
 
@@ -47,7 +47,7 @@ await B.waitForURL('**/rsvp')
 await B.click('.choice-grid button:has-text("参加")')
 await B.click('button:has-text("この内容で回答する")')
 await B.waitForURL('**/rsvp/done')
-await B.waitForTimeout(800) // push完了待ち
+await B.waitForTimeout(2500) // push完了待ち
 check('参加者が別端末から回答できる', true)
 
 // 2) 幹事の端末に回答が届く
@@ -61,12 +61,14 @@ await A.goto(base + `/manage/${slug}/edit`)
 await A.fill('.form-row:has(.input-label:text-is("タイトル")) input', '同期テスト温泉旅行(改)')
 await A.click('.save-bar button')
 await A.waitForSelector('.saved-note')
-await A.waitForTimeout(800)
-await B.goto(base + `/s/${slug}`)
-await B.waitForTimeout(1200)
-await B.reload()
-await B.waitForSelector('text=同期テスト温泉旅行(改)', { timeout: 10000 })
-check('幹事の編集が参加者の端末に反映される', true)
+await A.waitForTimeout(2500)
+let titleSynced = false
+for (let i = 0; i < 6 && !titleSynced; i++) {
+  await B.goto(base + `/s/${slug}`)
+  await B.waitForTimeout(2000)
+  titleSynced = (await B.locator('text=同期テスト温泉旅行(改)').count()) > 0
+}
+check('幹事の編集が参加者の端末に反映される', titleSynced)
 
 // ===== ツアー: 招待リンク(サーバー照合)と点呼の同期 =====
 await A.goto(base + '/manage')
@@ -76,7 +78,7 @@ const tourSlug = A.url().split('/').pop()
 await A.goto(base + `/manage/${tourSlug}/links`)
 await A.click('button:has-text("リンクを発行")')
 await A.waitForSelector('.hairline-block .mono', { timeout: 5000 })
-await A.waitForTimeout(800) // push完了待ち
+await A.waitForTimeout(2500) // push完了待ち
 const inviteUrl = (await A.locator('.hairline-block .mono').first().innerText()).trim()
 check('招待リンクが発行される', inviteUrl.includes(`/s/${tourSlug}?t=`))
 
@@ -96,10 +98,14 @@ await A.goto(base + `/manage/${tourSlug}/checkin`)
 await A.locator('.hairline-block button').first().click()
 await A.waitForTimeout(800)
 const D = await newPage()
-await D.goto(base + `/manage/${tourSlug}/checkin`)
-await D.waitForTimeout(1500)
-const summary = await D.locator('.card.accent').innerText()
-check('点呼が別端末で見える(1/1)', summary.includes('1'))
+let checkinSynced = false
+for (let i = 0; i < 6 && !checkinSynced; i++) {
+  await D.goto(base + `/manage/${tourSlug}/checkin`)
+  await D.waitForTimeout(2000)
+  const summary = await D.locator('.card.accent').innerText()
+  checkinSynced = /1\s*\/ 1名/.test(summary.replace(/\n/g, ' '))
+}
+check('点呼が別端末で見える(1/1)', checkinSynced)
 
 // 後片付け(サーバー側も削除)
 await A.goto(base + `/manage/${slug}`)

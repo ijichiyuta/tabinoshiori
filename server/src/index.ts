@@ -81,16 +81,21 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   const path = url.pathname
   const method = request.method
 
-  // POST /api/docs — 新規作成(adminKeyをサーバー発行)
+  // POST /api/docs — 新規作成。adminKeyはクライアント生成を優先
+  // (応答がページ遷移で失われてもキーが迷子にならず、冪等にリトライできる)
   if (path === '/api/docs' && method === 'POST') {
-    const body = (await readJson(request)) as { doc?: unknown } | null
+    const body = (await readJson(request)) as { doc?: unknown; adminKey?: unknown } | null
     if (!body || !isDocShape(body.doc)) return err('invalid doc', 400)
     const doc = body.doc
     const slug = doc.slug as string
     if (!SLUG_RE.test(slug)) return err('invalid slug', 400)
     const existing = await env.DB.prepare('SELECT slug FROM docs WHERE slug = ?').bind(slug).first()
     if (existing) return err('slug already exists', 409)
-    const adminKey = crypto.randomUUID()
+    const clientKey =
+      typeof body.adminKey === 'string' && /^[A-Za-z0-9-]{16,64}$/.test(body.adminKey)
+        ? body.adminKey
+        : null
+    const adminKey = clientKey ?? crypto.randomUUID()
     await env.DB.prepare(
       'INSERT INTO docs (slug, doc, admin_key, updated_at) VALUES (?, ?, ?, ?)',
     )

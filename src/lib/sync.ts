@@ -46,26 +46,34 @@ async function api(path: string, init?: RequestInit): Promise<Response | null> {
   }
 }
 
-/** 文書をサーバーへ保存。キー未発行なら新規作成してキーを保存する。 */
+/** キーを先に生成して保存(応答がページ遷移で失われても迷子にならない) */
+function getOrCreateAdminKey(slug: string): string {
+  const existing = getAdminKey(slug)
+  if (existing) return existing
+  const key = crypto.randomUUID()
+  setAdminKey(slug, key)
+  return key
+}
+
+/** 文書をサーバーへ保存。冪等: PUT→(未作成なら)POST、キーはクライアント生成 */
 export async function pushDoc(doc: Shiori): Promise<void> {
-  const key = getAdminKey(doc.slug)
-  if (key) {
-    const res = await api(`/api/docs/${doc.slug}`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json', 'x-admin-key': key },
-      body: JSON.stringify({ doc }),
-    })
-    if (res && res.status !== 404) return
-  }
-  const res = await api('/api/docs', {
+  const key = getOrCreateAdminKey(doc.slug)
+  const putBody = JSON.stringify({ doc })
+  // keepaliveはページ遷移後も送信が継続される(64KB上限のため小さい文書のみ)
+  const keepalive = putBody.length < 60_000
+  const res = await api(`/api/docs/${doc.slug}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json', 'x-admin-key': key },
+    body: putBody,
+    keepalive,
+  })
+  if (res && res.status !== 404) return
+  await api('/api/docs', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ doc }),
+    body: JSON.stringify({ doc, adminKey: key }),
+    keepalive,
   })
-  if (res?.status === 201) {
-    const data = (await res.json().catch(() => null)) as { adminKey?: string } | null
-    if (data?.adminKey) setAdminKey(doc.slug, data.adminKey)
-  }
   // 409(他人のslug)等は黙ってローカルのみ運用
 }
 
@@ -113,6 +121,7 @@ export function pushAnswer(slug: string, memberId: string, data: unknown) {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
+    keepalive: true,
   })
 }
 
@@ -121,6 +130,7 @@ export function pushSurvey(slug: string, memberId: string, data: unknown) {
     method: 'PUT',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(data),
+    keepalive: true,
   })
 }
 
@@ -131,6 +141,7 @@ export function pushCheckin(slug: string, memberId: string, checked: boolean) {
     method: 'PUT',
     headers: { 'content-type': 'application/json', 'x-admin-key': key },
     body: JSON.stringify({ checked }),
+    keepalive: true,
   })
 }
 
