@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /manage
+Disallow: /publish/
+
+Sitemap: https://tabiawase.com/sitemap.xml

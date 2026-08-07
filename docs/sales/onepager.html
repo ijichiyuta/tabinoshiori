@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1F1D1A; --sub:#413D37; --muted:#6B655C; --paper:#FBFAF7; --line:#DBD6CC; --accent:#2C4A7C; --warn:#C2452D; }
+  * { box-sizing:border-box } html,body { margin:0; padding:0 }
+  body { font-family:'Noto Sans JP',sans-serif; color:var(--ink); font-size:12.5px; line-height:1.7; background:#fff }
+  .page { width:210mm; min-height:297mm; padding:16mm 18mm; position:relative }
+  .serif { font-family:'Noto Serif JP',serif }
+  .head { display:flex; justify-content:space-between; align-items:baseline; border-bottom:2px solid var(--accent); padding-bottom:8px }
+  .brand { font-family:'Noto Serif JP',serif; font-size:26px; font-weight:600 }
+  .brand small { font-size:11px; color:var(--muted); letter-spacing:.2em; margin-left:10px }
+  .head .for { font-size:12px; color:var(--accent); font-weight:700 }
+  h1 { font-family:'Noto Serif JP',serif; font-size:25px; font-weight:600; line-height:1.5; margin:22px 0 4px }
+  .lede { color:var(--sub); font-size:13px }
+  .cols { display:flex; gap:16px; margin-top:16px }
+  .col { flex:1 }
+  .box { border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:10px }
+  .box.accent { border-color:var(--accent) }
+  .box h3 { font-family:'Noto Serif JP',serif; font-size:14px; font-weight:600; margin:0 0 6px; color:var(--accent) }
+  .box p, .box ul { margin:0; font-size:12px; color:var(--sub) }
+  .box ul { padding-left:16px }
+  .pain { color:var(--warn); font-weight:700 }
+  table { width:100%; border-collapse:collapse; font-size:12px }
+  th,td { border-bottom:1px solid var(--line); padding:7px 6px; text-align:left; vertical-align:top }
+  th { color:var(--muted); font-weight:500; white-space:nowrap }
+  .price { font-family:'Noto Serif JP',serif; font-size:16px; font-weight:600 }
+  .foot { position:absolute; bottom:14mm; left:18mm; right:18mm; border-top:1px solid var(--line); padding-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted) }
+  .demo { display:flex; align-items:center; gap:12px; background:var(--paper); border:1px solid var(--accent); border-radius:6px; padding:9px 13px; margin-top:10px; font-size:11px }
+  .demo img { width:62px; height:62px }
+  .demo .u { font-weight:700; font-size:14px; color:var(--accent) }
+  .steps { display:flex; gap:10px; margin-top:6px }
+  .step { flex:1; border:1px solid var(--line); border-radius:6px; padding:9px 11px; font-size:11.5px; color:var(--sub) }
+  .step b { display:block; color:var(--ink); font-size:12.5px }
+</style></head>
+<body><div class="page">
+  <div class="head">
+    <div class="brand">旅合わせ<small>た び あ わ せ</small></div>
+    <div class="for">バスツアー・旅行会社さま向けご提案</div>
+  </div>
+
+  <h1>「集合場所どこ?」の電話を、なくす。<br>紙のしおりを、お客様のスマホに。</h1>
+  <p class="lede">旅合わせは、ツアーの案内・点呼・アンケートをURLひとつにまとめるサービスです。お客様は<b>アプリ不要・登録不要</b>——URLを開いて名前を選ぶだけ。ご年配のお客様でも迷いません。</p>
+
+  <div class="cols">
+    <div class="col">
+      <div class="box">
+        <h3>こんなお悩みに</h3>
+        <ul>
+          <li><span class="pain">出発前日の電話ラッシュ</span> — 集合場所・時刻の問い合わせ対応</li>
+          <li><span class="pain">紙のしおりの印刷・封入・郵送</span> — 1部数百円のコストと変更時の刷り直し</li>
+          <li><span class="pain">紙とペンの点呼</span> — 乗車地ごとの人数確認に手間取る</li>
+          <li><span class="pain">キャンセル規定の説明義務</span> — 書面交付の手間(2023年法改正で電子交付が可能に)</li>
+        </ul>
+      </div>
+      <div class="box accent">
+        <h3>旅合わせができること</h3>
+        <ul>
+          <li><b>乗車地ごとの集合案内</b> — お客様には自分の乗車地・号車・座席だけを表示</li>
+          <li><b>個別URL</b> — 予約確認メールに貼るだけ。名簿は表示されず、なりすましも防止</li>
+          <li><b>添乗員のワンタップ点呼</b> — 乗車地ごとに0/10形式で人数把握、未着のお客様へ電話リンク</li>
+          <li><b>遅延・変更の一斉告知</b> — しおり上部のバナーで全員に即時周知</li>
+          <li><b>キャンセル規定・旅行条件の電子交付</b>、ツアー後アンケート(5段階+自由記述)の自動集計</li>
+          <li><b>予約名簿のCSV取り込み</b>・定期催行のしおり複製・A4印刷(QR付き)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="box">
+        <h3>導入はその日から</h3>
+        <div class="steps">
+          <div class="step"><b>1. 作る</b>行程を入力し名簿をCSVで貼り付け(10分)</div>
+          <div class="step"><b>2. 配る</b>個別URLをメール・SMSに差し込み</div>
+          <div class="step"><b>3. 当日</b>点呼・告知・「いま」が動く行程表</div>
+        </div>
+      </div>
+      <div class="box">
+        <h3>料金(税込)</h3>
+        <table>
+          <tr><th>お試し</th><td><span class="price">¥0</span>(6名まで)</td></tr>
+          <tr><th>1ツアー</th><td><span class="price">¥480</span> / しおり1冊・買い切り・人数無制限</td></tr>
+          <tr><th>年間パス</th><td><span class="price">¥1,800</span> / 年・しおり作り放題・複製可</td></tr>
+        </table>
+        <p style="margin-top:6px; font-size:11px">大量催行・ホワイトラベル等の専用プランはご相談ください。</p>
+      </div>
+      <div class="box">
+        <h3>安心の設計</h3>
+        <ul>
+          <li>お客様の個人情報は本人と貴社のみ閲覧(名簿非公開モード・電話下4桁照合)</li>
+          <li>管理画面は管理コードでロック/データは18ヶ月で自動削除</li>
+          <li>圏外でも表示(トンネル・山間部対応)/カード情報は保持しません(Stripe決済)</li>
+        </ul>
+      </div>
+      <div class="demo">
+        <img src="qr-demo.png" alt="デモQR">
+        <div>
+          <div style="font-size:11px;color:var(--muted)">実際に触れるデモ(浜名湖日帰りツアー・24名)</div>
+          <div class="u">tabiawase.com/s/hama2026</div>
+          <div style="font-size:11px;color:var(--muted)">お名前「木村」→ 電話下4桁 0008</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div>旅合わせ ｜ https://tabiawase.com ｜ お問い合わせ: 【要確認(メールアドレス)】</div>
+    <div>© 旅合わせ</div>
+  </div>
+</div></body></html>
