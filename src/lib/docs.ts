@@ -135,7 +135,7 @@ export function dateLabelRange(dates: string[]): string {
 export function duplicateShiori(src: Shiori): Shiori {
   const copy = structuredClone(src)
   copy.slug = uid('s')
-  copy.shareUrl = `trip-shiori.jp/s/${copy.slug}`
+  copy.shareUrl = `tabiawase.jp/s/${copy.slug}`
   copy.title = `${src.title}(コピー)`
   saveDoc(copy)
   return copy
@@ -188,7 +188,7 @@ export function createShiori(kind: ShioriKind): Shiori {
     checklist: [],
     contacts: [],
     updates: [],
-    shareUrl: `trip-shiori.jp/s/${slug}`,
+    shareUrl: `tabiawase.jp/s/${slug}`,
   }
   if (kind === 'duo') {
     base.expenses = []

@@ -34,7 +34,7 @@ function PrintQr({ url }: { url: string }) {
 function Sheet({ watermark, children }: { watermark: boolean; children: ReactNode }) {
   return (
     <div className="print-sheet">
-      {watermark && <div className="print-watermark">無料版サンプル ・ trip-shiori.jp</div>}
+      {watermark && <div className="print-watermark">無料版サンプル ・ 旅合わせ</div>}
       {children}
     </div>
   )

@@ -81,10 +81,10 @@ const SECTION_TITLES: Record<string, string> = {
 function TitleManager() {
   const { pathname } = useLocation()
   useEffect(() => {
-    let title = '旅のしおり'
+    let title = '旅合わせ'
     const m = pathname.match(/^\/(s|publish|manage)\/([^/]+)(?:\/([^/]+))?/)
     if (pathname === '/manage') {
-      title = '幹事メニュー | 旅のしおり'
+      title = '幹事メニュー | 旅合わせ'
     } else if (m) {
       const shiori = findShiori(m[2])
       if (shiori) {
@@ -96,7 +96,7 @@ function TitleManager() {
               : SECTION_TITLES[m[3] ?? '']
         title = section
           ? `${section} | ${shiori.title}`
-          : `${shiori.title} ${shiori.subtitle} | 旅のしおり`
+          : `${shiori.title} ${shiori.subtitle} | 旅合わせ`
       }
     }
     document.title = title

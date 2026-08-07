@@ -157,7 +157,7 @@ const gasshuku: Shiori = {
     },
   ],
   updates: [{ id: 'u1', date: '8/20', text: '集合時刻が 7:30 に変更されました' }],
-  shareUrl: 'trip-shiori.jp/s/tob2026',
+  shareUrl: 'tabiawase.jp/s/tob2026',
 }
 
 const kinosaki: Shiori = {
@@ -274,7 +274,7 @@ const kinosaki: Shiori = {
     '特急きのさき5号　4号車 3A・3B',
   ],
   coverBadge: '宿代 前払済 ✓',
-  shareUrl: 'trip-shiori.jp/s/kino2026',
+  shareUrl: 'tabiawase.jp/s/kino2026',
 }
 
 // バスツアー(事業者)デモ: 中小バス会社の日帰りツアー、乗車地3か所・2号車運行・24名
@@ -468,7 +468,7 @@ const hamanako: Shiori = {
       body: 'この旅行は募集型企画旅行契約です。詳しい旅行条件を説明した書面をお渡ししますので、事前にご確認のうえお申し込みください。\n総合旅行業務取扱管理者: 日高(架空)\n受託販売: なし',
     },
   ],
-  shareUrl: 'trip-shiori.jp/s/hama2026',
+  shareUrl: 'tabiawase.jp/s/hama2026',
 }
 
 export const SHIORI_LIST: Shiori[] = [gasshuku, kinosaki, hamanako]

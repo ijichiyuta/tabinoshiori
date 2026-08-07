@@ -417,14 +417,14 @@ export function Receipt({ shiori }: { shiori: Shiori }) {
           {yen(price)} −
         </div>
         <div style={{ fontSize: 14, color: 'var(--sub)' }}>
-          但し 旅のしおり {PAID_PLANS[billing.plan === 'year' ? 'year' : 'one'].itemLabel}
+          但し 旅合わせ {PAID_PLANS[billing.plan === 'year' ? 'year' : 'one'].itemLabel}
           利用料として(税込)
         </div>
         <div style={{ fontSize: 14, color: 'var(--sub)', marginTop: 4 }}>
           上記正に領収いたしました
         </div>
         <div style={{ marginTop: 40, textAlign: 'right', fontSize: 13.5, lineHeight: 1.9, color: 'var(--sub)' }}>
-          trip-shiori.jp(デモ)
+          旅合わせ tabiawase.jp(デモ)
           <br />
           支払方法: {billing.method ?? '—'}
           {billing.last4 && `(末尾 ${billing.last4})`}

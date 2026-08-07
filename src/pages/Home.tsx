@@ -10,7 +10,7 @@ export function Home() {
   return (
     <div className="home">
       <div className="home-inner">
-        <h1>旅のしおり</h1>
+        <h1>旅合わせ</h1>
         <p className="lede">
           紙のしおりの記憶を持つデジタル。参加者は登録もログインもなく、URLを開くだけ。
           出欠の回答・行程・持ち物・連絡先をひとつのしおりにまとめます。

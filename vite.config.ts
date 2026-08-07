@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
-        name: '旅のしおり',
-        short_name: 'しおり',
-        description: '紙のしおりの記憶を持つデジタル。行程・出欠・持ち物・割り勘をひとつのしおりで。',
+        name: '旅合わせ',
+        short_name: '旅合わせ',
+        description: '集合も持ち物も割り勘も、旅をひとつに合わせる。紙のしおりの記憶を持つデジタル。',
         lang: 'ja',
         start_url: '/',
         scope: '/',
