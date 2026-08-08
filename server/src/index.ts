@@ -140,6 +140,16 @@ async function requireAdmin(env: Env, slug: string, request: Request): Promise<R
   return null
 }
 
+/** 保存前にdoc JSONからstaffKeyを取り除く(正はdocs.staff_keyカラム)。
+ *  旧クライアントが持ち込んだ値は返してカラムへの引き継ぎ判断に使う。 */
+function stripStaffKey(doc: Record<string, unknown>): string | null {
+  const sec = doc.security as { staffKey?: unknown } | undefined
+  if (!sec || !('staffKey' in sec)) return null
+  const key = typeof sec.staffKey === 'string' ? sec.staffKey : null
+  delete sec.staffKey
+  return key
+}
+
 async function handleApi(request: Request, env: Env, url: URL): Promise<Response> {
   const path = url.pathname
   const method = request.method
@@ -160,6 +170,8 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
         ? body.adminKey
         : null
     const adminKey = clientKey ?? crypto.randomUUID()
+    // 新規作成(複製含む)はスタッフキーを引き継がない=初回PIN照合で新規発行
+    stripStaffKey(doc as Record<string, unknown>)
     await env.DB.prepare(
       'INSERT INTO docs (slug, doc, admin_key, updated_at) VALUES (?, ?, ?, ?)',
     )
@@ -190,8 +202,12 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       const body = (await readJson(request)) as { doc?: unknown } | null
       if (!body || !isDocShape(body.doc) || body.doc.slug !== slug) return err('invalid doc', 400)
       const updatedAt = Date.now()
-      await env.DB.prepare('UPDATE docs SET doc = ?, updated_at = ? WHERE slug = ?')
-        .bind(JSON.stringify(body.doc), updatedAt, slug)
+      // 旧クライアントがdoc内に持つstaffKeyはカラム未設定の場合のみ引き継ぐ
+      const pushedStaffKey = stripStaffKey(body.doc as Record<string, unknown>)
+      await env.DB.prepare(
+        'UPDATE docs SET doc = ?, updated_at = ?, staff_key = COALESCE(staff_key, ?) WHERE slug = ?',
+      )
+        .bind(JSON.stringify(body.doc), updatedAt, pushedStaffKey, slug)
         .run()
       return json({ slug, updatedAt })
     }
@@ -301,10 +317,25 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     const staffHeader = request.headers.get('x-staff-key')
     let allowed = false
     if (staffHeader) {
-      const row = await env.DB.prepare('SELECT doc FROM docs WHERE slug = ?').bind(slug).first<{ doc: string }>()
+      const row = await env.DB.prepare('SELECT staff_key, doc FROM docs WHERE slug = ?')
+        .bind(slug)
+        .first<{ staff_key: string | null; doc: string }>()
       if (!row) return err('not found', 404)
-      const doc = JSON.parse(row.doc) as { security?: { staffKey?: string } }
-      allowed = !!doc.security?.staffKey && doc.security.staffKey === staffHeader
+      allowed = !!row.staff_key && row.staff_key === staffHeader
+      if (!allowed && !row.staff_key) {
+        // 旧形式(doc JSON内保存)からの自己修復: 一致したらカラムに引き上げる
+        try {
+          const doc = JSON.parse(row.doc) as { security?: { staffKey?: string } }
+          if (!!doc.security?.staffKey && doc.security.staffKey === staffHeader) {
+            allowed = true
+            await env.DB.prepare('UPDATE docs SET staff_key = ? WHERE slug = ?')
+              .bind(staffHeader, slug)
+              .run()
+          }
+        } catch {
+          // 壊れた文書は幹事キー側の判定に回す
+        }
+      }
     }
     if (!allowed) {
       const forbidden = await requireAdmin(env, slug, request)
@@ -351,19 +382,19 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     const slug = pinMatch[1] as string
     const body = (await readJson(request)) as { pin?: unknown } | null
     if (!body || typeof body.pin !== 'string') return err('invalid body', 400)
-    const row = await env.DB.prepare('SELECT doc FROM docs WHERE slug = ?').bind(slug).first<{ doc: string }>()
+    const row = await env.DB.prepare('SELECT doc, staff_key FROM docs WHERE slug = ?')
+      .bind(slug)
+      .first<{ doc: string; staff_key: string | null }>()
     if (!row) return err('not found', 404)
     const doc = JSON.parse(row.doc) as { security?: { adminPin?: string; staffKey?: string } }
     const pin = doc.security?.adminPin
     if (!pin || body.pin.trim() !== pin) return err('wrong pin', 403)
-    // スタッフキーが無ければ発行して文書に保存(全スタッフで共有される)
-    let staffKey = doc.security?.staffKey
-    if (!staffKey) {
-      staffKey = crypto.randomUUID()
-      doc.security = { ...doc.security, staffKey }
-      await env.DB.prepare('UPDATE docs SET doc = ? WHERE slug = ?')
-        .bind(JSON.stringify(doc), slug)
-        .run()
+    // スタッフキーはstaff_keyカラムで管理(doc内だと幹事のpushで消えるため)。
+    // 旧形式(doc内)のキーがあれば引き継いで既存スタッフ端末を無効化しない
+    let staffKey = row.staff_key ?? doc.security?.staffKey
+    if (!staffKey) staffKey = crypto.randomUUID()
+    if (staffKey !== row.staff_key) {
+      await env.DB.prepare('UPDATE docs SET staff_key = ? WHERE slug = ?').bind(staffKey, slug).run()
     }
     return json({ ok: true, staffKey })
   }

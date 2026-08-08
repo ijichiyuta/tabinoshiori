@@ -3,8 +3,12 @@ CREATE TABLE IF NOT EXISTS docs (
   slug TEXT PRIMARY KEY,
   doc TEXT NOT NULL,            -- Shiori JSON(memberトークン含む。公開時にAPIで除去)
   admin_key TEXT NOT NULL,      -- 幹事の書き込みキー(サーバー発行UUID)
+  staff_key TEXT,               -- 点呼スタッフ用キー(PIN照合で発行。docと独立=幹事のpushで消えない)
   updated_at INTEGER NOT NULL
 );
+-- 既存DBへの移行(migrations/0001-staff-key.sql):
+--   ALTER TABLE docs ADD COLUMN staff_key TEXT;
+--   UPDATE docs SET staff_key = json_extract(doc, '$.security.staffKey') WHERE staff_key IS NULL;
 CREATE TABLE IF NOT EXISTS answers (
   slug TEXT NOT NULL,
   member_id TEXT NOT NULL,
