@@ -1630,11 +1630,16 @@ select.text-input {
    そのまま見せる(タブバー等はfixed→stickyに切り替えて枠内に収める) */
 @media (min-width: 720px) {
   .app {
-    height: min(880px, calc(100dvh - 56px));
-    min-height: 0;
-    margin: 28px auto;
-    border: 10px solid #14161c;
-    border-radius: 38px;
+    /* 実機と同じ幅・縦横比のフレームにする(間延び防止) */
+    width: 390px;
+    max-width: 390px;
+    aspect-ratio: 390 / 800;
+    height: auto;
+    max-height: calc(100dvh - 48px);
+    min-height: 560px;
+    margin: 24px auto;
+    border: 11px solid #14161c;
+    border-radius: 46px;
     box-shadow: 0 32px 80px rgba(31, 29, 26, 0.28);
     overflow-y: auto;
     overscroll-behavior: contain;
