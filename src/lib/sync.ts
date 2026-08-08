@@ -38,9 +38,26 @@ function setAdminKey(slug: string, key: string) {
   }
 }
 
+/** タイムアウト用シグナル。AbortSignal.timeout 非対応(古いSafari等)ではsetTimeoutで代替 */
+function timeoutSignal(ms: number): AbortSignal | undefined {
+  try {
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      return AbortSignal.timeout(ms)
+    }
+    if (typeof AbortController === 'function') {
+      const c = new AbortController()
+      setTimeout(() => c.abort(), ms)
+      return c.signal
+    }
+  } catch {
+    // 生成に失敗してもタイムアウトなしで通信は行う
+  }
+  return undefined
+}
+
 async function api(path: string, init?: RequestInit): Promise<Response | null> {
   try {
-    return await fetch(path, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) })
+    return await fetch(path, { ...init, signal: timeoutSignal(TIMEOUT_MS) })
   } catch {
     return null // オフライン・API未設置(vite preview単体)など
   }
@@ -90,11 +107,17 @@ export async function pushDoc(doc: Shiori): Promise<void> {
 export async function deleteDocRemote(slug: string): Promise<void> {
   const key = getAdminKey(slug)
   if (!key) return
-  await api(`/api/docs/${slug}`, { method: 'DELETE', headers: { 'x-admin-key': key } })
-  try {
-    localStorage.removeItem(adminKeyKey(slug))
-  } catch {
-    // no-op
+  const res = await api(`/api/docs/${slug}`, { method: 'DELETE', headers: { 'x-admin-key': key } })
+  // サーバー削除が確認できたときだけ鍵を破棄する。
+  // オフライン・タイムアウトで鍵を消すと、個人情報入りの文書がサーバーに残ったまま
+  // 二度と削除・編集できなくなる(復旧不能)。失敗時は鍵を残して次回の再試行に備える
+  if (res && (res.ok || res.status === 404)) {
+    try {
+      localStorage.removeItem(adminKeyKey(slug))
+      localStorage.removeItem(staffKeyKey(slug))
+    } catch {
+      // no-op
+    }
   }
 }
 

@@ -79,7 +79,10 @@ const docTsKey = (slug: string) => `doc-ts:${slug}`
 /** ローカル文書の最終保存時刻(pullの巻き戻し防止に使う) */
 export function docSavedAt(slug: string): number {
   try {
-    return Number(localStorage.getItem(docTsKey(slug)) ?? 0)
+    // 不正値でNaNになると `updatedAt >= NaN` が常にfalseになり、
+    // その端末が以後サーバー更新を一切受け取れなくなる(NaN毒)。有限数以外は0扱い
+    const n = Number(localStorage.getItem(docTsKey(slug)) ?? 0)
+    return Number.isFinite(n) ? n : 0
   } catch {
     return 0
   }
@@ -108,8 +111,17 @@ export function saveDoc(doc: Shiori) {
 }
 
 export function deleteDoc(slug: string) {
-  localStorage.removeItem(docKey(slug))
+  try {
+    localStorage.removeItem(docKey(slug))
+    localStorage.removeItem(docTsKey(slug))
+    localStorage.removeItem(`shiori:${slug}`) // 保存済みの回答・点呼など(store.ts)
+    sessionStorage.removeItem(`pin:${slug}`)
+    sessionStorage.removeItem(`pin-ok:${slug}`)
+  } catch {
+    // no-op
+  }
   writeIndex(readIndex().filter((s) => s !== slug))
+  // admin-key / staff-key はサーバー削除の成否を見てから deleteDocRemote 側で消す
   if (!isBuiltin(slug)) void deleteDocRemote(slug)
 }
 

@@ -76,21 +76,39 @@ function load(shiori: Shiori): StoredState {
   return { answers: {}, checked: [...(shiori.checklistSeedChecked ?? [])] }
 }
 
-/** update()で変わった answers/checkin/surveys だけをサーバーへ送る */
-function pushDiffs(slug: string, patch: Partial<StoredState>, next: StoredState) {
+/**
+ * 更新前(prev)と更新後(next)を比べ、実際に値が変わった項目だけをサーバーへ送る。
+ * 呼び出し側は `{ ...s.answers, [id]: ... }` のように全量をspreadして渡すため、
+ * patchに含まれるかどうかでは差分にならない(全件pushして他端末の新しい値を古い値で
+ * 上書きする lost update になる)。必ず prev と突き合わせる。
+ */
+function pushDiffs(
+  slug: string,
+  patch: Partial<StoredState>,
+  prev: StoredState,
+  next: StoredState,
+) {
   if (patch.answers) {
     for (const [id, a] of Object.entries(next.answers)) {
-      if (patch.answers[id] === a) pushAnswer(slug, id, a, next.token)
+      if (prev.answers[id] !== a) pushAnswer(slug, id, a, next.token)
     }
   }
   if (patch.surveys) {
+    const prevSurveys = prev.surveys ?? {}
     for (const [id, sv] of Object.entries(next.surveys ?? {})) {
-      if (patch.surveys[id] === sv) pushSurvey(slug, id, sv, next.token)
+      if (prevSurveys[id] !== sv) pushSurvey(slug, id, sv, next.token)
     }
   }
   if (patch.checkin) {
-    for (const [id, c] of Object.entries(next.checkin ?? {})) {
-      if (patch.checkin[id] === c) pushCheckin(slug, id, c)
+    const prevCheckin = prev.checkin ?? {}
+    const nextCheckin = next.checkin ?? {}
+    // 変更・追加ぶんを送る
+    for (const [id, c] of Object.entries(nextCheckin)) {
+      if (prevCheckin[id] !== c) pushCheckin(slug, id, c)
+    }
+    // 削除ぶん(点呼リセット等)は false を明示的に送る(削除は伝搬できないため)
+    for (const id of Object.keys(prevCheckin)) {
+      if (!(id in nextCheckin) && prevCheckin[id]) pushCheckin(slug, id, false)
     }
   }
 }
@@ -113,8 +131,9 @@ export function useShioriState(shiori: Shiori) {
   // setState のアップデータ内ではなく同期的に localStorage へ書き込む
   const update = useCallback(
     (patch: Partial<StoredState> | ((s: StoredState) => Partial<StoredState>)) => {
-      const p = typeof patch === 'function' ? patch(ref.current) : patch
-      const next = { ...ref.current, ...p }
+      const prev = ref.current
+      const p = typeof patch === 'function' ? patch(prev) : patch
+      const next = { ...prev, ...p }
       ref.current = next
       try {
         localStorage.setItem(key(shiori.slug), JSON.stringify(next))
@@ -123,7 +142,7 @@ export function useShioriState(shiori: Shiori) {
       }
       setState(next)
       // 変更ぶんをサーバーへ(組み込みデモは同期しない)
-      if (!isBuiltin(shiori.slug)) pushDiffs(shiori.slug, p, next)
+      if (!isBuiltin(shiori.slug)) pushDiffs(shiori.slug, p, prev, next)
     },
     [shiori.slug],
   )

@@ -232,6 +232,25 @@ const staffState = await (
 ).json()
 check('スタッフの点呼操作がサーバーに反映される', staffState.checkin && staffState.checkin.m1 === false)
 
+// 10) 点呼リセットがサーバーに同期される(空マージで復活しないこと)
+await A.goto(base + `/manage/${tourSlug}/checkin`)
+await A.waitForSelector('.card.accent, input[type="password"]', { timeout: 10000 })
+await unlockIfNeeded(A)
+await A.waitForSelector('.hairline-block button', { timeout: 10000 })
+// m1をチェック済み(true)にしてからリセット
+const box = A.locator('.hairline-block .check-box').first()
+if (!(await box.evaluate((el) => el.classList.contains('on')))) {
+  await A.locator('.hairline-block button').first().click()
+  await A.waitForSelector('.check-box.on', { timeout: 10000 })
+}
+await A.waitForTimeout(1500)
+await A.click('button:has-text("点呼をリセット")') // confirmは自動accept
+await A.waitForTimeout(2500)
+const afterReset = await (
+  await fetch(`${base}/api/state/${tourSlug}`, { headers: { 'x-staff-key': staffKeyE } })
+).json()
+check('点呼リセットがサーバーに反映される(m1がfalse)', afterReset.checkin?.m1 === false)
+
 // 後片付け(サーバー側も削除)
 await A.goto(base + `/manage/${slug}`)
 await A.click('button:has-text("このしおりを削除")')
