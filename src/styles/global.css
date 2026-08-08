@@ -1273,16 +1273,17 @@ select.text-input {
   font-family: var(--serif);
   font-weight: 600;
   font-size: clamp(34px, 5vw, 48px);
-  line-height: 1.35;
+  line-height: 1.55;
   margin: 14px 0 0;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 .lp-hero .sub {
   font-size: 16px;
-  line-height: 2;
-  margin-top: 18px;
+  line-height: 1.9;
+  margin-top: 16px;
   opacity: 0.92;
   text-wrap: pretty;
+  max-width: 34em;
 }
 .lp-hero .ctas {
   display: flex;
@@ -1621,4 +1622,35 @@ select.text-input {
   font-size: 13px;
   color: var(--muted);
   line-height: 2;
+}
+
+
+/* ---------- PC表示: しおりをスマホの枠に入れる ----------
+   参加者ページはスマホが本番。広い画面では端末フレームで「スマホで見る体験」を
+   そのまま見せる(タブバー等はfixed→stickyに切り替えて枠内に収める) */
+@media (min-width: 720px) {
+  .app {
+    height: min(880px, calc(100dvh - 56px));
+    min-height: 0;
+    margin: 28px auto;
+    border: 10px solid #14161c;
+    border-radius: 38px;
+    box-shadow: 0 32px 80px rgba(31, 29, 26, 0.28);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .tabbar,
+  .sticky-footer,
+  .save-bar {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+  }
+  /* stickyフッターぶんの余白はコンテナ内スクロールでは不要 */
+  .app-body.with-tabbar {
+    padding-bottom: 0;
+  }
 }

@@ -62,6 +62,8 @@ function ScrollToTop() {
   const { pathname } = useLocation()
   useEffect(() => {
     window.scrollTo(0, 0)
+    // PC表示ではしおり(.app)が内部スクロールになるため、そちらもリセット
+    document.querySelector('.app')?.scrollTo(0, 0)
   }, [pathname])
   return null
 }

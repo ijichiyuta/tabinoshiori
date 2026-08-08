@@ -99,8 +99,9 @@ export function Home() {
               ひとつに合わせる。
             </h1>
             <p className="sub">
-              集合も、持ち物も、割り勘も。参加者はURLを開くだけ——
-              登録もアプリも不要。紙のしおりの美しさを持つ、旅のしおりサービス。
+              集合も、持ち物も、割り勘も。参加者はURLを開くだけ。登録もアプリも不要。
+              <br />
+              紙のしおりの美しさを持つ、旅のしおりサービス。
             </p>
             <div className="ctas">
               <Link to="/manage" className="lp-btn-white">
