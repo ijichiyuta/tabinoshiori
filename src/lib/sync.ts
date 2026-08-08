@@ -151,12 +151,49 @@ export function pushSurvey(slug: string, memberId: string, data: unknown, token?
   })
 }
 
+const staffKeyKey = (slug: string) => `staff-key:${slug}`
+
+export function getStaffKey(slug: string): string | null {
+  try {
+    return localStorage.getItem(staffKeyKey(slug))
+  } catch {
+    return null
+  }
+}
+
+export function setStaffKey(slug: string, key: string) {
+  try {
+    localStorage.setItem(staffKeyKey(slug), key)
+  } catch {
+    // no-op
+  }
+}
+
+/** 管理コードをサーバーで照合し、成功したらスタッフキーを保存する */
+export async function verifyPin(slug: string, pin: string): Promise<'ok' | 'wrong' | null> {
+  const res = await api(`/api/verify-pin/${slug}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ pin }),
+  })
+  if (!res) return null
+  if (res.status === 403) return 'wrong'
+  if (!res.ok) return null
+  const data = (await res.json().catch(() => null)) as { staffKey?: string } | null
+  if (data?.staffKey) setStaffKey(slug, data.staffKey)
+  return 'ok'
+}
+
 export function pushCheckin(slug: string, memberId: string, checked: boolean) {
-  const key = getAdminKey(slug)
-  if (!key) return // 点呼の書き込みは幹事キーのある端末のみ(v1)
+  const admin = getAdminKey(slug)
+  const staff = getStaffKey(slug)
+  if (!admin && !staff) return // 幹事キーかスタッフキーのある端末のみ
   void api(`/api/state/${slug}/checkin/${memberId}`, {
     method: 'PUT',
-    headers: { 'content-type': 'application/json', 'x-admin-key': key },
+    headers: {
+      'content-type': 'application/json',
+      ...(admin ? { 'x-admin-key': admin } : { 'x-staff-key': staff as string }),
+    },
     body: JSON.stringify({ checked }),
     keepalive: true,
   })

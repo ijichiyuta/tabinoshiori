@@ -41,7 +41,9 @@ function publicDoc(doc, token) {
     const { token: _omit, ...rest } = m;
     return rest;
   });
-  return { doc: { ...doc, members: stripped }, memberId };
+  const security = doc.security ?? {};
+  const publicSecurity = { hasPin: typeof security.adminPin === "string" && security.adminPin !== "" };
+  return { doc: { ...doc, members: stripped, security: publicSecurity }, memberId };
 }
 __name(publicDoc, "publicDoc");
 function isDocShape(x) {
@@ -190,8 +192,18 @@ async function handleApi(request, env, url) {
   const checkinMatch = path.match(/^\/api\/state\/([a-z0-9-]+)\/checkin\/([A-Za-z0-9_-]+)$/);
   if (checkinMatch && method === "PUT") {
     const [, slug, memberId] = checkinMatch;
-    const forbidden = await requireAdmin(env, slug, request);
-    if (forbidden) return forbidden;
+    const staffHeader = request.headers.get("x-staff-key");
+    let allowed = false;
+    if (staffHeader) {
+      const row = await env.DB.prepare("SELECT doc FROM docs WHERE slug = ?").bind(slug).first();
+      if (!row) return err("not found", 404);
+      const doc = JSON.parse(row.doc);
+      allowed = !!doc.security?.staffKey && doc.security.staffKey === staffHeader;
+    }
+    if (!allowed) {
+      const forbidden = await requireAdmin(env, slug, request);
+      if (forbidden) return forbidden;
+    }
     const body = await readJson(request);
     if (!body || typeof body.checked !== "boolean") return err("invalid body", 400);
     await env.DB.prepare(
@@ -219,6 +231,25 @@ async function handleApi(request, env, url) {
     });
     if (!hit || typeof hit.id !== "string") return err("no match", 404);
     return json({ memberId: hit.id, token: typeof hit.token === "string" ? hit.token : void 0 });
+  }
+  const pinMatch = path.match(/^\/api\/verify-pin\/([a-z0-9-]+)$/);
+  if (pinMatch && method === "POST") {
+    if (await rateLimited(env, request, "pin", 10)) return err("too many requests", 429);
+    const slug = pinMatch[1];
+    const body = await readJson(request);
+    if (!body || typeof body.pin !== "string") return err("invalid body", 400);
+    const row = await env.DB.prepare("SELECT doc FROM docs WHERE slug = ?").bind(slug).first();
+    if (!row) return err("not found", 404);
+    const doc = JSON.parse(row.doc);
+    const pin = doc.security?.adminPin;
+    if (!pin || body.pin.trim() !== pin) return err("wrong pin", 403);
+    let staffKey = doc.security?.staffKey;
+    if (!staffKey) {
+      staffKey = crypto.randomUUID();
+      doc.security = { ...doc.security, staffKey };
+      await env.DB.prepare("UPDATE docs SET doc = ? WHERE slug = ?").bind(JSON.stringify(doc), slug).run();
+    }
+    return json({ ok: true, staffKey });
   }
   if (path === "/api/billing/health" && method === "GET") {
     return json({ stripe: !!env.STRIPE_SECRET_KEY });

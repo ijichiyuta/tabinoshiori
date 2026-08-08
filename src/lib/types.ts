@@ -14,8 +14,10 @@ export interface Member {
 
 export interface SecuritySettings {
   adminPin?: string // 管理画面(/manage)のロック。空なら無効
-  requireVerify?: boolean // 名簿選択後に電話番号下4桁で本人照合(ツアー)
-  privateRoster?: boolean // 名簿一覧を出さない。個別URLか名前+下4桁のみ(ツアー)
+  hasPin?: boolean // 公開doc用: PINの有無だけ(実PINはサーバーが秘匿)
+  staffKey?: string // 点呼書き込み用スタッフキー(サーバー発行。公開docには含まれない)
+  requireVerify?: boolean // (旧)ツアーは常時照合になったため未使用
+  privateRoster?: boolean // (旧)ツアーは常時非公開になったため未使用
 }
 
 export interface BoardingPoint {

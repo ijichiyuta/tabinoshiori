@@ -73,7 +73,7 @@ interface MemberRow {
   [k: string]: unknown
 }
 
-/** 公開用に member トークンを除去し、?t= が一致した本人の memberId を返す */
+/** 公開用に member トークンと管理コード類を除去し、?t= が一致した本人の memberId を返す */
 function publicDoc(doc: Record<string, unknown>, token: string | null) {
   let memberId: string | undefined
   const members = Array.isArray(doc.members) ? (doc.members as MemberRow[]) : []
@@ -84,7 +84,10 @@ function publicDoc(doc: Record<string, unknown>, token: string | null) {
     const { token: _omit, ...rest } = m
     return rest
   })
-  return { doc: { ...doc, members: stripped }, memberId }
+  // 管理コード・スタッフキーは公開しない(有無だけ伝えてゲートを機能させる)
+  const security = (doc.security ?? {}) as Record<string, unknown>
+  const publicSecurity = { hasPin: typeof security.adminPin === 'string' && security.adminPin !== '' }
+  return { doc: { ...doc, members: stripped, security: publicSecurity }, memberId }
 }
 
 function isDocShape(x: unknown): x is Record<string, unknown> {
@@ -294,8 +297,19 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   const checkinMatch = path.match(/^\/api\/state\/([a-z0-9-]+)\/checkin\/([A-Za-z0-9_-]+)$/)
   if (checkinMatch && method === 'PUT') {
     const [, slug, memberId] = checkinMatch as unknown as [string, string, string]
-    const forbidden = await requireAdmin(env, slug, request)
-    if (forbidden) return forbidden
+    // 幹事キー、またはPIN照合で得たスタッフキーのどちらかで書き込める
+    const staffHeader = request.headers.get('x-staff-key')
+    let allowed = false
+    if (staffHeader) {
+      const row = await env.DB.prepare('SELECT doc FROM docs WHERE slug = ?').bind(slug).first<{ doc: string }>()
+      if (!row) return err('not found', 404)
+      const doc = JSON.parse(row.doc) as { security?: { staffKey?: string } }
+      allowed = !!doc.security?.staffKey && doc.security.staffKey === staffHeader
+    }
+    if (!allowed) {
+      const forbidden = await requireAdmin(env, slug, request)
+      if (forbidden) return forbidden
+    }
     const body = (await readJson(request)) as { checked?: unknown } | null
     if (!body || typeof body.checked !== 'boolean') return err('invalid body', 400)
     await env.DB.prepare(
@@ -328,6 +342,30 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     })
     if (!hit || typeof hit.id !== 'string') return err('no match', 404)
     return json({ memberId: hit.id, token: typeof hit.token === 'string' ? hit.token : undefined })
+  }
+
+  // POST /api/verify-pin/:slug {pin} — 管理コード照合。成功でスタッフキー(点呼書き込み用)を返す
+  const pinMatch = path.match(/^\/api\/verify-pin\/([a-z0-9-]+)$/)
+  if (pinMatch && method === 'POST') {
+    if (await rateLimited(env, request, 'pin', 10)) return err('too many requests', 429)
+    const slug = pinMatch[1] as string
+    const body = (await readJson(request)) as { pin?: unknown } | null
+    if (!body || typeof body.pin !== 'string') return err('invalid body', 400)
+    const row = await env.DB.prepare('SELECT doc FROM docs WHERE slug = ?').bind(slug).first<{ doc: string }>()
+    if (!row) return err('not found', 404)
+    const doc = JSON.parse(row.doc) as { security?: { adminPin?: string; staffKey?: string } }
+    const pin = doc.security?.adminPin
+    if (!pin || body.pin.trim() !== pin) return err('wrong pin', 403)
+    // スタッフキーが無ければ発行して文書に保存(全スタッフで共有される)
+    let staffKey = doc.security?.staffKey
+    if (!staffKey) {
+      staffKey = crypto.randomUUID()
+      doc.security = { ...doc.security, staffKey }
+      await env.DB.prepare('UPDATE docs SET doc = ? WHERE slug = ?')
+        .bind(JSON.stringify(doc), slug)
+        .run()
+    }
+    return json({ ok: true, staffKey })
   }
 
   // GET /api/billing/health — Stripeが使えるか(クライアントのフォールバック判定)

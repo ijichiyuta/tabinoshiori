@@ -249,7 +249,8 @@ export function ManageCheckin({ shiori }: { shiori: Shiori }) {
         </button>
       </div>
       <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7, marginTop: 10 }}>
-        チェックはこの端末に保存されます(デモ)。本番はスタッフ間で同期予定です。
+        点呼は全スタッフの端末でリアルタイムに同期されます。追加のスタッフには
+        このページのURLと管理コードを伝えるだけでOKです(コード入力で点呼に参加できます)。
       </div>
     </EditorFrame>
   )

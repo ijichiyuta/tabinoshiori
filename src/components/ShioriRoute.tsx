@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { findShiori } from '../lib/docs'
+import { verifyPin } from '../lib/sync'
 import { useShioriSync } from '../lib/useShioriSync'
 import type { Shiori } from '../lib/types'
 
@@ -18,12 +19,16 @@ function LoadingScreen() {
 }
 
 const pinKey = (slug: string) => `pin:${slug}`
+const pinOkKey = (slug: string) => `pin-ok:${slug}`
 
 function pinRemembered(shiori: Shiori): boolean {
-  const pin = shiori.security?.adminPin
-  if (!pin) return true
+  const sec = shiori.security
+  const localPin = sec?.adminPin
+  // ローカル文書にPINがある(幹事端末・組み込みデモ)か、サーバーがPINありと言っている(スタッフ端末)
+  if (!localPin && !sec?.hasPin) return true
   try {
-    return sessionStorage.getItem(pinKey(shiori.slug)) === pin
+    if (localPin) return sessionStorage.getItem(pinKey(shiori.slug)) === localPin
+    return sessionStorage.getItem(pinOkKey(shiori.slug)) === '1'
   } catch {
     return false
   }
@@ -35,23 +40,39 @@ function pinRemembered(shiori: Shiori): boolean {
 function PinGate({ shiori, children }: { shiori: Shiori; children: ReactNode }) {
   const [unlockedSlug, setUnlockedSlug] = useState('')
   const [input, setInput] = useState('')
-  const [error, setError] = useState(false)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const ok = pinRemembered(shiori) || unlockedSlug === shiori.slug
 
   if (ok) return <>{children}</>
 
-  const submit = () => {
-    if (input.trim() === shiori.security?.adminPin) {
-      try {
-        sessionStorage.setItem(pinKey(shiori.slug), input.trim())
-      } catch {
-        // 保存できなくてもこのタブでは通す
-      }
-      setUnlockedSlug(shiori.slug)
-      setInput('')
-    } else {
-      setError(true)
+  const unlock = (storageKey: string, value: string) => {
+    try {
+      sessionStorage.setItem(storageKey, value)
+    } catch {
+      // 保存できなくてもこのタブでは通す
     }
+    setUnlockedSlug(shiori.slug)
+    setInput('')
+  }
+
+  const submit = async () => {
+    const value = input.trim()
+    if (!value) return
+    const localPin = shiori.security?.adminPin
+    if (localPin) {
+      // 幹事端末・組み込みデモ: ローカル照合
+      if (value === localPin) unlock(pinKey(shiori.slug), value)
+      else setError('管理コードが違います。')
+      return
+    }
+    // スタッフ端末: サーバー照合(成功で点呼用スタッフキーも受け取る)
+    setBusy(true)
+    const res = await verifyPin(shiori.slug, value)
+    setBusy(false)
+    if (res === 'ok') unlock(pinOkKey(shiori.slug), '1')
+    else if (res === 'wrong') setError('管理コードが違います。')
+    else setError('通信できませんでした。電波の良い場所でもう一度お試しください。')
   }
 
   return (
@@ -72,18 +93,18 @@ function PinGate({ shiori, children }: { shiori: Shiori; children: ReactNode }) 
             value={input}
             onChange={(e) => {
               setInput(e.target.value)
-              setError(false)
+              setError('')
             }}
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            onKeyDown={(e) => e.key === 'Enter' && void submit()}
             style={{ fontSize: 20, textAlign: 'center', letterSpacing: '0.2em' }}
           />
           {error && (
             <div className="note-l warn" style={{ color: 'var(--warn)' }}>
-              管理コードが違います。
+              {error}
             </div>
           )}
-          <button className="btn sm" onClick={submit}>
-            開く
+          <button className="btn sm" onClick={() => void submit()} disabled={busy}>
+            {busy ? '確認しています…' : '開く'}
           </button>
           <Link className="btn-ghost" to="/manage">
             しおり一覧にもどる
