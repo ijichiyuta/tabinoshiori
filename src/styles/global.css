@@ -1636,7 +1636,7 @@ select.text-input {
 /* ---------- PC表示: しおりをスマホの枠に入れる ----------
    参加者ページはスマホが本番。広い画面では端末フレームで「スマホで見る体験」を
    そのまま見せる(タブバー等はfixed→stickyに切り替えて枠内に収める) */
-@media (min-width: 720px) {
+@media screen and (min-width: 720px) {
   .app {
     /* 実機と同じ幅・縦横比のフレームにする(間延び防止) */
     /* box-sizing:border-boxのためベゼル込みで412px=画面部分がちょうど実機の390px */
