@@ -114,7 +114,7 @@ export function PublishPlan({ shiori }: { shiori: Shiori }) {
               <div className="desc" style={{ lineHeight: 1.8, marginTop: 4 }}>
                 人数無制限／A4印刷PDF(透かしなし)
                 <br />
-                QRコード・更新告知・共有カード
+                QRコード・共有カード
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@ export function PublishPlan({ shiori }: { shiori: Shiori }) {
               <span className="name">しおり 1冊(買い切り)</span>
               <span className="price">¥480</span>
             </div>
-            <div className="desc">人数無制限／A4印刷PDF(透かしなし)／QRコード・更新告知・共有カード</div>
+            <div className="desc">人数無制限／A4印刷PDF(透かしなし)／QRコード・共有カード</div>
           </button>
         )}
 
@@ -185,13 +185,17 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
   const [exp, setExp] = useState('')
   const [cvc, setCvc] = useState('')
   const [error, setError] = useState('')
-  // Stripeが設定済みで、かつデモしおりでなければ本物の決済へ
-  const [stripeReady, setStripeReady] = useState(false)
+  // デモしおり=ダミー決済。実しおり=Stripeの状態で分岐(loading/ready/unavailable)。
+  const demoBilling = isBuiltin(shiori.slug)
+  const [stripeState, setStripeState] = useState<'loading' | 'ready' | 'unavailable'>(
+    demoBilling ? 'unavailable' : 'loading',
+  )
+  const stripeReady = stripeState === 'ready'
   const [redirecting, setRedirecting] = useState(false)
   useEffect(() => {
-    if (isBuiltin(shiori.slug)) return
-    void stripeAvailable().then(setStripeReady)
-  }, [shiori.slug])
+    if (demoBilling) return
+    void stripeAvailable().then((ok) => setStripeState(ok ? 'ready' : 'unavailable'))
+  }, [demoBilling])
 
   if (state.billing) return <Navigate to={`/publish/${shiori.slug}/done`} replace />
 
@@ -202,7 +206,7 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
       window.location.href = url
     } else {
       setRedirecting(false)
-      setError('決済ページを開けませんでした。時間をおいてお試しください')
+      setError('決済ページを開けませんでした。通信環境をご確認のうえ、時間をおいてお試しください。')
     }
   }
 
@@ -211,6 +215,12 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
       void payStripe()
       return
     }
+    // 実しおりではStripe以外の経路で課金を成立させない(未払いのまま有料機能が解放されるのを防ぐ)
+    if (!demoBilling) {
+      setError('現在オンライン決済を準備中です。通信環境をご確認のうえ、時間をおいてお試しください。')
+      return
+    }
+    // ここから下はデモしおり専用のダミー決済
     let last4: string | undefined
     if (method === 'クレジットカード') {
       const digits = cardNo.replace(/\D/g, '')
@@ -235,18 +245,26 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
         </span>
       </div>
       <div style={{ padding: '18px 20px 160px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div>
-          <div className="field-label">支払い方法</div>
-          <div className="radio-list">
-            {['クレジットカード', 'PayPay', 'キャリア決済'].map((opt) => (
-              <button key={opt} className={method === opt ? 'on' : ''} onClick={() => setMethod(opt)}>
-                <span className="radio" />
-                {opt}
-              </button>
-            ))}
+        {/* 支払い方法の選択はデモしおりのダミー決済でのみ表示。
+            実しおりはStripe側で各種決済手段を選ぶため、ここでは出さない */}
+        {demoBilling && (
+          <div>
+            <div className="field-label">支払い方法</div>
+            <div className="radio-list">
+              {['クレジットカード', 'PayPay', 'キャリア決済'].map((opt) => (
+                <button
+                  key={opt}
+                  className={method === opt ? 'on' : ''}
+                  onClick={() => setMethod(opt)}
+                >
+                  <span className="radio" />
+                  {opt}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        {method === 'クレジットカード' && !stripeReady && (
+        )}
+        {demoBilling && method === 'クレジットカード' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             <div>
               <div className="input-label">カード番号</div>
@@ -281,14 +299,29 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
             </div>
           </div>
         )}
-        {method !== 'クレジットカード' && !stripeReady && (
+        {demoBilling && method !== 'クレジットカード' && (
           <div style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.7 }}>
             デモのため、{method}のお支払い画面へは遷移せずにそのまま完了します。
           </div>
         )}
+        {demoBilling && (
+          <div className="note-l" style={{ lineHeight: 1.7 }}>
+            これはデモのしおりです。実際の請求は発生しません。
+          </div>
+        )}
         {stripeReady && (
           <div style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.7 }}>
-            お支払いはStripeの安全な決済ページで行います。カード情報が当サービスに保存されることはありません。
+            お支払いはStripeの安全な決済ページで行います。カード番号など決済情報が当サービスに保存されることはありません。
+          </div>
+        )}
+        {!demoBilling && stripeState === 'loading' && (
+          <div style={{ fontSize: 13.5, color: 'var(--muted)', lineHeight: 1.7 }}>
+            決済の準備を確認しています…
+          </div>
+        )}
+        {!demoBilling && stripeState === 'unavailable' && (
+          <div className="note-l warn" style={{ color: 'var(--warn)', lineHeight: 1.7 }}>
+            現在オンライン決済を準備中です。通信環境をご確認のうえ、時間をおいてお試しください。
           </div>
         )}
         <InfoGrid
@@ -310,8 +343,16 @@ export function PublishPay({ shiori }: { shiori: Shiori }) {
         )}
       </div>
       <div className="sticky-footer">
-        <button className="btn" onClick={pay} disabled={redirecting}>
-          {redirecting ? '決済ページへ移動中…' : `${yen(plan.price)} を支払う`}
+        <button
+          className="btn"
+          onClick={pay}
+          disabled={redirecting || (!demoBilling && stripeState !== 'ready')}
+        >
+          {redirecting
+            ? '決済ページへ移動中…'
+            : !demoBilling && stripeState === 'loading'
+              ? '確認しています…'
+              : `${yen(plan.price)} を支払う`}
         </button>
         <div style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginTop: 8 }}>
           自動更新はありません。
@@ -417,6 +458,8 @@ export function PublishStripeReturn({ shiori }: { shiori: Shiori }) {
   const navigate = useNavigate()
   const [failed, setFailed] = useState(false)
   const sessionId = sp.get('session_id')
+  // 戻り先にプランを引き継ぐ(年間パスの確認失敗で¥480表示に化けないように)
+  const planParam = sp.get('plan') === 'year' ? '?plan=year' : ''
 
   useEffect(() => {
     if (!sessionId) {
@@ -455,7 +498,7 @@ export function PublishStripeReturn({ shiori }: { shiori: Shiori }) {
               決済が完了している場合は、少し時間をおいてこのページを再読み込みしてください。
               キャンセルした場合はお支払いは発生していません。
             </p>
-            <Link className="btn-ghost" to={`/publish/${shiori.slug}/pay`}>
+            <Link className="btn-ghost" to={`/publish/${shiori.slug}/pay${planParam}`}>
               お支払いにもどる
             </Link>
           </>

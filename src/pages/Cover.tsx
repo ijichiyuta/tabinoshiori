@@ -19,6 +19,18 @@ function NextEventBlock({ shiori, label }: { shiori: Shiori; label: string }) {
   const now = useNow()
   const next = nextEvent(shiori, now)
   if (!next) return null
+  // すべての予定が過去(旅程終了後)なら、古い集合時刻を「次の集合」として出さない
+  if (next.past) {
+    return (
+      <div>
+        <div style={{ fontSize: 13, color: 'var(--muted)' }}>{label}</div>
+        <div className="big-time">この旅は終了しました</div>
+        <div style={{ fontSize: 14, color: 'var(--sub)', lineHeight: 1.6 }}>
+          お疲れさまでした。行程は下の「行程」からいつでも見返せます。
+        </div>
+      </div>
+    )
+  }
   const d = new Date(`${next.day.date}T00:00:00`)
   return (
     <div>
@@ -46,7 +58,9 @@ function GroupPersonalCard({ shiori }: { shiori: Shiori }) {
   const me = shiori.members.find((m) => m.id === state.memberId)
   if (!me) return null
   const answer = effectiveAnswer(shiori, state, me.id)
-  const fee = feeFor(shiori, me.id)
+  const absent = answer?.attendance === '不参加'
+  // 不参加のかたには参加費・支払い導線を出さない
+  const fee = absent ? null : feeFor(shiori, me.id)
   const status = answer ? answer.attendance : '未回答'
   return (
     <div className="panel" style={{ marginTop: 18 }}>
@@ -55,7 +69,13 @@ function GroupPersonalCard({ shiori }: { shiori: Shiori }) {
         <span className="right">{status}</span>
       </div>
       <div className="panel-body">
-        <NextEventBlock shiori={shiori} label="次の集合" />
+        {absent ? (
+          <div style={{ fontSize: 14.5, color: 'var(--sub)', lineHeight: 1.7 }}>
+            「不参加」で受け付けています。またの機会にぜひご一緒しましょう。
+          </div>
+        ) : (
+          <NextEventBlock shiori={shiori} label="次の集合" />
+        )}
         {fee && (
           <div
             style={{
@@ -83,7 +103,7 @@ function GroupPersonalCard({ shiori }: { shiori: Shiori }) {
           <Link className="btn sm" to={`/s/${shiori.slug}/rsvp`}>
             出欠の回答に進む
           </Link>
-        ) : !answer.paid ? (
+        ) : !absent && !answer.paid ? (
           <Link className="btn sm" to={`/s/${shiori.slug}/rsvp`}>
             支払いに進む
           </Link>

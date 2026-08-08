@@ -329,7 +329,7 @@ export function Home() {
       {/* フッター */}
       <footer className="lp-footer">
         <Link to="/terms">利用規約</Link>　<Link to="/privacy">プライバシーポリシー</Link>
-        <Link to="/tokushoho">特定商取引法に基づく表記</Link>
+        　<Link to="/tokushoho">特定商取引法に基づく表記</Link>
         <br />
         運営:{' '}
         <a href="https://smcn-jp.com" target="_blank" rel="noreferrer">

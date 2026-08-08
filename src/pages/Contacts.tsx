@@ -1,4 +1,5 @@
 import { AppFrame } from '../components/AppFrame'
+import { isBuiltin } from '../lib/docs'
 import type { Shiori } from '../lib/types'
 
 export function Contacts({ shiori }: { shiori: Shiori }) {
@@ -48,9 +49,11 @@ export function Contacts({ shiori }: { shiori: Shiori }) {
             )}
           </div>
         ))}
-        <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4 }}>
-          電話番号はデモ用のダミーです。
-        </div>
+        {isBuiltin(shiori.slug) && (
+          <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7, marginTop: 4 }}>
+            電話番号はデモ用のダミーです。
+          </div>
+        )}
       </div>
     </AppFrame>
   )

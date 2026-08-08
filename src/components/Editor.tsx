@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { Children, cloneElement, isValidElement, useId, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { saveDoc } from '../lib/docs'
 import type { Shiori } from '../lib/types'
@@ -75,10 +75,18 @@ export function Field({
   hint?: string
   children: ReactNode
 }) {
+  const id = useId()
+  // 入力が単一要素ならlabelと関連付ける(スクリーンリーダー対応)。
+  // 複数要素(2カラム等)のときはラベルだけ表示して従来どおり
+  const only = Children.count(children) === 1 ? Children.only(children) : null
+  const control =
+    only && isValidElement<{ id?: string }>(only) ? cloneElement(only, { id }) : children
   return (
     <div className="form-row">
-      <div className="input-label">{label}</div>
-      {children}
+      <label className="input-label" htmlFor={control === children ? undefined : id}>
+        {label}
+      </label>
+      {control}
       {hint && (
         <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4, lineHeight: 1.6 }}>
           {hint}
@@ -89,11 +97,13 @@ export function Field({
 }
 
 export function TextInput({
+  id,
   value,
   onChange,
   placeholder,
   type = 'text',
 }: {
+  id?: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
@@ -101,6 +111,7 @@ export function TextInput({
 }) {
   return (
     <input
+      id={id}
       className="text-input"
       type={type}
       value={value}

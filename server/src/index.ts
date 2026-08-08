@@ -490,8 +490,9 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       'line_items[0][price_data][product_data][name]': price.name,
       'line_items[0][price_data][unit_amount]': String(price.amount),
       'line_items[0][quantity]': '1',
-      success_url: `${origin}/publish/${slug}/stripe?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/publish/${slug}/pay`,
+      // planを戻り先にも渡す(確認失敗時のフォールバック表示で金額が化けないように)
+      success_url: `${origin}/publish/${slug}/stripe?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
+      cancel_url: `${origin}/publish/${slug}/pay?plan=${plan}`,
       'metadata[slug]': slug,
       'metadata[plan]': plan,
     })

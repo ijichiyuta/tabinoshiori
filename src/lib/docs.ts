@@ -111,18 +111,23 @@ export function saveDoc(doc: Shiori) {
 }
 
 export function deleteDoc(slug: string) {
+  const builtin = isBuiltin(slug)
   try {
     localStorage.removeItem(docKey(slug))
     localStorage.removeItem(docTsKey(slug))
-    localStorage.removeItem(`shiori:${slug}`) // 保存済みの回答・点呼など(store.ts)
-    sessionStorage.removeItem(`pin:${slug}`)
-    sessionStorage.removeItem(`pin-ok:${slug}`)
+    // 組み込みデモの「デモに戻す」では編集(文書)だけを破棄し、
+    // 参加者の状態(回答・課金など)は残す。新規しおりの削除では関連キーも一掃する
+    if (!builtin) {
+      localStorage.removeItem(`shiori:${slug}`) // 保存済みの回答・点呼など(store.ts)
+      sessionStorage.removeItem(`pin:${slug}`)
+      sessionStorage.removeItem(`pin-ok:${slug}`)
+    }
   } catch {
     // no-op
   }
   writeIndex(readIndex().filter((s) => s !== slug))
   // admin-key / staff-key はサーバー削除の成否を見てから deleteDocRemote 側で消す
-  if (!isBuiltin(slug)) void deleteDocRemote(slug)
+  if (!builtin) void deleteDocRemote(slug)
 }
 
 export function isBuiltin(slug: string): boolean {

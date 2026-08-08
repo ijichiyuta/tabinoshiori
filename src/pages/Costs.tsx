@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom'
 import { AppFrame } from '../components/AppFrame'
 import { computeSettlement, yen } from '../lib/settle'
 import { useShioriState } from '../lib/store'
@@ -5,6 +6,8 @@ import type { Shiori } from '../lib/types'
 
 export function Costs({ shiori }: { shiori: Shiori }) {
   const [state, update] = useShioriState(shiori)
+  // 費用・割り勘は少人数(duo)版のみ。他の種別で直リンクされたら表紙へ
+  if (shiori.kind !== 'duo') return <Navigate to={`/s/${shiori.slug}`} replace />
   const expenses = shiori.expenses ?? []
   const settle = computeSettlement(expenses, shiori.members)
   const name = (id: string) => shiori.members.find((m) => m.id === id)?.name ?? id

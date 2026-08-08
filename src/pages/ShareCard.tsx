@@ -52,7 +52,7 @@ export function ShareCard({ shiori }: { shiori: Shiori }) {
   return (
     <div className={themeClass(shiori)}>
       <div className="print-toolbar">
-        <Link to={`/manage/${shiori.slug}`} style={{ fontSize: 14 }}>
+        <Link to={`/s/${shiori.slug}`} style={{ fontSize: 14 }}>
           ‹ 戻る
         </Link>
         <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>

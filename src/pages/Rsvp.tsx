@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
@@ -72,12 +72,13 @@ function PrivateWhoGate({
       </div>
       <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div>
-          <div className="input-label">ご予約のお名前(姓)</div>
-          <input className="text-input" value={name} onChange={(e) => { setName(e.target.value); setError(false) }} />
+          <label className="input-label" htmlFor="pwg-name">ご予約のお名前(姓)</label>
+          <input id="pwg-name" className="text-input" value={name} onChange={(e) => { setName(e.target.value); setError(false) }} />
         </div>
         <div>
-          <div className="input-label">電話番号の下4桁</div>
+          <label className="input-label" htmlFor="pwg-digits">電話番号の下4桁</label>
           <input
+            id="pwg-digits"
             className="text-input"
             inputMode="numeric"
             maxLength={4}
@@ -122,6 +123,9 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
     const answered = effectiveAnswer(shiori, state, memberId)
     navigate(answered ? `/s/${shiori.slug}` : `/s/${shiori.slug}/rsvp`)
   }
+
+  // 少人数(duo)版は本人選択・出欠がないので表紙へ
+  if (shiori.kind === 'duo') return <Navigate to={`/s/${shiori.slug}`} replace />
 
   // ツアーは名簿を一切表示しない(他のお客様の名前が見えてはいけない)。
   // 入口は「個別リンク」か「姓+電話下4桁」のみ
@@ -185,7 +189,8 @@ export function RsvpForm({ shiori }: { shiori: Shiori }) {
   const [transport, setTransport] = useState(existing?.transport)
   const [paid, setPaid] = useState(existing?.paid ?? false)
 
-  if (shiori.kind === 'tour') return <Navigate to={`/s/${shiori.slug}`} replace />
+  // 出欠フォームはグループ版のみ(ツアーは予約済み前提、少人数は出欠なし)
+  if (shiori.kind !== 'group') return <Navigate to={`/s/${shiori.slug}`} replace />
   if (!me) return <Navigate to={`/s/${shiori.slug}/rsvp/who`} replace />
   const fee = feeFor(shiori, me.id)
 
@@ -314,7 +319,8 @@ export function RsvpDone({ shiori }: { shiori: Shiori }) {
   if (!me) return <Navigate to={`/s/${shiori.slug}/rsvp/who`} replace />
   if (!answer) return <Navigate to={`/s/${shiori.slug}/rsvp`} replace />
 
-  const fee = feeFor(shiori, me.id)
+  const absent = answer.attendance === '不参加'
+  const fee = absent ? null : feeFor(shiori, me.id)
   const next = nextEvent(shiori, now)
   const checkedSet = new Set(state.checked)
   const unchecked = shiori.checklist.filter((c) => !checkedSet.has(c.id))
@@ -344,32 +350,39 @@ export function RsvpDone({ shiori }: { shiori: Shiori }) {
           roomy
           rows={[
             ['出欠', <strong key="a">{attendanceLabel}</strong>],
-            ['交通', answer.transport ?? '—'],
-            [
-              '参加費',
-              fee ? (
-                <>
-                  {yen(fee.amount)}
-                  {'　'}
-                  {answer.paid ? (
-                    <span className="badge">支払い済 ✓</span>
-                  ) : (
-                    <span className="badge warn">未払い</span>
-                  )}
-                </>
-              ) : (
-                '—'
-              ),
-            ],
-            [
-              '集合',
-              next
-                ? `${shortDateLabel(new Date(`${next.day.date}T00:00:00`))} ${next.ev.time}　${next.ev.desc ?? ''}`
-                : '—',
-            ],
+            ...(absent
+              ? []
+              : ([
+                  ['交通', answer.transport ?? '—'],
+                  [
+                    '参加費',
+                    fee ? (
+                      <>
+                        {yen(fee.amount)}
+                        {'　'}
+                        {answer.paid ? (
+                          <span className="badge">支払い済 ✓</span>
+                        ) : (
+                          <span className="badge warn">未払い</span>
+                        )}
+                      </>
+                    ) : (
+                      '—'
+                    ),
+                  ],
+                  [
+                    '集合',
+                    next && !next.past
+                      ? `${shortDateLabel(new Date(`${next.day.date}T00:00:00`))} ${next.ev.time}　${next.ev.desc ?? ''}`
+                      : '—',
+                  ],
+                ] as [string, ReactNode][])),
           ]}
         />
         <div style={{ fontSize: 14.5, lineHeight: 1.8, color: 'var(--sub)' }}>
+          {absent
+            ? '「不参加」で受け付けました。'
+            : ''}
           回答は締切{shiori.fee?.deadline ? `(${shiori.fee.deadline})` : ''}
           まで変更できます。変更があった場合はしおりに反映され、上部に告知が出ます。
         </div>

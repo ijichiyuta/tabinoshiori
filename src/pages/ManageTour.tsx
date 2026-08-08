@@ -249,8 +249,8 @@ export function ManageCheckin({ shiori }: { shiori: Shiori }) {
         </button>
       </div>
       <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7, marginTop: 10 }}>
-        点呼は全スタッフの端末でリアルタイムに同期されます。追加のスタッフには
-        このページのURLと管理コードを伝えるだけでOKです(コード入力で点呼に参加できます)。
+        点呼は全スタッフの端末で共有されます(他の端末の操作は、この画面を開き直すと反映されます)。
+        追加のスタッフには、このページのURLと管理コードを伝えるだけでOKです(コード入力で点呼に参加できます)。
       </div>
     </EditorFrame>
   )
