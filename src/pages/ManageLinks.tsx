@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { EditorFrame } from '../components/Editor'
-import { saveDoc, uid } from '../lib/docs'
+import { newMemberToken, saveDoc } from '../lib/docs'
 import type { Shiori } from '../lib/types'
 
 /**
@@ -35,7 +35,7 @@ export function ManageLinks({ shiori: initial }: { shiori: Shiori }) {
   const generateMissing = () => {
     const next = {
       ...shiori,
-      members: shiori.members.map((m) => (m.token ? m : { ...m, token: uid('k') + uid('') })),
+      members: shiori.members.map((m) => (m.token ? m : { ...m, token: newMemberToken() })),
     }
     try {
       saveDoc(next)

@@ -14,6 +14,16 @@ export function uid(prefix = ''): string {
   return prefix + Math.random().toString(36).slice(2, 8)
 }
 
+/** 招待リンク用トークン。なりすまし防止の資格情報なので暗号乱数で生成する(URL安全) */
+export function newMemberToken(): string {
+  const bytes = new Uint8Array(12)
+  crypto.getRandomValues(bytes)
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
 function readIndex(): string[] {
   try {
     const raw = localStorage.getItem(INDEX_KEY)
@@ -87,6 +97,11 @@ export function saveDocLocal(doc: Shiori, ts: number = Date.now()) {
 }
 
 export function saveDoc(doc: Shiori) {
+  // ツアーの入口は個別リンク(トークン)前提のため、未発行のお客様には保存時に自動発行する
+  // (氏名+電話下4桁の照合もトークン発行済みのお客様に限られる)
+  if (doc.kind === 'tour' && doc.members.some((m) => !m.token)) {
+    doc = { ...doc, members: doc.members.map((m) => (m.token ? m : { ...m, token: newMemberToken() })) }
+  }
   saveDocLocal(doc)
   // 組み込みデモはバンドル同梱なので同期しない(slug衝突も防ぐ)
   if (!isBuiltin(doc.slug)) void pushDoc(doc)

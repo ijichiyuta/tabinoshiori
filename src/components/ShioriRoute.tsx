@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { findShiori } from '../lib/docs'
 import { verifyPin } from '../lib/sync'
-import { useShioriSync } from '../lib/useShioriSync'
+import { forceSync, useShioriSync } from '../lib/useShioriSync'
 import type { Shiori } from '../lib/types'
 
 function LoadingScreen() {
@@ -69,9 +69,15 @@ function PinGate({ shiori, children }: { shiori: Shiori; children: ReactNode }) 
     // スタッフ端末: サーバー照合(成功で点呼用スタッフキーも受け取る)
     setBusy(true)
     const res = await verifyPin(shiori.slug, value)
+    if (res === 'ok') {
+      // スタッフキーで名簿入りの文書を取り直す(匿名pullでは点呼に必要な名簿がない)
+      await forceSync(shiori.slug)
+      setBusy(false)
+      unlock(pinOkKey(shiori.slug), '1')
+      return
+    }
     setBusy(false)
-    if (res === 'ok') unlock(pinOkKey(shiori.slug), '1')
-    else if (res === 'wrong') setError('管理コードが違います。')
+    if (res === 'wrong') setError('管理コードが違います。')
     else setError('通信できませんでした。電波の良い場所でもう一度お試しください。')
   }
 

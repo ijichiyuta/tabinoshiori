@@ -6,6 +6,7 @@ import { yen } from '../lib/settle'
 import { effectiveAnswer, feeFor, rosterNote, useShioriState } from '../lib/store'
 import { isBuiltin } from '../lib/docs'
 import { verifyIdentity } from '../lib/sync'
+import { forceSync } from '../lib/useShioriSync'
 import { nextEvent, shortDateLabel, useNow } from '../lib/time'
 import type { Shiori } from '../lib/types'
 
@@ -15,7 +16,7 @@ function PrivateWhoGate({
   onMatch,
 }: {
   shiori: Shiori
-  onMatch: (memberId: string, token?: string) => void
+  onMatch: (memberId: string, token?: string) => void | Promise<void>
 }) {
   const [name, setName] = useState('')
   const [digits, setDigits] = useState('')
@@ -33,15 +34,18 @@ function PrivateWhoGate({
     // サーバー照合を優先(名簿もトークンも端末に出さない)
     if (!isBuiltin(shiori.slug)) {
       const res = await verifyIdentity(shiori.slug, n, d)
-      setBusy(false)
       if (res === 'nomatch') {
+        setBusy(false)
         setError(true)
         return
       }
       if (res) {
-        onMatch(res.memberId, res.token)
+        // 本人トークンでしおりを取り直してから開く(匿名docには本人情報がない)
+        await onMatch(res.memberId, res.token)
+        setBusy(false)
         return
       }
+      setBusy(false)
       // null=オフライン等はローカル照合へフォールバック
     } else {
       setBusy(false)
@@ -108,9 +112,10 @@ export function RsvpWho({ shiori }: { shiori: Shiori }) {
   const isTour = shiori.kind === 'tour'
   const organizer = shiori.contacts.find((c) => c.label === '幹事')
 
-  const proceed = (memberId: string, token?: string) => {
+  const proceed = async (memberId: string, token?: string) => {
     update({ memberId, ...(token ? { token } : {}) })
     if (isTour) {
+      if (!isBuiltin(shiori.slug)) await forceSync(shiori.slug, token)
       navigate(`/s/${shiori.slug}`)
       return
     }

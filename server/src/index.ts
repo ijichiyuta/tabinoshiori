@@ -5,10 +5,11 @@
  *
  * セキュリティ方針:
  * - 文書の公開読み取りでは member の token を必ず除去する
- * - 文書の書き込みはサーバー発行の admin_key が必須
- * - 点呼の書き込みも admin_key 必須(スタッフ専用)
- * - 回答・アンケートの書き込みは v1 ではオープン(デモ同等の信頼モデル)。
- *   実顧客データを扱う前にトークン必須化を行うこと。
+ * - ツアー(kind:'tour')・名簿非公開のしおりは、公開読み取りで本人(?t一致)以外の
+ *   member を匿名化する(氏名・電話・座席は返さない)。state(回答・点呼・アンケート)も
+ *   幹事キー/スタッフキー/本人トークンがない読み手には返さない
+ * - 文書の書き込みは admin_key が必須。点呼は admin_key か staff_key
+ * - ツアー・名簿非公開の回答/アンケート書き込みは本人トークン必須
  */
 export interface Env {
   DB: D1Database
@@ -73,15 +74,29 @@ interface MemberRow {
   [k: string]: unknown
 }
 
-/** 公開用に member トークンと管理コード類を除去し、?t= が一致した本人の memberId を返す */
-function publicDoc(doc: Record<string, unknown>, token: string | null) {
+/** ツアー・名簿非公開のしおりか(本人以外の名簿を一切出さない) */
+function isPrivateDoc(doc: Record<string, unknown>): boolean {
+  const sec = doc.security as { privateRoster?: unknown } | undefined
+  return doc.kind === 'tour' || sec?.privateRoster === true
+}
+
+/**
+ * 公開用に member トークンと管理コード類を除去し、?t= が一致した本人の memberId を返す。
+ * ツアー・名簿非公開のしおりでは本人以外の member を匿名化する
+ * (人数・号車・乗車地の集計表示に必要な項目だけ残し、氏名・電話・座席は返さない)。
+ * staff=true はスタッフ端末(点呼)向け: 名簿は返すがトークンとPINは渡さない。
+ */
+function publicDoc(doc: Record<string, unknown>, token: string | null, staff = false) {
   let memberId: string | undefined
   const members = Array.isArray(doc.members) ? (doc.members as MemberRow[]) : []
+  const priv = isPrivateDoc(doc) && !staff
   const stripped = members.map((m) => {
-    if (token && typeof m.token === 'string' && m.token === token && typeof m.id === 'string') {
-      memberId = m.id
-    }
+    const self = !!token && typeof m.token === 'string' && m.token === token
+    if (self && typeof m.id === 'string') memberId = m.id
     const { token: _omit, ...rest } = m
+    if (priv && !self) {
+      return { id: rest.id, bus: rest.bus, boardingPointId: rest.boardingPointId }
+    }
     return rest
   })
   // 管理コード・スタッフキーは公開しない(有無だけ伝えてゲートを機能させる)
@@ -185,15 +200,20 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   if (docMatch) {
     const slug = docMatch[1] as string
     if (method === 'GET') {
-      const row = await env.DB.prepare('SELECT doc, admin_key, updated_at FROM docs WHERE slug = ?')
+      const row = await env.DB.prepare(
+        'SELECT doc, admin_key, staff_key, updated_at FROM docs WHERE slug = ?',
+      )
         .bind(slug)
-        .first<{ doc: string; admin_key: string; updated_at: number }>()
+        .first<{ doc: string; admin_key: string; staff_key: string | null; updated_at: number }>()
       if (!row) return err('not found', 404)
       const parsed = JSON.parse(row.doc)
       // 幹事(admin-key一致)にはトークン入りの完全版を返す(招待リンクの維持に必要)
       const isAdmin = request.headers.get('x-admin-key') === row.admin_key
       if (isAdmin) return json({ doc: parsed, updatedAt: row.updated_at })
-      const { doc, memberId } = publicDoc(parsed, url.searchParams.get('t'))
+      // スタッフ(PIN照合済み端末)には名簿入りを返す(点呼に必要。トークン・PINは渡さない)
+      const staffHeader = request.headers.get('x-staff-key')
+      const isStaff = !!staffHeader && !!row.staff_key && staffHeader === row.staff_key
+      const { doc, memberId } = publicDoc(parsed, url.searchParams.get('t'), isStaff)
       return json({ doc, memberId, updatedAt: row.updated_at })
     }
     if (method === 'PUT') {
@@ -225,10 +245,44 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     }
   }
 
-  // GET /api/state/:slug — 回答・点呼・アンケートをまとめて返す
+  // GET /api/state/:slug — 回答・点呼・アンケートをまとめて返す。
+  // ツアー・名簿非公開のしおりでは読み手に応じて絞る:
+  //   幹事キー/スタッフキー = 全件、?t=本人 = 自分の分のみ、それ以外 = billingのみ
+  //   (member_idは推測可能なため、無認証で回答・点呼・支払状況を晒さない)
   const stateMatch = path.match(/^\/api\/state\/([a-z0-9-]+)$/)
   if (stateMatch && method === 'GET') {
     const slug = stateMatch[1] as string
+    let scope: 'full' | 'self' | 'public' = 'full'
+    let selfId: string | undefined
+    const docRow = await env.DB.prepare('SELECT doc, admin_key, staff_key FROM docs WHERE slug = ?')
+      .bind(slug)
+      .first<{ doc: string; admin_key: string; staff_key: string | null }>()
+    if (docRow) {
+      try {
+        const doc = JSON.parse(docRow.doc) as Record<string, unknown>
+        if (isPrivateDoc(doc)) {
+          const isAdmin = request.headers.get('x-admin-key') === docRow.admin_key
+          const staffHeader = request.headers.get('x-staff-key')
+          const isStaff = !!staffHeader && !!docRow.staff_key && staffHeader === docRow.staff_key
+          if (!isAdmin && !isStaff) {
+            const t = url.searchParams.get('t')
+            const members = Array.isArray(doc.members) ? (doc.members as MemberRow[]) : []
+            const me = t
+              ? members.find((m) => typeof m.token === 'string' && m.token === t)
+              : undefined
+            if (me && typeof me.id === 'string') {
+              scope = 'self'
+              selfId = me.id
+            } else {
+              scope = 'public'
+            }
+          }
+        }
+      } catch {
+        // 文書が壊れている場合は安全側(公開範囲のみ)に倒す
+        scope = 'public'
+      }
+    }
     const [answers, checkin, surveys, billingRow] = await Promise.all([
       env.DB.prepare('SELECT member_id, data FROM answers WHERE slug = ?').bind(slug).all<{
         member_id: string
@@ -259,10 +313,15 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     }
     const checkinMap: Record<string, boolean> = {}
     for (const r of checkin.results ?? []) checkinMap[r.member_id] = r.checked === 1
+    const pick = <T,>(map: Record<string, T>): Record<string, T> => {
+      if (scope === 'full') return map
+      if (scope === 'self' && selfId && selfId in map) return { [selfId]: map[selfId] as T }
+      return {}
+    }
     return json({
-      answers: toMap(answers.results),
-      checkin: checkinMap,
-      surveys: toMap(surveys.results),
+      answers: pick(toMap(answers.results)),
+      checkin: pick(checkinMap),
+      surveys: pick(toMap(surveys.results)),
       billing: billingJson(billingRow),
     })
   }
@@ -283,14 +342,17 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
         security?: { privateRoster?: boolean }
         members?: MemberRow[]
       }
-      // ツアーは常に、名簿非公開モードのしおりも、本人トークンを要求する
-      if (doc.kind === 'tour' || doc.security?.privateRoster) {
+      // ツアーは常に、名簿非公開モードのしおりも、本人トークンを要求する。
+      // 名簿に居ないmemberId・トークン未発行のmemberへの書き込みも認めない
+      // (推測したIDで任意のデータを注入されるのを防ぐ)
+      if (isPrivateDoc(doc as Record<string, unknown>)) {
         const member = (doc.members ?? []).find((m) => m.id === memberId)
         const isAdmin = request.headers.get('x-admin-key') === docRow.admin_key
         if (
           !isAdmin &&
-          typeof member?.token === 'string' &&
-          url.searchParams.get('t') !== member.token
+          (typeof member?.token !== 'string' ||
+            !member.token ||
+            url.searchParams.get('t') !== member.token)
         ) {
           return err('token required', 403)
         }
@@ -369,10 +431,16 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       if (typeof m.name !== 'string' || m.name !== name) return false
       const tel = m.tel as { href?: string } | undefined
       const last4 = typeof tel?.href === 'string' ? tel.href.replace(/\D/g, '').slice(-4) : ''
-      return last4 ? last4 === digits : digits === ''
+      // 電話未登録のお客様は照合対象外(氏名だけで本人になりすませてしまうため)。
+      // 個別リンクからの入場か、担当者への電話番号登録を案内する
+      if (!last4) return false
+      return last4 === digits
     })
-    if (!hit || typeof hit.id !== 'string') return err('no match', 404)
-    return json({ memberId: hit.id, token: typeof hit.token === 'string' ? hit.token : undefined })
+    // トークン未発行のお客様も対象外(照合が通っても本人分の情報を取得できない)
+    if (!hit || typeof hit.id !== 'string' || typeof hit.token !== 'string' || !hit.token) {
+      return err('no match', 404)
+    }
+    return json({ memberId: hit.id, token: hit.token })
   }
 
   // POST /api/verify-pin/:slug {pin} — 管理コード照合。成功でスタッフキー(点呼書き込み用)を返す

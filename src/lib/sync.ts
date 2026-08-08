@@ -104,10 +104,34 @@ export interface PulledDoc {
   updatedAt: number
 }
 
+/** この端末に保存されている本人トークン(招待リンクや本人照合で得たもの) */
+export function getMemberToken(slug: string): string | undefined {
+  try {
+    const raw = localStorage.getItem(stateKey(slug))
+    const state = raw ? (JSON.parse(raw) as { token?: unknown }) : null
+    return typeof state?.token === 'string' && state.token ? state.token : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** 読み取りの資格情報。ツアーの名簿・回答はこれが無いと本人分しか(または何も)返らない */
+function readAuth(slug: string): { headers?: Record<string, string>; query: string } {
+  const admin = getAdminKey(slug)
+  if (admin) return { headers: { 'x-admin-key': admin }, query: '' }
+  const staff = getStaffKey(slug)
+  const token = getMemberToken(slug)
+  return {
+    headers: staff ? { 'x-staff-key': staff } : undefined,
+    query: token ? `?t=${encodeURIComponent(token)}` : '',
+  }
+}
+
 export async function pullDoc(slug: string, token: string | null): Promise<PulledDoc | null> {
-  const key = getAdminKey(slug)
-  const res = await api(`/api/docs/${slug}${token ? `?t=${encodeURIComponent(token)}` : ''}`, {
-    headers: key ? { 'x-admin-key': key } : undefined,
+  const auth = readAuth(slug)
+  const t = token ?? getMemberToken(slug)
+  const res = await api(`/api/docs/${slug}${t ? `?t=${encodeURIComponent(t)}` : ''}`, {
+    headers: auth.headers,
   })
   if (!res || !res.ok) return null
   const data = (await res.json().catch(() => null)) as PulledDoc | null
@@ -128,7 +152,8 @@ export interface PulledState {
 }
 
 export async function pullState(slug: string): Promise<PulledState | null> {
-  const res = await api(`/api/state/${slug}`)
+  const auth = readAuth(slug)
+  const res = await api(`/api/state/${slug}${auth.query}`, { headers: auth.headers })
   if (!res || !res.ok) return null
   return (await res.json().catch(() => null)) as PulledState | null
 }
