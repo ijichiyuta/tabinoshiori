@@ -1631,9 +1631,10 @@ select.text-input {
 @media (min-width: 720px) {
   .app {
     /* 実機と同じ幅・縦横比のフレームにする(間延び防止) */
-    width: 390px;
-    max-width: 390px;
-    aspect-ratio: 390 / 800;
+    /* box-sizing:border-boxのためベゼル込みで412px=画面部分がちょうど実機の390px */
+    width: 412px;
+    max-width: 412px;
+    aspect-ratio: 412 / 844;
     height: auto;
     max-height: calc(100dvh - 48px);
     min-height: 560px;
@@ -1657,5 +1658,65 @@ select.text-input {
   /* stickyフッターぶんの余白はコンテナ内スクロールでは不要 */
   .app-body.with-tabbar {
     padding-bottom: 0;
+  }
+
+  /* --- 実機ディテール --- */
+  /* Dynamic Island(スクロールしても上部に残る) */
+  .app::before {
+    content: '';
+    position: sticky;
+    top: 9px;
+    z-index: 40;
+    align-self: center;
+    flex-shrink: 0;
+    width: 116px;
+    height: 32px;
+    margin: 9px 0 10px;
+    background: #14161c;
+    border-radius: 18px;
+  }
+  /* ホームインジケーター */
+  .tabbar {
+    height: 76px;
+    padding-bottom: 12px;
+    position: sticky;
+  }
+  .tabbar::after {
+    content: '';
+    position: absolute;
+    bottom: 7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 128px;
+    height: 5px;
+    border-radius: 3px;
+    background: #14161c;
+    opacity: 0.85;
+  }
+  /* サイドボタン(左: アクション+音量2つ / 右: 電源) — フレーム中心基準で配置 */
+  body:has(.app)::before {
+    content: '';
+    position: fixed;
+    z-index: 0;
+    left: calc(50% - 209px);
+    top: 168px;
+    width: 4px;
+    height: 30px;
+    background: #1a1d24;
+    border-radius: 2px 0 0 2px;
+    box-shadow:
+      0 52px 0 0 #1a1d24,
+      0 106px 0 0 #1a1d24;
+  }
+  body:has(.app)::after {
+    content: '';
+    position: fixed;
+    z-index: 0;
+    left: calc(50% + 205px);
+    top: 230px;
+    width: 4px;
+    height: 86px;
+    background: #1a1d24;
+    border-radius: 0 2px 2px 0;
   }
 }
