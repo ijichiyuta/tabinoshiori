@@ -1220,6 +1220,7 @@ select.text-input {
   font-weight: 600;
   color: var(--ink);
   text-decoration: none;
+  white-space: nowrap;
 }
 .lp-nav .links {
   display: flex;
@@ -1230,6 +1231,16 @@ select.text-input {
 .lp-nav .links a {
   text-decoration: none;
   color: var(--sub);
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  /* 狭い画面ではアンカーリンクを畳み、CTAだけ残す(1文字ずつの折返し防止) */
+  .lp-nav .links {
+    gap: 12px;
+  }
+  .lp-nav .links a:not(.cta) {
+    display: none;
+  }
 }
 .lp-nav .links a.cta {
   background: var(--accent);
@@ -1321,13 +1332,10 @@ select.text-input {
   align-items: flex-start;
 }
 .lp-phone {
+  /* 端末フレームは画像側に焼き込み済み(角丸は透過) */
   width: 235px;
-  border-radius: 30px;
-  border: 7px solid #14161c;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 30px 60px rgba(10, 16, 30, 0.45);
   flex-shrink: 0;
+  filter: drop-shadow(0 26px 44px rgba(10, 16, 30, 0.42));
 }
 .lp-phone img {
   width: 100%;
@@ -1422,7 +1430,7 @@ select.text-input {
 .lp-feature .lp-phone {
   width: 225px;
   margin: 0 auto;
-  box-shadow: 0 18px 44px rgba(31, 29, 26, 0.18);
+  filter: drop-shadow(0 16px 32px rgba(31, 29, 26, 0.22));
 }
 .lp-band {
   position: relative;
