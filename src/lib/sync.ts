@@ -107,7 +107,12 @@ export async function pushDoc(doc: Shiori): Promise<void> {
 export async function deleteDocRemote(slug: string): Promise<void> {
   const key = getAdminKey(slug)
   if (!key) return
-  const res = await api(`/api/docs/${slug}`, { method: 'DELETE', headers: { 'x-admin-key': key } })
+  // keepalive: 削除直後にページ遷移・タブを閉じても送信を完了させる(保存系と同じ)
+  const res = await api(`/api/docs/${slug}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-key': key },
+    keepalive: true,
+  })
   // サーバー削除が確認できたときだけ鍵を破棄する。
   // オフライン・タイムアウトで鍵を消すと、個人情報入りの文書がサーバーに残ったまま
   // 二度と削除・編集できなくなる(復旧不能)。失敗時は鍵を残して次回の再試行に備える

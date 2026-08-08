@@ -10,6 +10,10 @@ import type { Shiori, ShioriKind } from './types'
 const INDEX_KEY = 'shiori-docs'
 const docKey = (slug: string) => `shiori-doc:${slug}`
 
+// 削除直後のslug。削除前に開始されたpullが後から saveDocLocal で文書を蘇生させる
+// レースを防ぐ(このタブ内でのみ有効。次のsaveDoc=ユーザーの明示保存で解除)。
+const tombstoned = new Set<string>()
+
 export function uid(prefix = ''): string {
   return prefix + Math.random().toString(36).slice(2, 8)
 }
@@ -90,6 +94,8 @@ export function docSavedAt(slug: string): number {
 
 /** ローカル保存のみ(サーバーからのpull反映用。pushしない) */
 export function saveDocLocal(doc: Shiori, ts: number = Date.now()) {
+  // 削除済みのslugは、遅れて着地したpullで蘇生させない
+  if (tombstoned.has(doc.slug)) return
   localStorage.setItem(docKey(doc.slug), JSON.stringify(doc))
   try {
     localStorage.setItem(docTsKey(doc.slug), String(ts))
@@ -105,6 +111,7 @@ export function saveDoc(doc: Shiori) {
   if (doc.kind === 'tour' && doc.members.some((m) => !m.token)) {
     doc = { ...doc, members: doc.members.map((m) => (m.token ? m : { ...m, token: newMemberToken() })) }
   }
+  tombstoned.delete(doc.slug) // ユーザーの明示保存(作成・編集)は蘇生防止を解除
   saveDocLocal(doc)
   // 組み込みデモはバンドル同梱なので同期しない(slug衝突も防ぐ)
   if (!isBuiltin(doc.slug)) void pushDoc(doc)
@@ -112,6 +119,8 @@ export function saveDoc(doc: Shiori) {
 
 export function deleteDoc(slug: string) {
   const builtin = isBuiltin(slug)
+  // 組み込みデモは「デモに戻す」だけで、再訪時にpullで再取得されうるので蘇生防止しない
+  if (!builtin) tombstoned.add(slug)
   try {
     localStorage.removeItem(docKey(slug))
     localStorage.removeItem(docTsKey(slug))
