@@ -88,10 +88,20 @@ function EventRow({
 
 /**
  * 1日ぶんのタイムライン。当日は「いま」マーカーと進行中ラベルを自動表示する。
+ * static=true(印刷・PDF)のときは現在時刻に依存する表示を出さない
+ * (配布した紙に「いま 14:23」「進行中」が焼き付かないように)。
  */
-export function TimelineDay({ day, now }: { day: ItineraryDay; now: Date }) {
-  const isToday = localDateString(now) === day.date
-  const nowMin = now.getHours() * 60 + now.getMinutes()
+export function TimelineDay({
+  day,
+  now,
+  static: isStatic = false,
+}: {
+  day: ItineraryDay
+  now?: Date
+  static?: boolean
+}) {
+  const isToday = !isStatic && !!now && localDateString(now) === day.date
+  const nowMin = now ? now.getHours() * 60 + now.getMinutes() : 0
 
   let markerIdx: number | null = null
   if (isToday) {
@@ -106,12 +116,12 @@ export function TimelineDay({ day, now }: { day: ItineraryDay; now: Date }) {
           isToday && !!ev.end && toMinutes(ev.time) <= nowMin && nowMin < toMinutes(ev.end)
         return (
           <Fragment key={ev.id}>
-            {markerIdx === i && <NowRow now={now} />}
+            {markerIdx === i && now && <NowRow now={now} />}
             <EventRow ev={ev} isLast={i === day.events.length - 1} current={current} />
           </Fragment>
         )
       })}
-      {markerIdx === day.events.length && <NowRow now={now} />}
+      {markerIdx === day.events.length && now && <NowRow now={now} />}
     </div>
   )
 }

@@ -7,7 +7,6 @@ import { computeSettlement, yen } from '../lib/settle'
 import { attendanceCounts, useShioriState } from '../lib/store'
 import { themeClass } from '../lib/theme'
 import { shareDisplay, shareUrlFor } from '../lib/share'
-import { useNow } from '../lib/time'
 import type { Shiori } from '../lib/types'
 
 /** 有料プランのみ: 印刷しおりの表紙に載せるQR(要件04「QRコード」) */
@@ -43,7 +42,6 @@ function Sheet({ watermark, children }: { watermark: boolean; children: ReactNod
 
 export function Print({ shiori }: { shiori: Shiori }) {
   const [state] = useShioriState(shiori)
-  const now = useNow()
   const watermark = !state.billing || state.billing.plan === 'free'
   const counts = attendanceCounts(shiori, state)
   const settle =
@@ -161,7 +159,7 @@ export function Print({ shiori }: { shiori: Shiori }) {
           <h3 className="serif" style={{ fontSize: 22, fontWeight: 600, margin: '0 0 18px' }}>
             行程　<span className="tnum">{day.label}</span>
           </h3>
-          <TimelineDay day={day} now={now} />
+          <TimelineDay day={day} static />
         </Sheet>
       ))}
 

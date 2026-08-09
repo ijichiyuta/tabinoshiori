@@ -1176,17 +1176,25 @@ select.text-input {
   font-family: var(--serif);
   font-size: 46px;
   letter-spacing: 0.2em;
-  color: var(--muted);
-  opacity: 0.16;
+  color: #c8c3b8;
+  opacity: 0.5;
   white-space: nowrap;
+  /* ブラウザの「背景を印刷しない」設定でも透かしを確実に出す(無料版ゲートの実効性) */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 @media print {
+  html,
   body {
     background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  .print-toolbar {
-    display: none;
+  /* ツールバー・操作系は紙に出さない(将来ボタンを足しても漏れないよう保険) */
+  .print-toolbar,
+  .no-print {
+    display: none !important;
   }
   .print-sheet {
     border: none;
@@ -1194,6 +1202,21 @@ select.text-input {
     max-width: none;
     page-break-after: always;
     padding: 0;
+    overflow: visible;
+  }
+  /* ページ境界での分断を防ぐ(表・持ち物・行程1件・乗車地・QR・領収書ブロック) */
+  .cost-table,
+  .hairline-block > div,
+  .tl-body,
+  .info-grid,
+  .card,
+  img {
+    break-inside: avoid;
+  }
+  /* 長いURL・予約控えのはみ出し切れ対策 */
+  .print-sheet,
+  .print-sheet * {
+    word-break: break-word;
   }
   @page {
     size: A4;
@@ -1204,6 +1227,8 @@ select.text-input {
 /* ---------- LP(トップページ) ---------- */
 .lp {
   background: var(--paper);
+  /* 何かがはみ出しても横スクロール・横ずれが起きないようにする保険 */
+  overflow-x: hidden;
 }
 .lp-nav {
   max-width: 1060px;
@@ -1343,6 +1368,22 @@ select.text-input {
 }
 .lp-phone.tilt {
   margin-top: 44px;
+}
+@media (max-width: 720px) {
+  /* スマホでは2枚並びが画面幅を超えて横スクロール・横ずれになるため縮小して中央寄せ */
+  .lp-phones {
+    max-width: 100%;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+  .lp-phone {
+    width: 40vw;
+    max-width: 200px;
+  }
+  .lp-phone.tilt {
+    margin-top: 26px;
+  }
 }
 .lp-section {
   max-width: 1060px;
