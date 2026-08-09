@@ -11,7 +11,9 @@ function LegalFrame({ title, children }: { title: string; children: ReactNode })
     <div className="app">
       <div className="app-body" style={{ padding: '0 0 40px' }}>
         <div className="screen-header">
-          <span className="title">{title}</span>
+          <h1 className="title" style={{ margin: 0, fontSize: 'inherit', fontWeight: 'inherit' }}>
+            {title}
+          </h1>
           <Link to="/" style={{ fontSize: 13.5 }}>
             トップへ
           </Link>
@@ -29,7 +31,7 @@ function LegalFrame({ title, children }: { title: string; children: ReactNode })
 
 function H({ children }: { children: ReactNode }) {
   return (
-    <div
+    <h2
       className="serif"
       style={{
         fontSize: 16,
@@ -41,7 +43,7 @@ function H({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </div>
+    </h2>
   )
 }
 
@@ -79,6 +81,9 @@ export function Terms() {
         本サービスは現状有姿で提供されます。旅行の実施・変更・中止・事故、利用者間の金銭トラブル、
         通信・端末環境による表示不良について、運営者は責任を負いません。
         運営者の損害賠償責任は、有料プランについて作成者が支払った直近12ヶ月の利用料金を上限とします。
+        ただし、運営者の故意または重大な過失による場合はこの限りではありません。
+        また、利用者が消費者契約法上の消費者にあたる場合、同法その他の強行法規に反する範囲では
+        本条の免責・責任制限は適用されません。
       </p>
       <H>6. 規約の変更・準拠法</H>
       <p style={{ margin: 0 }}>

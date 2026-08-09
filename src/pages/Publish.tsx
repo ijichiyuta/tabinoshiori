@@ -546,7 +546,11 @@ export function Receipt({ shiori }: { shiori: Shiori }) {
           但し 旅合わせ {PAID_PLANS[billing.plan === 'year' ? 'year' : 'one'].itemLabel}
           利用料として(税込)
         </div>
-        <div style={{ fontSize: 14, color: 'var(--sub)', marginTop: 4 }}>
+        {/* 消費税10%(内税)の内訳。税抜=税込÷1.1(円未満切り捨て)、消費税=税込−税抜 */}
+        <div className="tnum" style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, lineHeight: 1.8 }}>
+          10%対象 {yen(price)}(税抜 {yen(Math.floor(price / 1.1))}／消費税 {yen(price - Math.floor(price / 1.1))})
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--sub)', marginTop: 8 }}>
           上記正に領収いたしました
         </div>
         <div style={{ marginTop: 40, textAlign: 'right', fontSize: 13.5, lineHeight: 1.9, color: 'var(--sub)' }}>

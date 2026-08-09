@@ -277,9 +277,9 @@ export function Home() {
         <h2 className="lp-h2">3つのデモしおりを、そのまま触れます。</h2>
         {SHIORI_LIST.map((s) => (
           <div key={s.slug} className="home-card">
-            <h2>
+            <h3>
               {s.eyebrow}　{s.title} {s.subtitle}
-            </h2>
+            </h3>
             <div className="sub mono">
               {shareDisplay(s.slug)}
               {s.kind === 'group'
