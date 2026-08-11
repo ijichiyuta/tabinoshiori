@@ -51,7 +51,7 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <EditorFrame title="行程" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="行程" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved} shiori={shiori}>
       {draft.days.map((day, di) => (
         <div key={day.id} style={{ marginBottom: 26 }}>
           <div className="event-card" style={{ background: 'var(--banner)' }}>

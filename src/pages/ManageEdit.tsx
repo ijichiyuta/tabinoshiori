@@ -26,7 +26,7 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
   return (
     <EditorFrame
       title="基本情報"
-      backTo={`/manage/${shiori.slug}`}
+      backTo={`/manage/${shiori.slug}`} shiori={shiori}
       onSave={save}
       saved={saved}
     >

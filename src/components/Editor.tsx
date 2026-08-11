@@ -2,6 +2,7 @@ import { Children, cloneElement, isValidElement, useId, useState, type ReactNode
 import { Link } from 'react-router-dom'
 import { saveDoc } from '../lib/docs'
 import type { Shiori } from '../lib/types'
+import { ManageNav } from './ManageNav'
 
 /** 編集ドラフト。保存すると localStorage の文書として書き出す(copy-on-write)。 */
 export function useDraft(shiori: Shiori) {
@@ -35,25 +36,42 @@ export function EditorFrame({
   backTo,
   onSave,
   saved,
+  shiori,
   children,
 }: {
   title: string
   backTo: string
   onSave?: () => void
   saved?: boolean
+  /** 渡すとPCで左サイドバー(セクションナビ)付きの2ペインになる。 */
+  shiori?: Shiori
   children: ReactNode
 }) {
-  return (
-    <div className="app">
-      <div className="app-body" style={{ paddingBottom: onSave ? 96 : 24 }}>
-        <div className="manage-header">
-          <Link className="back" to={backTo}>
-            ‹ 戻る
-          </Link>
-          <span className="title">{title}</span>
-        </div>
-        <div style={{ padding: '16px 20px 24px' }}>{children}</div>
+  const body = (
+    <div className="app-body manage-main" style={{ paddingBottom: onSave ? 96 : 24 }}>
+      <div className="manage-header">
+        <Link className="back" to={backTo}>
+          ‹ 戻る
+        </Link>
+        <span className="title">{title}</span>
       </div>
+      <div className="manage-content" style={{ padding: '16px 20px 24px' }}>
+        {children}
+      </div>
+    </div>
+  )
+  return (
+    <div className="app manage-app">
+      {shiori ? (
+        <div className="manage-shell">
+          <aside className="manage-side">
+            <ManageNav shiori={shiori} />
+          </aside>
+          {body}
+        </div>
+      ) : (
+        body
+      )}
       {onSave && (
         <div className="save-bar">
           {saved && <span className="saved-note">保存しました ✓</span>}

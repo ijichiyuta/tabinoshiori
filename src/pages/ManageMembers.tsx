@@ -75,7 +75,7 @@ export function ManageMembers({ shiori }: { shiori: Shiori }) {
   return (
     <EditorFrame
       title={isGroup ? '名簿・出欠状況' : isTour ? '名簿・座席' : '同行者'}
-      backTo={`/manage/${shiori.slug}`}
+      backTo={`/manage/${shiori.slug}`} shiori={shiori}
       onSave={save}
       saved={saved}
     >

@@ -125,7 +125,7 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
 
   const base = `/manage/${shiori.slug}`
   return (
-    <EditorFrame title={`${shiori.title} ${shiori.subtitle}`} backTo="/manage">
+    <EditorFrame title={`${shiori.title} ${shiori.subtitle}`} backTo="/manage" shiori={shiori}>
       <InfoGrid
         rows={[
           ['状態', <strong key="s">{publishStatus}</strong>],
@@ -150,6 +150,7 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
         ]}
       />
 
+      <div className="hub-edit-nav">
       <div className="field-label" style={{ marginTop: 18 }}>
         編集
       </div>
@@ -223,6 +224,7 @@ export function ManageHub({ shiori }: { shiori: Shiori }) {
           </div>
         </>
       )}
+      </div>
 
       <div className="field-label" style={{ marginTop: 18 }}>
         公開・共有

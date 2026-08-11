@@ -1975,4 +1975,169 @@ select.text-input {
     background: #1a1d24;
     border-radius: 0 2px 2px 0;
   }
+
+  /* ===== 管理画面はPCで実機枠を外す(追加・変更しやすく) ===== */
+  .app.manage-app {
+    width: 100%;
+    max-width: 1180px;
+    aspect-ratio: auto;
+    height: auto;
+    max-height: none;
+    min-height: 100dvh;
+    margin: 0 auto;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow-y: visible;
+    background: var(--paper);
+  }
+  /* 管理画面ではDynamic Island(疑似ノッチ)とサイドボタンを出さない */
+  .app.manage-app::before {
+    display: none !important;
+  }
+  body:has(.manage-app)::before,
+  body:has(.manage-app)::after {
+    display: none !important;
+  }
+}
+
+/* ===== サイドバー(セクションナビ)はPC専用 ===== */
+.manage-side {
+  display: none;
+}
+.manage-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.manage-sidenav-back {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 4px 10px 10px;
+}
+.manage-sidenav-back:hover {
+  color: var(--accent);
+}
+.manage-sidenav-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-decoration: none;
+  color: var(--ink);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+.manage-sidenav-hub:hover {
+  background: var(--banner);
+}
+.manage-sidenav-hub.on {
+  background: var(--banner);
+}
+.manage-sidenav-hub .ttl {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.manage-sidenav-hub .sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.manage-sidenav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 12px;
+}
+.manage-sidenav-head {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 4px 12px;
+}
+.manage-sidenav a:not(.manage-sidenav-back):not(.manage-sidenav-hub) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 14px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  min-height: 40px;
+}
+.manage-sidenav a:not(.manage-sidenav-back):not(.manage-sidenav-hub):hover {
+  background: var(--banner);
+}
+.manage-sidenav a.on {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.manage-sidenav a .hint {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.manage-sidenav a.on .hint {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ===== PCでの2ペイン(左ナビ + 右編集) ===== */
+@media screen and (min-width: 900px) {
+  .manage-side {
+    display: block;
+  }
+  /* ハブ(概要)ではサイドバーが編集ナビを兼ねるので在ページの重複ナビは隠す */
+  .hub-edit-nav {
+    display: none;
+  }
+  .manage-app .manage-shell {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    align-items: start;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .manage-app .manage-side {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100dvh;
+    overflow-y: auto;
+    border-right: 1px solid var(--line);
+    padding: 22px 14px 40px;
+  }
+  .manage-app .manage-main {
+    max-width: 800px;
+    padding-bottom: 40px !important;
+  }
+  .manage-app .manage-content {
+    padding: 8px 32px 32px !important;
+  }
+  .manage-app .manage-header {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  /* PCでは戻るリンクは不要(左ナビから移動できる) */
+  .manage-app .manage-shell .manage-header .back {
+    display: none;
+  }
+  /* 保存バーは右ペイン下部に沿わせる */
+  .manage-app .save-bar {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-left: 274px;
+    box-sizing: border-box;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--line);
+  }
 }

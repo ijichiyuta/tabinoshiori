@@ -7,7 +7,7 @@ export function ManageItems({ shiori }: { shiori: Shiori }) {
   const { draft, patch, save, saved } = useDraft(shiori)
   const items = draft.checklist
   return (
-    <EditorFrame title="持ち物" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="持ち物" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       {items.map((item, i) => (
         <div key={item.id} className="editor-item">
           <div className="editor-item-head">
@@ -58,7 +58,7 @@ export function ManageContacts({ shiori }: { shiori: Shiori }) {
   const { draft, patch, save, saved } = useDraft(shiori)
   const list = draft.contacts
   return (
-    <EditorFrame title="連絡先" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="連絡先" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       {list.map((c, i) => (
         <div key={c.id} className="editor-item">
           <div className="editor-item-head">
@@ -133,7 +133,7 @@ export function ManageUpdates({ shiori }: { shiori: Shiori }) {
   const { draft, patch, save, saved } = useDraft(shiori)
   const list = draft.updates
   return (
-    <EditorFrame title="更新告知" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="更新告知" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       <p style={{ margin: '0 0 14px', fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.7 }}>
         しおりの上部バナーには<strong>最新の1件</strong>が表示されます。
         集合時刻の変更など、参加者に必ず伝えたいことを書いてください。
@@ -194,7 +194,7 @@ export function ManageCosts({ shiori }: { shiori: Shiori }) {
   const { draft, patch, save, saved } = useDraft(shiori)
   const list = draft.expenses ?? []
   return (
-    <EditorFrame title="費用・予約控え" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="費用・予約控え" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       <div className="field-label">立替の記録</div>
       {list.map((e, i) => (
         <div key={e.id} className="editor-item">

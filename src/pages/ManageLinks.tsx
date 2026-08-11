@@ -46,7 +46,7 @@ export function ManageLinks({ shiori: initial }: { shiori: Shiori }) {
   }
 
   return (
-    <EditorFrame title="招待リンク(個別URL)" backTo={`/manage/${shiori.slug}`}>
+    <EditorFrame title="招待リンク(個別URL)" backTo={`/manage/${shiori.slug}`} shiori={shiori}>
       <p style={{ margin: '0 0 14px', fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.75 }}>
         お客様ごとの専用URLです。予約確認メールやSMSに貼ると、
         開いた瞬間に本人のしおりが表示されます(名簿は表示されず、なりすましも防げます)。

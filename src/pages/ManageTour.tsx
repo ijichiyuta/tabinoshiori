@@ -11,7 +11,7 @@ export function ManageBoarding({ shiori }: { shiori: Shiori }) {
     patch({ boardingPoints: points.map((x, j) => (j === i ? { ...x, ...p } : x)) })
 
   return (
-    <EditorFrame title="乗車地" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="乗車地" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       <p style={{ margin: '0 0 14px', fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.7 }}>
         参加者には自分の乗車地が「あなたの集合」として表紙に表示されます。
         名簿で各参加者に乗車地を割り当ててください。
@@ -73,7 +73,7 @@ export function ManageNotices({ shiori }: { shiori: Shiori }) {
   const { draft, patch, save, saved } = useDraft(shiori)
   const notices = draft.notices ?? []
   return (
-    <EditorFrame title="ご案内(旅行条件・FAQ)" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
+    <EditorFrame title="ご案内(旅行条件・FAQ)" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       <p style={{ margin: '0 0 14px', fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.7 }}>
         キャンセル規定・旅行条件・よくある質問など。参加者の表紙の「ご案内」から見られます。
       </p>
@@ -152,7 +152,7 @@ export function ManageCheckin({ shiori }: { shiori: Shiori }) {
   }
 
   return (
-    <EditorFrame title="点呼・乗車確認" backTo={`/manage/${shiori.slug}`}>
+    <EditorFrame title="点呼・乗車確認" backTo={`/manage/${shiori.slug}`} shiori={shiori}>
       <div className="card accent" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span style={{ fontSize: 14, color: 'var(--muted)' }}>乗車済み</span>
         <span className="serif tnum" style={{ fontSize: 28, fontWeight: 600 }}>
@@ -247,7 +247,7 @@ export function ManageSurveyResults({ shiori }: { shiori: Shiori }) {
       : null
 
   return (
-    <EditorFrame title="アンケート結果" backTo={`/manage/${shiori.slug}`}>
+    <EditorFrame title="アンケート結果" backTo={`/manage/${shiori.slug}`} shiori={shiori}>
       <div className="card accent" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <span style={{ fontSize: 14, color: 'var(--muted)' }}>
           回答 {entries.length}件 / {shiori.members.length}名
