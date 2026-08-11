@@ -147,7 +147,15 @@ for (const state of STATES) {
     const src = m.location()?.url ?? ''
     if (src.includes('/api/') && /status of 404/.test(m.text())) return
     if (/Failed to load resource.*404/.test(m.text()) && page.url().includes('unknown')) return
-    errors.push(`[console.error] ${m.text()} @${src}`)
+    // 外部フォントCDN(Google Fonts)の読み込み失敗はアプリの制御外の一時的ネットワーク事象
+    const text = m.text()
+    if (
+      /Failed to load resource/.test(text) &&
+      (/fonts\.gstatic\.com|fonts\.googleapis\.com/.test(src) ||
+        /fonts\.gstatic\.com|fonts\.googleapis\.com/.test(text))
+    )
+      return
+    errors.push(`[console.error] ${text} @${src}`)
   })
 
   await page.goto(base + '/')

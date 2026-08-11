@@ -1,4 +1,4 @@
-import { arrayMove, EditorFrame, Field, TextInput, useDraft } from '../components/Editor'
+import { arrayMove, EditorFrame, Field, RowMenu, TextInput, useDraft } from '../components/Editor'
 import { telFromDisplay, uid } from '../lib/docs'
 import type { Shiori } from '../lib/types'
 
@@ -11,25 +11,15 @@ export function ManageItems({ shiori }: { shiori: Shiori }) {
       {items.map((item, i) => (
         <div key={item.id} className="editor-item">
           <div className="editor-item-head">
-            <span className="label">{i + 1}</span>
-            <span className="icon-btns">
-              <button className="icon-btn" disabled={i === 0} onClick={() => patch({ checklist: arrayMove(items, i, -1) })}>
-                ↑
-              </button>
-              <button
-                className="icon-btn"
-                disabled={i === items.length - 1}
-                onClick={() => patch({ checklist: arrayMove(items, i, 1) })}
-              >
-                ↓
-              </button>
-              <button
-                className="icon-btn danger"
-                onClick={() => patch({ checklist: items.filter((_, j) => j !== i) })}
-              >
-                削除
-              </button>
-            </span>
+            <span className="label">{item.label || `持ち物 ${i + 1}`}</span>
+            <RowMenu
+              canUp={i > 0}
+              canDown={i < items.length - 1}
+              onUp={() => patch({ checklist: arrayMove(items, i, -1) })}
+              onDown={() => patch({ checklist: arrayMove(items, i, 1) })}
+              onDelete={() => patch({ checklist: items.filter((_, j) => j !== i) })}
+              confirmMessage={`${item.label || `持ち物 ${i + 1}`} を削除しますか？`}
+            />
           </div>
           <Field label="持ち物">
             <TextInput
@@ -73,24 +63,14 @@ export function ManageContacts({ shiori }: { shiori: Shiori }) {
         <div key={c.id} className="editor-item">
           <div className="editor-item-head">
             <span className="label">{c.label || `${i + 1}件目`}</span>
-            <span className="icon-btns">
-              <button className="icon-btn" disabled={i === 0} onClick={() => patch({ contacts: arrayMove(list, i, -1) })}>
-                ↑
-              </button>
-              <button
-                className="icon-btn"
-                disabled={i === list.length - 1}
-                onClick={() => patch({ contacts: arrayMove(list, i, 1) })}
-              >
-                ↓
-              </button>
-              <button
-                className="icon-btn danger"
-                onClick={() => patch({ contacts: list.filter((_, j) => j !== i) })}
-              >
-                削除
-              </button>
-            </span>
+            <RowMenu
+              canUp={i > 0}
+              canDown={i < list.length - 1}
+              onUp={() => patch({ contacts: arrayMove(list, i, -1) })}
+              onDown={() => patch({ contacts: arrayMove(list, i, 1) })}
+              onDelete={() => patch({ contacts: list.filter((_, j) => j !== i) })}
+              confirmMessage={`${c.label || `${i + 1}件目`} を削除しますか？`}
+            />
           </div>
           <div className="form-grid2">
             <Field label="種別">
@@ -164,7 +144,10 @@ export function ManageUpdates({ shiori }: { shiori: Shiori }) {
             <span className="label">{i === list.length - 1 ? '表示中(最新)' : `過去分 ${i + 1}`}</span>
             <button
               className="icon-btn danger"
-              onClick={() => patch({ updates: list.filter((_, j) => j !== i) })}
+              onClick={() =>
+                window.confirm('この告知を削除しますか？') &&
+                patch({ updates: list.filter((_, j) => j !== i) })
+              }
             >
               削除
             </button>
@@ -216,10 +199,13 @@ export function ManageCosts({ shiori }: { shiori: Shiori }) {
       {list.map((e, i) => (
         <div key={e.id} className="editor-item">
           <div className="editor-item-head">
-            <span className="label">{i + 1}件目</span>
+            <span className="label">{e.label || `${i + 1}件目`}</span>
             <button
               className="icon-btn danger"
-              onClick={() => patch({ expenses: list.filter((_, j) => j !== i) })}
+              onClick={() =>
+                window.confirm(`${e.label || 'この立替'} を削除しますか？`) &&
+                patch({ expenses: list.filter((_, j) => j !== i) })
+              }
             >
               削除
             </button>

@@ -1,4 +1,4 @@
-import { arrayMove, EditorFrame, Field, TextInput, useDraft } from '../components/Editor'
+import { arrayMove, EditorFrame, Field, RowMenu, TextInput, useDraft } from '../components/Editor'
 import { mapQueryFromUrl, mapUrlFromQuery, uid } from '../lib/docs'
 import { useShioriState } from '../lib/store'
 import type { Shiori } from '../lib/types'
@@ -19,28 +19,15 @@ export function ManageBoarding({ shiori }: { shiori: Shiori }) {
       {points.map((bp, i) => (
         <div key={bp.id} className="editor-item">
           <div className="editor-item-head">
-            <span className="label">乗車地 {i + 1}</span>
-            <span className="icon-btns">
-              <button className="icon-btn" disabled={i === 0} onClick={() => patch({ boardingPoints: arrayMove(points, i, -1) })}>
-                ↑
-              </button>
-              <button
-                className="icon-btn"
-                disabled={i === points.length - 1}
-                onClick={() => patch({ boardingPoints: arrayMove(points, i, 1) })}
-              >
-                ↓
-              </button>
-              <button
-                className="icon-btn danger"
-                onClick={() =>
-                  window.confirm(`${bp.name} を削除しますか？`) &&
-                  patch({ boardingPoints: points.filter((_, j) => j !== i) })
-                }
-              >
-                削除
-              </button>
-            </span>
+            <span className="label">乗車地 {i + 1}{bp.name ? `・${bp.name}` : ''}</span>
+            <RowMenu
+              canUp={i > 0}
+              canDown={i < points.length - 1}
+              onUp={() => patch({ boardingPoints: arrayMove(points, i, -1) })}
+              onDown={() => patch({ boardingPoints: arrayMove(points, i, 1) })}
+              onDelete={() => patch({ boardingPoints: points.filter((_, j) => j !== i) })}
+              confirmMessage={`${bp.name || `乗車地 ${i + 1}`} を削除しますか？`}
+            />
           </div>
           <div className="form-grid2">
             <Field label="出発時刻">
@@ -94,24 +81,14 @@ export function ManageNotices({ shiori }: { shiori: Shiori }) {
         <div key={n.id} className="editor-item">
           <div className="editor-item-head">
             <span className="label">{n.title || `${i + 1}件目`}</span>
-            <span className="icon-btns">
-              <button className="icon-btn" disabled={i === 0} onClick={() => patch({ notices: arrayMove(notices, i, -1) })}>
-                ↑
-              </button>
-              <button
-                className="icon-btn"
-                disabled={i === notices.length - 1}
-                onClick={() => patch({ notices: arrayMove(notices, i, 1) })}
-              >
-                ↓
-              </button>
-              <button
-                className="icon-btn danger"
-                onClick={() => patch({ notices: notices.filter((_, j) => j !== i) })}
-              >
-                削除
-              </button>
-            </span>
+            <RowMenu
+              canUp={i > 0}
+              canDown={i < notices.length - 1}
+              onUp={() => patch({ notices: arrayMove(notices, i, -1) })}
+              onDown={() => patch({ notices: arrayMove(notices, i, 1) })}
+              onDelete={() => patch({ notices: notices.filter((_, j) => j !== i) })}
+              confirmMessage={`${n.title || `${i + 1}件目`} を削除しますか？`}
+            />
           </div>
           <Field label="見出し">
             <TextInput

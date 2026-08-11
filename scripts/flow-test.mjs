@@ -195,10 +195,16 @@ check('支払いページに留まる', page.url().includes('/pay'))
 
 // 16c) 行程を全削除しても行程ページが壊れない
 await page.goto(base + '/manage/kino2026/schedule')
-for (let i = 0; i < 3; i++) {
-  if ((await page.locator('button:has-text("日を削除")').count()) === 0) break
-  await page.locator('button:has-text("日を削除")').first().click()
-  await page.waitForTimeout(100)
+for (let i = 0; i < 5; i++) {
+  const menuBtns = page.locator('.row-menu-btn')
+  if ((await menuBtns.count()) === 0) break
+  // 各日の先頭は日ヘッダーの⋮メニュー(「この日を削除」を持つ)
+  await menuBtns.first().click()
+  await page.waitForTimeout(80)
+  const del = page.locator('.row-menu-pop button:has-text("この日を削除")')
+  if ((await del.count()) === 0) break
+  await del.first().click()
+  await page.waitForTimeout(120)
 }
 await page.click('.save-bar button')
 await page.waitForSelector('.saved-note')

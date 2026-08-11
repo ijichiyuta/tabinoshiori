@@ -1,4 +1,13 @@
-import { arrayMove, EditorFrame, Field, TextInput, useDraft } from '../components/Editor'
+import {
+  arrayMove,
+  Details,
+  EditorFrame,
+  Field,
+  RowMenu,
+  TextInput,
+  TimeInput,
+  useDraft,
+} from '../components/Editor'
 import { dayLabelFromDate, mapQueryFromUrl, mapUrlFromQuery, uid } from '../lib/docs'
 import type { ItineraryDay, ItineraryEvent, Shiori } from '../lib/types'
 
@@ -45,30 +54,21 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
     <EditorFrame title="行程" backTo={`/manage/${shiori.slug}`} onSave={save} saved={saved}>
       {draft.days.map((day, di) => (
         <div key={day.id} style={{ marginBottom: 26 }}>
-          <div className="editor-item" style={{ background: 'var(--banner)' }}>
-            <div className="editor-item-head">
-              <span className="label">{di + 1}日目</span>
-              <span className="icon-btns">
-                <button className="icon-btn" disabled={di === 0} onClick={() => patch({ days: arrayMove(draft.days, di, -1) })}>
-                  ↑
-                </button>
-                <button
-                  className="icon-btn"
-                  disabled={di === draft.days.length - 1}
-                  onClick={() => patch({ days: arrayMove(draft.days, di, 1) })}
-                >
-                  ↓
-                </button>
-                <button
-                  className="icon-btn danger"
-                  onClick={() =>
-                    window.confirm(`${day.label} を削除しますか？`) &&
-                    patch({ days: draft.days.filter((_, i) => i !== di) })
-                  }
-                >
-                  日を削除
-                </button>
-              </span>
+          <div className="event-card" style={{ background: 'var(--banner)' }}>
+            <div className="event-card-head">
+              <div className="event-card-title">
+                <span className="ec-time">📅 DAY {di + 1}</span>
+                <span className="ec-name">{day.label || '日付を設定してください'}</span>
+              </div>
+              <RowMenu
+                canUp={di > 0}
+                canDown={di < draft.days.length - 1}
+                onUp={() => patch({ days: arrayMove(draft.days, di, -1) })}
+                onDown={() => patch({ days: arrayMove(draft.days, di, 1) })}
+                onDelete={() => patch({ days: draft.days.filter((_, i) => i !== di) })}
+                deleteLabel="この日を削除"
+                confirmMessage={`${day.label || `${di + 1}日目`} を削除しますか？`}
+              />
             </div>
             <div className="form-grid2">
               <Field label="日付">
@@ -90,51 +90,50 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
 
           {day.events.map((ev, ei) => {
             const transit = ev.kind === 'transit'
+            const hasDetail = !!(ev.end || ev.desc || ev.note || ev.tag || ev.mapUrl || ev.tel)
             return (
-              <div key={ev.id} className={`editor-item${transit ? ' transit' : ''}`}>
-                <div className="editor-item-head">
-                  <span className="label">
-                    {transit ? '移動' : '予定'} {ev.time}
-                  </span>
-                  <span className="icon-btns">
-                    <button className="icon-btn" disabled={ei === 0} onClick={() => setDay(di, { events: arrayMove(day.events, ei, -1) })}>
-                      ↑
-                    </button>
-                    <button
-                      className="icon-btn"
-                      disabled={ei === day.events.length - 1}
-                      onClick={() => setDay(di, { events: arrayMove(day.events, ei, 1) })}
-                    >
-                      ↓
-                    </button>
-                    <button
-                      className="icon-btn danger"
-                      onClick={() => setDay(di, { events: day.events.filter((_, i) => i !== ei) })}
-                    >
-                      削除
-                    </button>
-                  </span>
-                </div>
-                <label className="inline-check" style={{ marginBottom: 10 }}>
-                  <input
-                    type="checkbox"
-                    checked={transit}
-                    onChange={(e) =>
-                      setEvent(di, ei, { kind: e.target.checked ? 'transit' : 'event' })
-                    }
+              <div key={ev.id} className={`event-card${transit ? ' transit' : ''}`}>
+                <div className="event-card-head">
+                  <div className="event-card-title">
+                    <span className="ec-time">
+                      {transit ? '🚌 移動' : '⏱'} {ev.time || '時刻未設定'}
+                    </span>
+                    <span className={`ec-name${ev.title ? '' : ' placeholder'}`}>
+                      {ev.title || (transit ? '移動手段を入力' : '予定名を入力')}
+                    </span>
+                  </div>
+                  <RowMenu
+                    canUp={ei > 0}
+                    canDown={ei < day.events.length - 1}
+                    onUp={() => setDay(di, { events: arrayMove(day.events, ei, -1) })}
+                    onDown={() => setDay(di, { events: arrayMove(day.events, ei, 1) })}
+                    onDelete={() => setDay(di, { events: day.events.filter((_, i) => i !== ei) })}
+                    confirmMessage={`「${ev.title || 'この予定'}」を削除しますか？`}
                   />
-                  移動(バス・電車・徒歩など)
-                </label>
+                </div>
+                <div className="seg">
+                  <button
+                    className={!transit ? 'on' : ''}
+                    onClick={() => setEvent(di, ei, { kind: 'event' })}
+                  >
+                    予定
+                  </button>
+                  <button
+                    className={transit ? 'on' : ''}
+                    onClick={() => setEvent(di, ei, { kind: 'transit' })}
+                  >
+                    移動
+                  </button>
+                </div>
                 <div className="form-grid2">
                   <Field label="時刻">
-                    <TextInput value={ev.time} onChange={(v) => setEvent(di, ei, { time: v })} placeholder="7:30" />
+                    <TimeInput value={ev.time} onChange={(v) => setEvent(di, ei, { time: v })} />
                   </Field>
                   {!transit && (
                     <Field label="終了時刻(任意)">
-                      <TextInput
+                      <TimeInput
                         value={ev.end ?? ''}
                         onChange={(v) => setEvent(di, ei, { end: v || undefined })}
-                        placeholder="16:00"
                       />
                     </Field>
                   )}
@@ -147,57 +146,57 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
                   />
                 </Field>
                 {!transit && (
-                  <>
-                    <Field label="場所・補足の1行(任意)">
+                  <Details
+                    summary="詳細を追加(場所・地図・電話・注記・タグ)"
+                    defaultOpen={hasDetail}
+                  >
+                    <Field label="場所・補足">
                       <TextInput
                         value={ev.desc ?? ''}
                         onChange={(v) => setEvent(di, ei, { desc: v || undefined })}
                         placeholder="名古屋駅 太閤通口 バスロータリー"
                       />
                     </Field>
-                    <Field label="注記(任意)" hint="「重要」は朱色の線で表示されます">
+                    <Field label="注記" hint="「重要」は朱色の線で表示されます">
                       <TextInput
                         value={ev.note ?? ''}
                         onChange={(v) => setEvent(di, ei, { note: v || undefined })}
                         placeholder="7:20までに集合。遅れる場合は幹事まで連絡"
                       />
                       {ev.note && (
-                        <div style={{ display: 'flex', gap: 14, marginTop: 6 }}>
-                          <label className="inline-check">
-                            <input
-                              type="radio"
-                              checked={ev.noteLevel !== 'warn'}
-                              onChange={() => setEvent(di, ei, { noteLevel: 'info' })}
-                            />
+                        <div className="seg" style={{ marginTop: 8, marginBottom: 0 }}>
+                          <button
+                            className={ev.noteLevel !== 'warn' ? 'on' : ''}
+                            onClick={() => setEvent(di, ei, { noteLevel: 'info' })}
+                          >
                             情報
-                          </label>
-                          <label className="inline-check">
-                            <input
-                              type="radio"
-                              checked={ev.noteLevel === 'warn'}
-                              onChange={() => setEvent(di, ei, { noteLevel: 'warn' })}
-                            />
+                          </button>
+                          <button
+                            className={ev.noteLevel === 'warn' ? 'on' : ''}
+                            onClick={() => setEvent(di, ei, { noteLevel: 'warn' })}
+                          >
                             重要(朱)
-                          </label>
+                          </button>
                         </div>
                       )}
                     </Field>
                     <div className="form-grid2">
-                      <Field label="タグ(任意)" hint="例: 自由参加">
+                      <Field label="タグ" hint="例: 自由参加">
                         <TextInput
                           value={ev.tag ?? ''}
                           onChange={(v) => setEvent(di, ei, { tag: v || undefined })}
                         />
                       </Field>
-                      <Field label="地図(検索語かURL・任意)">
+                      <Field label="地図(検索語かURL)">
                         <TextInput
                           value={mapQueryFromUrl(ev.mapUrl)}
                           onChange={(v) => setEvent(di, ei, { mapUrl: mapUrlFromQuery(v) })}
                         />
                       </Field>
                     </div>
-                    <Field label="電話番号(任意)">
+                    <Field label="電話番号">
                       <TextInput
+                        type="tel"
                         value={ev.tel?.display === '電話' ? (ev.tel?.href.replace('tel:', '') ?? '') : (ev.tel?.display ?? '')}
                         onChange={(v) =>
                           setEvent(di, ei, {
@@ -209,7 +208,7 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
                         placeholder="0599000000"
                       />
                     </Field>
-                  </>
+                  </Details>
                 )}
               </div>
             )

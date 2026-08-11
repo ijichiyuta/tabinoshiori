@@ -120,3 +120,139 @@ export function TextInput({
     />
   )
 }
+
+/** 時刻入力。端末標準のホイール/ピッカーを使いつつ、保存値は "H:MM"(先頭ゼロなし)に正規化する */
+export function TimeInput({
+  id,
+  value,
+  onChange,
+}: {
+  id?: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  const toNative = (t: string) => {
+    const m = /^(\d{1,2}):(\d{1,2})$/.exec((t ?? '').trim())
+    if (!m) return ''
+    return `${m[1]!.padStart(2, '0')}:${m[2]!.padStart(2, '0')}`
+  }
+  const fromNative = (v: string) => {
+    const m = /^(\d{2}):(\d{2})$/.exec(v)
+    if (!m) return ''
+    return `${Number(m[1])}:${m[2]}`
+  }
+  return (
+    <input
+      id={id}
+      className="text-input"
+      type="time"
+      value={toNative(value)}
+      onChange={(e) => onChange(fromNative(e.target.value))}
+    />
+  )
+}
+
+/** 行の操作メニュー(⋮): 上へ・下へ・削除。削除は誤タップ防止のため確認つき。 */
+export function RowMenu({
+  canUp,
+  canDown,
+  onUp,
+  onDown,
+  onDelete,
+  deleteLabel = '削除',
+  confirmMessage,
+}: {
+  canUp: boolean
+  canDown: boolean
+  onUp: () => void
+  onDown: () => void
+  onDelete: () => void
+  deleteLabel?: string
+  confirmMessage?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const close = () => setOpen(false)
+  return (
+    <div className="row-menu">
+      <button
+        type="button"
+        className="row-menu-btn"
+        aria-label="この項目の操作"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        ⋮
+      </button>
+      {open && (
+        <>
+          <div className="row-menu-backdrop" onClick={close} />
+          <div className="row-menu-pop" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              disabled={!canUp}
+              onClick={() => {
+                close()
+                onUp()
+              }}
+            >
+              ↑ 上へ
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              disabled={!canDown}
+              onClick={() => {
+                close()
+                onDown()
+              }}
+            >
+              ↓ 下へ
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="danger"
+              onClick={() => {
+                close()
+                if (!confirmMessage || window.confirm(confirmMessage)) onDelete()
+              }}
+            >
+              {deleteLabel}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+/** 任意項目をまとめて折りたたむ。中身に既に入力があれば最初から開く。 */
+export function Details({
+  summary,
+  defaultOpen = false,
+  children,
+}: {
+  summary: string
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className={`ed-details${open ? ' open' : ''}`}>
+      <button
+        type="button"
+        className="ed-details-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="chev" aria-hidden>
+          {open ? '▾' : '▸'}
+        </span>
+        {open ? '詳細を閉じる' : summary}
+      </button>
+      {open && <div className="ed-details-body">{children}</div>}
+    </div>
+  )
+}

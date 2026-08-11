@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { arrayMove, EditorFrame, Field, TextInput, useDraft } from '../components/Editor'
+import { arrayMove, EditorFrame, Field, RowMenu, TextInput, useDraft } from '../components/Editor'
 import { telFromDisplay, uid } from '../lib/docs'
 import { yen } from '../lib/settle'
 import { effectiveAnswer, feeFor, useShioriState } from '../lib/store'
@@ -84,23 +84,16 @@ export function ManageMembers({ shiori }: { shiori: Shiori }) {
         <div key={m.id} className="editor-item">
           <div className="editor-item-head">
             <span className="label">
-              {i + 1}人目{m.id === draft.organizerId && isGroup ? '(幹事)' : ''}
+              {m.name || `${i + 1}人目`}
+              {m.id === draft.organizerId && isGroup ? '(幹事)' : ''}
             </span>
-            <span className="icon-btns">
-              <button className="icon-btn" disabled={i === 0} onClick={() => patch({ members: arrayMove(draft.members, i, -1) })}>
-                ↑
-              </button>
-              <button
-                className="icon-btn"
-                disabled={i === draft.members.length - 1}
-                onClick={() => patch({ members: arrayMove(draft.members, i, 1) })}
-              >
-                ↓
-              </button>
-              <button className="icon-btn danger" onClick={() => removeMember(i)}>
-                削除
-              </button>
-            </span>
+            <RowMenu
+              canUp={i > 0}
+              canDown={i < draft.members.length - 1}
+              onUp={() => patch({ members: arrayMove(draft.members, i, -1) })}
+              onDown={() => patch({ members: arrayMove(draft.members, i, 1) })}
+              onDelete={() => removeMember(i)}
+            />
           </div>
           <div className="form-grid2">
             <Field label="名前">
