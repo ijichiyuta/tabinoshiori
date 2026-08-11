@@ -18,7 +18,8 @@ import type { Shiori, ShioriKind } from '../lib/types'
 /* ---------- 幹事: しおり一覧・新規作成 ---------- */
 export function ManageHome() {
   const navigate = useNavigate()
-  const [listings] = useState(() => listAllShiori())
+  // バスツアー運営会社向けに特化: 一覧はツアーのしおりのみ表示する
+  const [listings] = useState(() => listAllShiori().filter((l) => l.shiori.kind === 'tour'))
 
   const create = (kind: ShioriKind) => {
     const s = createShiori(kind)
@@ -27,9 +28,9 @@ export function ManageHome() {
   }
 
   return (
-    <EditorFrame title="幹事メニュー" backTo="/">
+    <EditorFrame title="しおり管理" backTo="/">
       <p style={{ margin: '0 0 16px', fontSize: 14.5, lineHeight: 1.75, color: 'var(--sub)' }}>
-        しおりの作成・編集はこの画面から。参加者には編集画面は表示されません。
+        バスツアーのしおりの作成・編集はこの画面から。お客様には編集画面は表示されません。
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {listings.map(({ shiori, isCustom, isEdited }) => (
@@ -70,28 +71,17 @@ export function ManageHome() {
       <div style={{ marginTop: 20 }}>
         <div className="field-label">新しいしおりを作る</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-          <button className="create-btn" onClick={() => create('group')}>
-            <span className="plus" aria-hidden>＋</span>
-            <span className="create-btn-text">
-              <span className="ttl">グループ</span>
-              <span className="sub">名簿・出欠・集金</span>
-            </span>
-          </button>
-          <button className="create-btn" onClick={() => create('duo')}>
-            <span className="plus" aria-hidden>＋</span>
-            <span className="create-btn-text">
-              <span className="ttl">少人数</span>
-              <span className="sub">割り勘・予約控え</span>
-            </span>
-          </button>
           <button className="create-btn" onClick={() => create('tour')}>
             <span className="plus" aria-hidden>＋</span>
             <span className="create-btn-text">
-              <span className="ttl">バスツアー</span>
-              <span className="sub">乗車地・点呼・案内</span>
+              <span className="ttl">新しいバスツアーのしおり</span>
+              <span className="sub">乗車地・座席・点呼・ご案内までこれ一冊</span>
             </span>
           </button>
         </div>
+        <p style={{ margin: '10px 2px 0', fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7 }}>
+          作成後、行程・乗車地・名簿(CSV取込)などを編集できます。まずはデモのしおりで操作感をお試しください。
+        </p>
       </div>
     </EditorFrame>
   )

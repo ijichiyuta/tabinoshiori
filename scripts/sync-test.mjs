@@ -24,51 +24,44 @@ const A = await newPage()
 await A.goto(base + '/')
 await A.evaluate(() => localStorage.clear())
 
-// 1) グループしおりを作成して保存(サーバーへpush)
+// 1) ツアーしおりを作成して保存(サーバーへpush)→ adminKey発行
 await A.goto(base + '/manage')
-await A.click('.create-btn:has-text("グループ")')
+await A.click('.create-btn:has-text("バスツアー")')
 await A.waitForURL(/\/manage\/s[a-z0-9]+$/)
 const slug = A.url().split('/').pop()
 await A.goto(base + `/manage/${slug}/edit`)
-await A.fill('.form-row:has(.input-label:text-is("タイトル")) input', '同期テスト温泉旅行')
+await A.fill('.form-row:has(.input-label:text-is("タイトル")) input', '同期テスト日帰りツアー')
 await A.click('.save-bar button')
 await A.waitForSelector('.saved-note')
 await A.waitForTimeout(2500) // push完了待ち
 const adminKey = await A.evaluate((s) => localStorage.getItem(`admin-key:${s}`), slug)
 check('保存でサーバーのadminKeyが発行される', !!adminKey)
 
-// ===== B: 参加者のスマホ(まっさらな別端末) =====
+// 招待リンク(作成保存時に自動発行)を取得
+await A.goto(base + `/manage/${slug}/links`)
+await A.waitForSelector('.hairline-block .mono', { timeout: 5000 })
+const invite1 = (await A.locator('.hairline-block .mono').first().innerText()).trim()
+const toLocal = (u) => u.replace(/^https?:\/\/[^/]+/, base)
+
+// ===== B: お客様のスマホ(まっさらな別端末) =====
 const B = await newPage()
-await B.goto(base + `/s/${slug}`)
-await B.waitForSelector('.roster button', { timeout: 10000 })
-check('別端末がサーバーからしおりを取得できる', (await B.locator('text=名簿からお名前').count()) > 0)
-await B.click('.roster button:has-text("幹事")')
-await B.waitForURL('**/rsvp')
-await B.click('.choice-grid button:has-text("参加")')
-await B.click('button:has-text("この内容で回答する")')
-await B.waitForURL('**/rsvp/done')
-await B.waitForTimeout(2500) // push完了待ち
-check('参加者が別端末から回答できる', true)
+await B.goto(toLocal(invite1))
+await B.waitForSelector('.panel-head', { timeout: 10000 })
+check('別端末が招待リンクでサーバーからしおりを取得できる', (await B.locator('text=同期テスト日帰りツアー').count()) > 0)
 
-// 2) 幹事の端末に回答が届く
-await A.goto(base + `/manage/${slug}/members`)
-await A.waitForTimeout(1200) // pull+マージ待ち
-const statusRow = await A.locator('.status-row:has-text("幹事")').innerText()
-check('幹事の端末に回答が同期される(参加)', statusRow.includes('参加'))
-
-// 3) 幹事の編集が参加者に届く
+// 3) 幹事の編集が別端末に届く
 await A.goto(base + `/manage/${slug}/edit`)
-await A.fill('.form-row:has(.input-label:text-is("タイトル")) input', '同期テスト温泉旅行(改)')
+await A.fill('.form-row:has(.input-label:text-is("タイトル")) input', '同期テスト日帰りツアー(改)')
 await A.click('.save-bar button')
 await A.waitForSelector('.saved-note')
 await A.waitForTimeout(2500)
 let titleSynced = false
 for (let i = 0; i < 6 && !titleSynced; i++) {
-  await B.goto(base + `/s/${slug}`)
+  await B.goto(toLocal(invite1))
   await B.waitForTimeout(2000)
-  titleSynced = (await B.locator('text=同期テスト温泉旅行(改)').count()) > 0
+  titleSynced = (await B.locator('text=同期テスト日帰りツアー(改)').count()) > 0
 }
-check('幹事の編集が参加者の端末に反映される', titleSynced)
+check('幹事の編集がお客様の端末に反映される', titleSynced)
 
 // ===== ツアー: 招待リンク(サーバー照合)と点呼の同期 =====
 const unlockIfNeeded = async (page) => {

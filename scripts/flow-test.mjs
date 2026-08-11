@@ -89,27 +89,24 @@ await page.waitForURL('**/manage')
 await page.goto(base + '/s/tob2026')
 check('リセットでデモに戻る', (await page.locator('text=夏合宿 2026').count()) > 0)
 
-// 9) 幹事: 新規グループしおり作成 → 編集 → 参加者フロー
+// 9) 運営: 新規バスツアーしおり作成(作成はツアー限定)→ 基本情報編集 → 保存反映
 await page.goto(base + '/manage')
-await page.click('.create-btn:has-text("グループ")')
+check(
+  '新規作成はバスツアーのみ(グループ/少人数ボタンなし)',
+  (await page.locator('.create-btn').count()) === 1 &&
+    (await page.locator('.create-btn:has-text("グループ")').count()) === 0,
+)
+await page.click('.create-btn:has-text("バスツアー")')
 await page.waitForURL(/\/manage\/s[a-z0-9]+$/)
 const newSlug = page.url().split('/').pop()
 await page.goto(base + `/manage/${newSlug}/edit`)
-await page.fill('.form-row:has(.input-label:text-is("タイトル")) input', '町内会 秋祭り')
+await page.fill('.form-row:has(.input-label:text-is("タイトル")) input', '秋の日帰りツアー')
 await page.click('.save-bar button')
 await page.waitForSelector('.saved-note')
-await page.goto(base + `/s/${newSlug}`)
-await page.waitForURL('**/rsvp/who')
-await page.click('.roster button:has-text("幹事")')
-await page.waitForURL(`**/s/${newSlug}/rsvp`)
-await page.click('.choice-grid button:has-text("参加")')
-await page.click('button:has-text("この内容で回答する")')
-await page.waitForURL('**/rsvp/done')
-await page.click('a:has-text("しおりを見る")')
-await page.waitForURL(`**/s/${newSlug}`)
-check('新規しおりの表紙にタイトル表示', (await page.locator('text=町内会 秋祭り').count()) > 0)
+await page.goto(base + `/manage/${newSlug}`)
+check('新規ツアーの基本情報が保存される', (await page.locator('text=秋の日帰りツアー').count()) > 0)
 
-// 10) 幹事: 6名以下は無料公開できる → 共有カードはゲートされる
+// 10) 運営: 6名以下は無料公開できる → 共有カードはゲートされる
 await page.goto(base + `/publish/${newSlug}`)
 check('6名以下では超過警告なし', (await page.locator('text=上限を超えています').count()) === 0)
 await page.click('.plan-card:has-text("無料")')
