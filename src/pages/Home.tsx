@@ -4,29 +4,29 @@ import { shareDisplay } from '../lib/share'
 
 const FEATURES = [
   {
-    img: '/img/app-cover.png',
-    eyebrow: 'ひとりずつの表紙',
-    title: '開いた人の「知りたいこと」だけが、最初にある。',
-    body: '次の集合はいつ・どこか。自分の参加費は払ったか。名簿から名前を選ぶだけで、その人専用のしおりに。集合時刻が変われば、上部の告知バナーで全員に知らせます。',
+    img: '/img/app-tour.png',
+    eyebrow: '乗車地・座席',
+    title: 'お客様は、自分の乗車地と座席だけを見る。',
+    body: 'お客様ごとに「あなたの集合」を表紙に表示。乗車地・集合時刻・号車・座席がひと目で分かります。「私の集合場所どこ?」という当日朝の電話が、まるごと消えます。',
   },
   {
-    img: '/img/app-schedule.png',
-    eyebrow: '行程表',
-    title: '当日は「いま」が動く行程表。',
-    body: '紙のしおりの美しさそのままに、当日は現在時刻のマーカーが行程を追いかけます。「いまどのへん?」の問い合わせが消えます。地図・電話へのリンクもワンタップ。',
+    img: '/img/app-checkin.png',
+    eyebrow: '添乗員の点呼',
+    title: '乗車確認は、名前をタップするだけ。',
+    body: '乗車地ごとに名簿を表示。タップで乗車済みに。複数の添乗員・スタッフの端末でリアルタイム共有され、「あと何名・誰が未乗車か」がその場で分かります。',
     rev: true,
   },
   {
-    img: '/img/app-costs.png',
-    eyebrow: '割り勘・精算',
-    title: '「誰がいくら立て替えた」も、しおりの中で。',
-    body: '立替を記録すると合計・1人あたり・精算(誰が誰へいくら)を自動計算。旅のあとの気まずい集計が、その場で終わります。',
+    img: '/img/app-schedule.png',
+    eyebrow: '当日の行程',
+    title: '渋滞で予定が変わっても、全員にすぐ届く。',
+    body: '現在時刻のマーカーが行程を追いかけます。到着遅れや集合時刻の変更は、上部の告知バナーでお客様全員に即共有。トンネルや山間部の圏外でも、一度開いたしおりは表示できます。',
   },
   {
-    img: '/img/app-casual.png',
-    eyebrow: 'テーマ',
-    title: '旅に合わせて、しおりが着替える。',
-    body: '結婚記念日の温泉旅は端正な明朝の「きっちり」。サークル合宿は明るい「カジュアル」。ワンタップで切り替わります。',
+    img: '/img/app-cover.png',
+    eyebrow: '個別URL・名簿非公開',
+    title: '予約確認メールに、専用URLを貼るだけ。',
+    body: 'お客様ごとの個別URLを発行。開いた瞬間にご本人のしおりが表示されます。名簿は他のお客様に一切表示されず、なりすましも防止(照合はサーバー側で実施)。個人情報の扱いも安心です。',
     rev: true,
   },
 ]
@@ -34,40 +34,42 @@ const FEATURES = [
 const STEPS = [
   {
     title: '作る',
-    body: '行程・持ち物・名簿を入力。予約システムからのCSV貼り付けや、前回のしおりの複製もできます。',
+    body: '行程・乗車地・ご案内を入力。予約システムからの名簿CSVを貼り付ければ、号車・座席・乗車地もまとめて取り込めます。定期催行は前回のしおりを複製。',
   },
   {
     title: '配る',
-    body: 'URLかQRコードを共有するだけ。ひとりずつの個別リンクを発行すれば、名簿を見せずになりすましも防げます。',
+    body: '予約確認メールやSMSに、お客様ごとの個別URLを貼るだけ。QRコードや印刷用A4しおりも出力できます。お客様は登録もアプリも不要。',
   },
   {
     title: '当日',
-    body: '「いま」マーカー付きの行程、遅延の告知、添乗員の点呼。圏外でも一度開いたしおりは表示できます。',
+    body: '「いま」マーカー付きの行程、遅延の告知、添乗員のワンタップ点呼。ツアー後にはアンケートも自動で。圏外でも一度開いたしおりは表示できます。',
   },
 ]
 
 const FAQS = [
   {
-    q: '参加者はアプリのインストールが必要ですか?',
-    a: 'いいえ。URLを開くだけで、登録もログインも不要です。ホーム画面に追加すればアプリのように使え、圏外でも表示できます。',
-  },
-  {
-    q: '年配の参加者でも使えますか?',
-    a: '「URLを開いて自分の名前を選ぶ」の2手だけで、その人専用のしおりが表示されます。紙のしおりに近い見た目を大切にしているので、スマホが苦手な方でも迷いません。印刷用のA4しおりも出力できます。',
-  },
-  {
-    q: '圏外(山間部・トンネル)ではどうなりますか?',
-    a: '一度開いたしおりは端末に保存されるため、圏外でも行程・持ち物・連絡先を確認できます。',
-  },
-  {
-    q: '参加費の集金もできますか?',
-    a: '参加費の金額と支払い状況をしおりで管理できます。送金自体はPayPayなどで参加者同士が直接行う方式のため、当サービスがお金を預かることはありません。',
+    q: 'お客様はアプリのインストールが必要ですか?',
+    a: 'いいえ。URLを開くだけで、登録もログインも不要です。ホーム画面に追加すればアプリのように使え、圏外でも表示できます。年配のお客様にも配慮した、紙のしおりに近い見た目です。',
   },
   {
     q: '名簿の個人情報は大丈夫ですか?',
-    a: 'バスツアーでは名簿は参加者に表示されません。個別リンクか「予約名+電話下4桁」で、ご本人のしおりだけが開きます(照合はサーバー側で実施)。管理画面は管理コードでロックできます。',
+    a: 'お客様には他の方の名簿は一切表示されません。個別URL、または「予約名+電話番号下4桁」で、ご本人のしおりだけが開きます(照合はサーバー側で実施)。管理画面は管理コードでロックでき、添乗員には点呼だけを共有できます。',
+  },
+  {
+    q: '予約システムの名簿を取り込めますか?',
+    a: 'はい。名前・乗車地・号車・座席・電話番号をカンマ/タブ区切りで貼り付けると、まとめて取り込めます。乗車地は名前の一部一致で自動割り当てします。',
+  },
+  {
+    q: '圏外(山間部・トンネル)ではどうなりますか?',
+    a: '一度開いたしおりは端末に保存されるため、圏外でも行程・乗車地・ご案内・連絡先を確認できます。添乗員の点呼も、電波が戻ったときにまとめて同期されます。',
+  },
+  {
+    q: 'キャンセル規定や旅行条件も渡せますか?',
+    a: 'はい。ご案内(旅行条件・FAQ)としてしおり内で電子交付できます。ツアー終了後はお客様の表紙にアンケートのお願いが自動で表示され、満足度を集計できます。',
   },
 ]
+
+const TOUR_DEMOS = SHIORI_LIST.filter((s) => s.kind === 'tour')
 
 export function Home() {
   return (
@@ -79,11 +81,10 @@ export function Home() {
         </Link>
         <div className="links">
           <a href="#features">機能</a>
-          <a href="#tour">事業者向け</a>
           <a href="#pricing">料金</a>
           <a href="#demos">デモ</a>
           <Link to="/manage" className="cta">
-            しおりを作る
+            無料で試す
           </Link>
         </div>
       </nav>
@@ -92,33 +93,33 @@ export function Home() {
       <header className="lp-hero">
         <div className="lp-hero-inner">
           <div className="copy">
-            <div className="eyebrow">た　び　あ　わ　せ</div>
+            <div className="eyebrow">バスツアー運営会社のための、デジタルしおり</div>
             <h1>
-              旅のしおりを、
+              「集合場所どこ?」の
               <br />
-              ひとつに合わせる。
+              電話を、なくす。
             </h1>
             <p className="sub">
-              集合も、持ち物も、割り勘も。参加者はURLを開くだけ。登録もアプリも不要。
+              乗車地・座席・行程・ご案内・当日の点呼まで、ひとつのしおりに。
               <br />
-              紙のしおりの美しさを持つ、旅のしおりサービス。
+              お客様はURLを開くだけ。登録もアプリも不要です。
             </p>
             <div className="ctas">
               <Link to="/manage" className="lp-btn-white">
-                しおりを作る(無料)
+                無料でしおりを作る
               </Link>
               <a href="#demos" className="lp-btn-ghost">
-                デモを見る
+                ツアーのデモを見る
               </a>
             </div>
-            <div className="note">クレジットカード登録不要・6名までずっと無料</div>
+            <div className="note">クレジットカード登録不要・まずは無料でお試し</div>
           </div>
           <div className="lp-phones">
             <div className="lp-phone">
-              <img src="/img/app-cover.png" alt="しおりの表紙画面" />
+              <img src="/img/app-tour.png" alt="バスツアーのしおり(乗車地・座席)" />
             </div>
             <div className="lp-phone tilt">
-              <img src="/img/app-schedule.png" alt="行程画面(いまマーカー)" />
+              <img src="/img/app-checkin.png" alt="添乗員の点呼画面" />
             </div>
           </div>
         </div>
@@ -128,25 +129,25 @@ export function Home() {
       <div className="lp-stats">
         <div className="lp-stat">
           <div className="num">0秒</div>
-          <div className="cap">参加者の登録時間——URLを開くだけ</div>
+          <div className="cap">お客様の登録時間——URLを開くだけ</div>
         </div>
         <div className="lp-stat">
           <div className="num">圏外OK</div>
-          <div className="cap">一度開いたしおりはトンネルでも表示</div>
+          <div className="cap">トンネル・山間部でも一度開けば表示</div>
         </div>
         <div className="lp-stat">
-          <div className="num">¥0〜</div>
-          <div className="cap">6名まで無料。有料でも1冊¥480だけ</div>
+          <div className="num">名簿非公開</div>
+          <div className="cap">他のお客様に氏名・座席を見せない</div>
         </div>
       </div>
 
       {/* 機能 */}
       <section className="lp-section" id="features">
         <div className="lp-eyebrow">FEATURES</div>
-        <h2 className="lp-h2">幹事の仕事が、しおりひとつで終わる。</h2>
+        <h2 className="lp-h2">ツアーの案内業務が、しおり一枚で終わる。</h2>
         <p className="lp-lede">
-          出欠の回収、集合案内、持ち物の連絡、割り勘の計算、変更の周知——
-          バラバラのLINEとスプレッドシートでやっていたことを、一枚のしおりに。
+          乗車地の案内、座席の割り当て、当日の点呼、変更の連絡、キャンセル規定の交付——
+          電話とFAXと紙でやっていたことを、お客様が開くだけの一枚のしおりに。
         </p>
         {FEATURES.map((f) => (
           <div key={f.title} className={`lp-feature${f.rev ? ' rev' : ''}`}>
@@ -162,7 +163,7 @@ export function Home() {
         ))}
       </section>
 
-      {/* 事業者向け */}
+      {/* 運営会社向けの運用機能 */}
       <section className="lp-band" id="tour">
         <div className="lp-band-inner">
           <div className="copy">
@@ -170,16 +171,16 @@ export function Home() {
               FOR BUS TOUR OPERATORS
             </div>
             <h2>
-              「集合場所どこ?」の電話を、
+              運営の現場に、
               <br />
-              なくす。
+              そのまま馴染む。
             </h2>
             <ul>
-              <li>乗車地ごとの集合案内——お客様には自分の乗車地だけを表示</li>
-              <li>号車・座席の割り当てと、添乗員のワンタップ点呼</li>
+              <li>予約名簿のCSV/タブ区切り取り込み(号車・座席・乗車地)</li>
+              <li>号車・座席の割り当てと、添乗員の複数端末リアルタイム点呼</li>
               <li>お客様ごとの個別URL(名簿を見せない・なりすまし防止)</li>
               <li>キャンセル規定・旅行条件の電子交付、ツアー後アンケート</li>
-              <li>予約名簿のCSV取り込み、定期催行のしおり複製</li>
+              <li>定期催行のしおり複製、A4印刷しおりの出力</li>
             </ul>
             <div className="ctas" style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
               <Link to="/s/hama2026" className="lp-btn-white">
@@ -219,25 +220,25 @@ export function Home() {
       {/* 料金 */}
       <section className="lp-section" id="pricing">
         <div className="lp-eyebrow">PRICING</div>
-        <h2 className="lp-h2">参加者はずっと無料。支払うのは幹事だけ。</h2>
+        <h2 className="lp-h2">お客様はずっと無料。支払うのは運営会社だけ。</h2>
         <div className="lp-pricing">
           <div className="lp-price">
-            <div className="name">無料</div>
+            <div className="name">無料でお試し</div>
             <div className="price">¥0</div>
             <ul>
-              <li>参加者6名まで</li>
-              <li>出欠・行程・持ち物・割り勘</li>
+              <li>お客様6名まで</li>
+              <li>乗車地・行程・ご案内・点呼</li>
               <li>印刷PDFは透かし入り</li>
             </ul>
           </div>
           <div className="lp-price featured">
-            <div className="tag">いちばん人気</div>
+            <div className="tag">ツアー単位</div>
             <div className="name">しおり1冊(買い切り)</div>
             <div className="price">
               ¥480<small>/冊・税込</small>
             </div>
             <ul>
-              <li>人数無制限</li>
+              <li>お客様の人数無制限</li>
               <li>A4印刷PDF(透かしなし)</li>
               <li>QRコード・共有カード</li>
               <li>自動更新なし・買い切り</li>
@@ -249,9 +250,9 @@ export function Home() {
               ¥1,800<small>/年・税込</small>
             </div>
             <ul>
-              <li>しおり作り放題</li>
-              <li>前年のしおりを複製</li>
-              <li>年3回以上つくる方・事業者に</li>
+              <li>ツアーのしおり作り放題</li>
+              <li>定期催行のしおりを複製</li>
+              <li>年に何本も催行する運営会社に</li>
             </ul>
           </div>
         </div>
@@ -274,42 +275,27 @@ export function Home() {
       {/* デモ */}
       <section className="lp-section" id="demos">
         <div className="lp-eyebrow">DEMO</div>
-        <h2 className="lp-h2">3つのデモしおりを、そのまま触れます。</h2>
-        {SHIORI_LIST.map((s) => (
+        <h2 className="lp-h2">バスツアーのデモを、そのまま触れます。</h2>
+        {TOUR_DEMOS.map((s) => (
           <div key={s.slug} className="home-card">
             <h3>
               {s.eyebrow}　{s.title} {s.subtitle}
             </h3>
             <div className="sub mono">
               {shareDisplay(s.slug)}
-              {s.kind === 'group'
-                ? `　${s.members.length}名(名簿・出欠あり)`
-                : s.kind === 'tour'
-                  ? `　${s.members.length}名(バスツアー・乗車地/点呼/案内)`
-                  : '　2名(割り勘・予約控え)'}
+              {`　${s.members.length}名(乗車地・座席・点呼・ご案内)`}
             </div>
             <div className="home-links">
               <Link className="primary" to={`/s/${s.slug}`}>
-                しおりを見る(参加者)
+                しおりを見る(お客様)
               </Link>
-              <Link to={`/publish/${s.slug}`}>幹事: 公開・お支払い</Link>
+              <Link to={`/manage/${s.slug}`}>運営: しおり管理</Link>
+              <Link to={`/manage/${s.slug}/checkin`}>添乗員: 点呼</Link>
+              <Link to={`/s/${s.slug}/notices`}>ご案内(キャンセル規定)</Link>
               <Link to={`/s/${s.slug}/print`}>印刷PDF</Link>
-              {s.kind === 'group' && (
-                <>
-                  <Link to={`/s/${s.slug}/rsvp/who`}>出欠の回答</Link>
-                  <Link to={`/s/${s.slug}/schedule?now=2026-08-22T10:42`}>当日の行程(いま)</Link>
-                </>
-              )}
-              {s.kind === 'tour' && (
-                <>
-                  <Link to={`/manage/${s.slug}/checkin`}>添乗員: 点呼</Link>
-                  <Link to={`/s/${s.slug}/notices`}>ご案内(キャンセル規定)</Link>
-                </>
-              )}
             </div>
             <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 8 }}>
-              {s.kind === 'tour' &&
-                '管理画面の管理コード: 0829 ／ 参加者入口は「姓+電話下4桁」(例: 木村→0008)。名簿は表示されません'}
+              管理画面の管理コード: 0829 ／ お客様の入口は「姓+電話下4桁」(例: 木村→0008)。名簿は表示されません
             </div>
           </div>
         ))}
@@ -318,8 +304,8 @@ export function Home() {
       {/* 締めCTA */}
       <section className="lp-cta">
         <div className="lp-cta-inner">
-          <h2>次の旅から、旅合わせ。</h2>
-          <p>しおり作りは5分。参加者への案内はURLひとつ。</p>
+          <h2>次のツアーから、旅合わせ。</h2>
+          <p>しおり作りは5分。お客様への案内はURLひとつ。</p>
           <Link to="/manage" className="lp-btn-white">
             無料でしおりを作る
           </Link>

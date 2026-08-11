@@ -88,7 +88,7 @@ function TitleManager() {
     let title = '旅合わせ'
     const m = pathname.match(/^\/(s|publish|manage)\/([^/]+)(?:\/([^/]+))?/)
     if (pathname === '/manage') {
-      title = '幹事メニュー | 旅合わせ'
+      title = 'しおり管理 | 旅合わせ'
     } else if (m) {
       const shiori = findShiori(m[2])
       if (shiori) {
