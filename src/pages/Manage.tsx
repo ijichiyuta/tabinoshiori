@@ -18,8 +18,11 @@ import type { Shiori, ShioriKind } from '../lib/types'
 /* ---------- 幹事: しおり一覧・新規作成 ---------- */
 export function ManageHome() {
   const navigate = useNavigate()
-  // バスツアー運営会社向けに特化: 一覧はツアーのしおりのみ表示する
-  const [listings] = useState(() => listAllShiori().filter((l) => l.shiori.kind === 'tour'))
+  // バスツアー運営会社向けに特化: 一覧は基本ツアーのみ。ただし作成済み(isCustom)や
+  // 編集済みのデモ(isEdited)は種別を問わず残す(リセット/削除の導線を失わないため)。
+  const [listings] = useState(() =>
+    listAllShiori().filter((l) => l.shiori.kind === 'tour' || l.isCustom || l.isEdited),
+  )
 
   const create = (kind: ShioriKind) => {
     const s = createShiori(kind)

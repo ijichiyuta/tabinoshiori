@@ -106,6 +106,21 @@ await page.waitForSelector('.saved-note')
 await page.goto(base + `/manage/${newSlug}`)
 check('新規ツアーの基本情報が保存される', (await page.locator('text=秋の日帰りツアー').count()) > 0)
 
+// 9b) CSV取込: 名前が空の乗車地があっても全員が誤割当されない(監査#1の回帰防止)
+await page.goto(base + `/manage/${newSlug}/boarding`)
+await page.click('.add-btn:has-text("乗車地を追加")') // 名前空の乗車地を追加
+await page.click('.save-bar button')
+await page.waitForSelector('.saved-note')
+await page.goto(base + `/manage/${newSlug}/members`)
+await page.fill('textarea', '田中太郎, 存在しない乗車地, 1, 5A, 090-0000-0001')
+await page.click('button:has-text("取り込む")')
+await page.waitForTimeout(250)
+const importedSelect = page.locator('.editor-item').last().locator('select')
+check(
+  'CSV: 一致しない乗車地は「未割当」(空名乗車地へ誤割当しない)',
+  (await importedSelect.inputValue()) === '',
+)
+
 // 10) 運営: 6名以下は無料公開できる → 共有カードはゲートされる
 await page.goto(base + `/publish/${newSlug}`)
 check('6名以下では超過警告なし', (await page.locator('text=上限を超えています').count()) === 0)

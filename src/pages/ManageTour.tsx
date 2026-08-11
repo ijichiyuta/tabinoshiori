@@ -13,8 +13,8 @@ export function ManageBoarding({ shiori }: { shiori: Shiori }) {
   return (
     <EditorFrame title="乗車地" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       <p style={{ margin: '0 0 14px', fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.7 }}>
-        参加者には自分の乗車地が「あなたの集合」として表紙に表示されます。
-        名簿で各参加者に乗車地を割り当ててください。
+        お客様には自分の乗車地が「あなたの集合」として表紙に表示されます。
+        名簿で各お客様に乗車地を割り当ててください。
       </p>
       {points.map((bp, i) => (
         <div key={bp.id} className="editor-item">
@@ -75,7 +75,7 @@ export function ManageNotices({ shiori }: { shiori: Shiori }) {
   return (
     <EditorFrame title="ご案内(旅行条件・FAQ)" backTo={`/manage/${shiori.slug}`} shiori={shiori} onSave={save} saved={saved}>
       <p style={{ margin: '0 0 14px', fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.7 }}>
-        キャンセル規定・旅行条件・よくある質問など。参加者の表紙の「ご案内」から見られます。
+        キャンセル規定・旅行条件・よくある質問など。お客様の表紙の「ご案内」から見られます。
       </p>
       {notices.map((n, i) => (
         <div key={n.id} className="editor-item">
@@ -225,10 +225,18 @@ export function ManageCheckin({ shiori }: { shiori: Shiori }) {
           点呼をリセット
         </button>
       </div>
-      <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7, marginTop: 10 }}>
-        点呼は全スタッフの端末で共有されます(他の端末の操作は、この画面を開き直すと反映されます)。
-        追加のスタッフには、このページのURLと管理コードを伝えるだけでOKです(コード入力で点呼に参加できます)。
-      </div>
+      {shiori.security?.adminPin ? (
+        <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.7, marginTop: 10 }}>
+          点呼は全スタッフの端末で共有されます(他の端末の操作は、この画面を開き直すと反映されます)。
+          追加のスタッフには、このページのURLと管理コードを伝えるだけでOKです(コード入力で点呼に参加できます)。
+        </div>
+      ) : (
+        <div className="note-l" style={{ fontSize: 12.5, lineHeight: 1.7, marginTop: 12 }}>
+          複数の添乗員・スタッフの端末で点呼を共有するには、
+          <strong>「基本情報」で管理コードを設定</strong>してください。
+          設定後、このページのURLと管理コードを伝えるだけで、他の端末からも点呼に参加できます。
+        </div>
+      )}
     </EditorFrame>
   )
 }
@@ -258,7 +266,7 @@ export function ManageSurveyResults({ shiori }: { shiori: Shiori }) {
       </div>
       {entries.length === 0 ? (
         <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.8, marginTop: 16 }}>
-          まだ回答がありません。ツアー終了後、参加者の表紙にアンケートのお願いが表示されます
+          まだ回答がありません。ツアー終了後、お客様の表紙にアンケートのお願いが表示されます
           (デモでは行程の翌日以降。URLに <span className="mono">?now=</span> を付けて確認できます)。
         </p>
       ) : (

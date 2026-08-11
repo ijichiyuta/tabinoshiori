@@ -51,7 +51,14 @@ export function ManageMembers({ shiori }: { shiori: Shiori }) {
       const name = cols[0]
       if (!name || name === '名前') continue
       const bpName = cols[1]
-      const bp = bpName ? points.find((p) => p.name.includes(bpName) || bpName.includes(p.name.split(' ')[0] ?? '')) : undefined
+      // 名前が空の乗車地(追加直後で未入力)はマッチ対象から除外する。
+      // でないと bpName.includes('') が常に true になり全員が誤って割り当てられる。
+      const bp = bpName
+        ? points.find((p) => {
+            const head = p.name.split(' ')[0] ?? ''
+            return !!p.name && (p.name.includes(bpName) || (!!head && bpName.includes(head)))
+          })
+        : undefined
       added.push({
         id: uid('m'),
         name,
