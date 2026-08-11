@@ -91,7 +91,7 @@ check('リセットでデモに戻る', (await page.locator('text=夏合宿 2026
 
 // 9) 幹事: 新規グループしおり作成 → 編集 → 参加者フロー
 await page.goto(base + '/manage')
-await page.click('.add-btn:has-text("グループ")')
+await page.click('.create-btn:has-text("グループ")')
 await page.waitForURL(/\/manage\/s[a-z0-9]+$/)
 const newSlug = page.url().split('/').pop()
 await page.goto(base + `/manage/${newSlug}/edit`)

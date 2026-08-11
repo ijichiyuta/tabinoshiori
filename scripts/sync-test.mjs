@@ -26,7 +26,7 @@ await A.evaluate(() => localStorage.clear())
 
 // 1) グループしおりを作成して保存(サーバーへpush)
 await A.goto(base + '/manage')
-await A.click('.add-btn:has-text("グループ")')
+await A.click('.create-btn:has-text("グループ")')
 await A.waitForURL(/\/manage\/s[a-z0-9]+$/)
 const slug = A.url().split('/').pop()
 await A.goto(base + `/manage/${slug}/edit`)
@@ -79,7 +79,7 @@ const unlockIfNeeded = async (page) => {
 }
 
 await A.goto(base + '/manage')
-await A.click('.add-btn:has-text("バスツアー")')
+await A.click('.create-btn:has-text("バスツアー")')
 await A.waitForURL(/\/manage\/s[a-z0-9]+$/)
 const tourSlug = A.url().split('/').pop()
 // 招待リンクは作成(保存)時に自動発行される(ツアーの入口はトークン前提)

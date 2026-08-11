@@ -47,28 +47,49 @@ export function ManageHome() {
                 {isCustom ? '作成' : isEdited ? 'デモ・編集済' : 'デモ'}
               </span>
             </div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 3 }}>
-              {shiori.eyebrow}
-              <span className="mono">{shiori.slug}</span>
-              {shiori.kind === 'duo' ? '少人数' : `${shiori.members.length}名`}
+            <div
+              style={{
+                fontSize: 13,
+                color: 'var(--muted)',
+                marginTop: 4,
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap',
+                alignItems: 'baseline',
+              }}
+            >
+              {shiori.eyebrow && <span>{shiori.eyebrow}</span>}
+              <span>{shiori.kind === 'duo' ? '少人数' : `${shiori.members.length}名`}</span>
+              <span className="mono" style={{ fontSize: 12 }}>
+                {shiori.slug}
+              </span>
             </div>
           </Link>
         ))}
       </div>
       <div style={{ marginTop: 20 }}>
         <div className="field-label">新しいしおりを作る</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 9 }}>
-          <button className="add-btn" onClick={() => create('group')}>
-            ＋ グループ
-            <div style={{ fontSize: 12, marginTop: 2 }}>名簿・出欠・集金</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <button className="create-btn" onClick={() => create('group')}>
+            <span className="plus" aria-hidden>＋</span>
+            <span className="create-btn-text">
+              <span className="ttl">グループ</span>
+              <span className="sub">名簿・出欠・集金</span>
+            </span>
           </button>
-          <button className="add-btn" onClick={() => create('duo')}>
-            ＋ 少人数
-            <div style={{ fontSize: 12, marginTop: 2 }}>割り勘・予約控え</div>
+          <button className="create-btn" onClick={() => create('duo')}>
+            <span className="plus" aria-hidden>＋</span>
+            <span className="create-btn-text">
+              <span className="ttl">少人数</span>
+              <span className="sub">割り勘・予約控え</span>
+            </span>
           </button>
-          <button className="add-btn" onClick={() => create('tour')}>
-            ＋ バスツアー
-            <div style={{ fontSize: 12, marginTop: 2 }}>乗車地・点呼・案内</div>
+          <button className="create-btn" onClick={() => create('tour')}>
+            <span className="plus" aria-hidden>＋</span>
+            <span className="create-btn-text">
+              <span className="ttl">バスツアー</span>
+              <span className="sub">乗車地・点呼・案内</span>
+            </span>
           </button>
         </div>
       </div>

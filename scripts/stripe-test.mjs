@@ -17,7 +17,7 @@ const check = (name, cond) => {
 await page.goto(base + '/')
 await page.evaluate(() => localStorage.clear())
 await page.goto(base + '/manage')
-await page.click('.add-btn:has-text("グループ")')
+await page.click('.create-btn:has-text("グループ")')
 await page.waitForURL(/\/manage\/s[a-z0-9]+$/)
 const slug = page.url().split('/').pop()
 console.log('  slug:', slug)

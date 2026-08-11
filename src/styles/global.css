@@ -1072,6 +1072,51 @@ select.text-input {
   color: var(--accent);
 }
 
+/* 新規しおり作成ボタン(全幅・アイコン+説明の標準リスト行) */
+.create-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  padding: 14px 16px;
+  min-height: 60px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.create-btn:hover {
+  border-color: var(--accent);
+}
+.create-btn .plus {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--banner, #f2efe8);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 600;
+}
+.create-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.create-btn-text .ttl {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+.create-btn-text .sub {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
 /* ---------- 編集: 予定/項目カード(今風の標準UI) ---------- */
 .event-card {
   border: 1px solid var(--line);
