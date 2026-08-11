@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AppFrame } from '../components/AppFrame'
+import { safeHref } from '../lib/docs'
 import type { Shiori } from '../lib/types'
 
 /** ご案内(旅行条件・キャンセル規定・FAQ)。ツアーの表紙から来る。 */
@@ -22,7 +23,7 @@ export function Notices({ shiori }: { shiori: Shiori }) {
             </div>
             {shiori.operator.tel && (
               <div style={{ marginTop: 4 }}>
-                <a href={shiori.operator.tel.href} className="tnum" style={{ fontSize: 17 }}>
+                <a href={safeHref(shiori.operator.tel.href)} className="tnum" style={{ fontSize: 17 }}>
                   {shiori.operator.tel.display}
                 </a>
               </div>

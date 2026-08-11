@@ -299,3 +299,21 @@ export function mapQueryFromUrl(url: string | undefined): string {
   }
   return url
 }
+
+/**
+ * 表示直前にリンク先を安全なスキームに限定する(防御的多層)。
+ * 通常は編集UI(mapUrlFromQuery/telFromDisplay)で正規化済みだが、サーバー/他端末から
+ * 引き込んだ文書はこの正規化を通っていないため、javascript: 等を無効化する。
+ */
+export function safeHref(url: string | undefined): string | undefined {
+  if (typeof url !== 'string') return undefined
+  const s = url.trim()
+  return /^(https?:|tel:|mailto:)/i.test(s) ? s : undefined
+}
+
+/** 表紙写真として安全な値か(data:image かHTTPSのみ。CSSインジェクション防止)。 */
+export function safePhoto(url: string | undefined): string | undefined {
+  if (typeof url !== 'string') return undefined
+  const s = url.trim()
+  return /^(data:image\/|https:\/\/)/i.test(s) ? s : undefined
+}

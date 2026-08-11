@@ -1,5 +1,5 @@
 import { AppFrame } from '../components/AppFrame'
-import { isBuiltin } from '../lib/docs'
+import { isBuiltin, safeHref } from '../lib/docs'
 import type { Shiori } from '../lib/types'
 
 export function Contacts({ shiori }: { shiori: Shiori }) {
@@ -17,7 +17,7 @@ export function Contacts({ shiori }: { shiori: Shiori }) {
             </div>
             {shiori.operator.tel && (
               <div style={{ marginTop: 6 }}>
-                <a href={shiori.operator.tel.href} className="tnum" style={{ fontSize: 17 }}>
+                <a href={safeHref(shiori.operator.tel.href)} className="tnum" style={{ fontSize: 17 }}>
                   {shiori.operator.tel.display}
                 </a>
               </div>
@@ -37,7 +37,7 @@ export function Contacts({ shiori }: { shiori: Shiori }) {
             </div>
             {c.tel && (
               <div style={{ marginTop: 6 }}>
-                <a href={c.tel.href} className="tnum" style={{ fontSize: 17 }}>
+                <a href={safeHref(c.tel.href)} className="tnum" style={{ fontSize: 17 }}>
                   {c.tel.display}
                 </a>
               </div>

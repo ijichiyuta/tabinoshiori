@@ -12,7 +12,8 @@ const check = (name, cond) => {
 
 // ===== PC幅: 管理画面は2ペイン(左サイドバー+右編集) =====
 const pc = await browser.newPage({ viewport: { width: 1280, height: 900 } })
-pc.on('dialog', (d) => d.accept())
+// ダイアログは各テストで個別に扱う(未保存離脱ガードの確認を検証するため、
+// ここでは一律 accept しない)。
 
 await pc.goto(base + '/manage/tob2026/schedule', { waitUntil: 'load' })
 await pc.waitForSelector('.manage-sidenav', { timeout: 8000 })
@@ -55,6 +56,24 @@ await pc.waitForSelector('.app', { timeout: 8000 })
 check(
   'PC: 参加者ページはスマホ枠のまま(manage-appでない)',
   (await pc.locator('.app.manage-app').count()) === 0 && (await pc.locator('.app').count()) >= 1,
+)
+
+// 未保存離脱ガード: 編集後にサイドバーで移動しようとすると確認が出る。
+// 確認をキャンセル(dismiss)すると /edit に留まることを検証。
+let leaveAsked = false
+pc.on('dialog', (d) => {
+  leaveAsked = true
+  d.dismiss().catch(() => {})
+})
+await pc.goto(base + '/manage/tob2026/edit', { waitUntil: 'load' })
+await pc.waitForSelector('.manage-content input.text-input', { timeout: 8000 })
+await pc.locator('.manage-content input.text-input').first().fill('未保存の編集テスト')
+await pc.waitForTimeout(150)
+await pc.locator('.manage-sidenav a:has-text("持ち物")').click()
+await pc.waitForTimeout(500)
+check(
+  'PC: 未保存で移動しようとすると確認が出て、キャンセルで留まる',
+  leaveAsked && pc.url().includes('/edit'),
 )
 
 // ===== モバイル幅: サイドバーは出ず、従来の1カラム =====

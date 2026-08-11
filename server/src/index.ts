@@ -64,7 +64,12 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]{2,39}$/
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+      'referrer-policy': 'same-origin',
+    },
   })
 const err = (error: string, status: number) => json({ error }, status)
 
@@ -120,7 +125,9 @@ function isDocShape(x: unknown): x is Record<string, unknown> {
 async function readJson(request: Request): Promise<unknown | null> {
   try {
     const text = await request.text()
-    if (text.length > MAX_DOC_BYTES) return null
+    // D1の1行上限(1MB)はバイト数基準。日本語はUTF-8で最大3バイト/字のため
+    // 文字数ではなく実バイト数で判定する(でないと巨大docでD1が500になる)。
+    if (new TextEncoder().encode(text).length > MAX_DOC_BYTES) return null
     return JSON.parse(text)
   } catch {
     return null
@@ -342,6 +349,12 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
         security?: { privateRoster?: boolean }
         members?: MemberRow[]
       }
+      // 種別を問わず、名簿に存在しないmemberIdへの書き込みは拒否する
+      // (推測・自動生成したIDで孤児データ/スパムを注入されるのを防ぐ)。
+      const members = doc.members ?? []
+      if (members.length > 0 && !members.some((m) => m.id === memberId)) {
+        return err('unknown member', 403)
+      }
       // ツアーは常に、名簿非公開モードのしおりも、本人トークンを要求する。
       // 名簿に居ないmemberId・トークン未発行のmemberへの書き込みも認めない
       // (推測したIDで任意のデータを注入されるのを防ぐ)
@@ -417,18 +430,24 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   // POST /api/verify/:slug {name, digits} — 名前+電話下4桁の本人照合(名簿を露出させないための入口)
   const verifyMatch = path.match(/^\/api\/verify\/([a-z0-9-]+)$/)
   if (verifyMatch && method === 'POST') {
-    // 総当たり対策: 厳しめのレート制限
+    // 総当たり対策: IP単位(15/時)に加え、slug単位でも失敗回数を制限する。
+    // 電話下4桁は1万通りしかないため、IPを分散した総当たりを止める。
     if (await rateLimited(env, request, 'verify', 15)) return err('too many requests', 429)
     const slug = verifyMatch[1] as string
+    const vfailKey = `vfail:${slug}:${Math.floor(Date.now() / 3.6e6)}`
+    const vfails = Number((await env.RATE.get(vfailKey)) ?? '0') || 0
+    if (vfails >= 50) return err('too many attempts', 429)
     const body = (await readJson(request)) as { name?: unknown; digits?: unknown } | null
     if (!body || typeof body.name !== 'string') return err('invalid body', 400)
-    const digits = typeof body.digits === 'string' ? body.digits.replace(/\D/g, '') : ''
+    // 全角数字/空白を含む入力に耐えるようNFKC正規化してから比較する
+    const digits =
+      typeof body.digits === 'string' ? body.digits.normalize('NFKC').replace(/\D/g, '') : ''
     const row = await env.DB.prepare('SELECT doc FROM docs WHERE slug = ?').bind(slug).first<{ doc: string }>()
     if (!row) return err('not found', 404)
     const doc = JSON.parse(row.doc) as { members?: MemberRow[] }
-    const name = body.name.trim()
+    const name = body.name.normalize('NFKC').trim()
     const hit = (doc.members ?? []).find((m) => {
-      if (typeof m.name !== 'string' || m.name !== name) return false
+      if (typeof m.name !== 'string' || m.name.normalize('NFKC').trim() !== name) return false
       const tel = m.tel as { href?: string } | undefined
       const last4 = typeof tel?.href === 'string' ? tel.href.replace(/\D/g, '').slice(-4) : ''
       // 電話未登録のお客様は照合対象外(氏名だけで本人になりすませてしまうため)。
@@ -438,6 +457,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     })
     // トークン未発行のお客様も対象外(照合が通っても本人分の情報を取得できない)
     if (!hit || typeof hit.id !== 'string' || typeof hit.token !== 'string' || !hit.token) {
+      await env.RATE.put(vfailKey, String(vfails + 1), { expirationTtl: 3600 }).catch(() => {})
       return err('no match', 404)
     }
     return json({ memberId: hit.id, token: hit.token })
@@ -550,7 +570,13 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
 /** 古いしおりの自動削除(毎日 3:00 JST)。最終更新から18ヶ月で文書と関連データを削除 */
 async function cleanup(env: Env): Promise<void> {
   const cutoff = Date.now() - 540 * 24 * 60 * 60 * 1000
-  await env.DB.prepare('DELETE FROM docs WHERE updated_at < ?').bind(cutoff).run()
+  // 有料(1冊/年間パス)のしおりは、最終更新から18ヶ月超でも自動削除しない
+  // (購入者のデータが無編集のまま消えるのを防ぐ)。無料・下書きは対象。
+  await env.DB.prepare(
+    "DELETE FROM docs WHERE updated_at < ? AND slug NOT IN (SELECT slug FROM billing WHERE plan != 'free')",
+  )
+    .bind(cutoff)
+    .run()
   // 文書が消えたしおりの孤児データを掃除
   await env.DB.batch([
     env.DB.prepare('DELETE FROM answers WHERE slug NOT IN (SELECT slug FROM docs)'),
@@ -575,6 +601,9 @@ export default {
         return err('internal error', 500)
       }
     }
+    // 静的アセット(SPA)配信。セキュリティヘッダは dist/_headers(public/_headers)で付与。
+    // Workers Static Assets は既存アセットをWorkerを経由せず直接返すため、ここでの
+    // ヘッダ付与は効かない(_headers ファイルが正しい方法)。
     return env.ASSETS.fetch(request)
   },
 }

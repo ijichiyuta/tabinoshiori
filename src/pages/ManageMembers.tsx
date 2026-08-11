@@ -45,20 +45,33 @@ export function ManageMembers({ shiori }: { shiori: Shiori }) {
   // 予約システムからのCSV/タブ区切り貼り付け: 名前, 乗車地, 号車, 座席, 電話
   const importCsv = () => {
     const points = draft.boardingPoints ?? []
+    // 乗車地の照合: 完全一致を最優先。曖昧な部分一致は候補が1つのときだけ採用する
+    // (「名古屋駅 太閤通口」「名古屋駅 桜通口」等の複数のりばで誤割当しないため)。
+    const matchBoarding = (bpName: string) => {
+      if (!bpName) return undefined
+      const named = points.filter((p) => !!p.name)
+      const exact = named.find((p) => p.name === bpName)
+      if (exact) return exact
+      const partial = named.filter((p) => {
+        const head = p.name.split(' ')[0] ?? ''
+        return p.name.includes(bpName) || (!!head && bpName.includes(head))
+      })
+      return partial.length === 1 ? partial[0] : undefined
+    }
+    // 重複取込(同じCSVを2回貼る等)で名簿が二重登録されないよう、既存の氏名はスキップ
+    const seen = new Set(draft.members.map((m) => m.name.trim()).filter(Boolean))
     const added: Member[] = []
+    let skipped = 0
     for (const line of csv.split('\n')) {
       const cols = line.split(/[,\t]/).map((c) => c.trim())
       const name = cols[0]
       if (!name || name === '名前') continue
-      const bpName = cols[1]
-      // 名前が空の乗車地(追加直後で未入力)はマッチ対象から除外する。
-      // でないと bpName.includes('') が常に true になり全員が誤って割り当てられる。
-      const bp = bpName
-        ? points.find((p) => {
-            const head = p.name.split(' ')[0] ?? ''
-            return !!p.name && (p.name.includes(bpName) || (!!head && bpName.includes(head)))
-          })
-        : undefined
+      if (seen.has(name)) {
+        skipped++
+        continue
+      }
+      seen.add(name)
+      const bp = matchBoarding(cols[1] ?? '')
       added.push({
         id: uid('m'),
         name,
@@ -72,10 +85,13 @@ export function ManageMembers({ shiori }: { shiori: Shiori }) {
       patch({ members: [...draft.members, ...added] })
       setCsv('')
     }
+    const dupNote = skipped > 0 ? `(重複${skipped}名はスキップ)` : ''
     setCsvMsg(
       added.length > 0
-        ? `${added.length}名を追加しました。内容を確認して「保存する」を押してください`
-        : '追加できる行がありませんでした(1行に1名、カンマかタブ区切り)',
+        ? `${added.length}名を追加しました${dupNote}。内容を確認して「保存する」を押してください`
+        : skipped > 0
+          ? `追加はありません。${skipped}名は既に名簿にいます`
+          : '追加できる行がありませんでした(1行に1名、カンマかタブ区切り)',
     )
   }
 

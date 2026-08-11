@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import type { ItineraryDay, ItineraryEvent } from '../lib/types'
+import { safeHref } from '../lib/docs'
 import { localDateString, nowHM, toMinutes } from '../lib/time'
 
 function NowRow({ now }: { now: Date }) {
@@ -67,7 +68,7 @@ function EventRow({
             {ev.mapUrl && (
               <>
                 {'　'}
-                <a href={ev.mapUrl} target="_blank" rel="noreferrer">
+                <a href={safeHref(ev.mapUrl)} target="_blank" rel="noreferrer">
                   地図
                 </a>
               </>
@@ -75,7 +76,7 @@ function EventRow({
             {ev.tel && (
               <>
                 {'　'}
-                <a href={ev.tel.href}>{ev.tel.display}</a>
+                <a href={safeHref(ev.tel.href)}>{ev.tel.display}</a>
               </>
             )}
           </div>

@@ -1,6 +1,15 @@
-import { Children, cloneElement, isValidElement, useId, useState, type ReactNode } from 'react'
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useId,
+  useState,
+  type ReactNode,
+} from 'react'
 import { Link } from 'react-router-dom'
 import { saveDoc } from '../lib/docs'
+import { confirmLeave, isDirty, setDirty } from '../lib/dirty'
 import type { Shiori } from '../lib/types'
 import { ManageNav } from './ManageNav'
 
@@ -8,17 +17,41 @@ import { ManageNav } from './ManageNav'
 export function useDraft(shiori: Shiori) {
   const [draft, setDraft] = useState<Shiori>(() => structuredClone(shiori))
   const [saved, setSaved] = useState(false)
-  const patch = (p: Partial<Shiori>) => setDraft((d) => ({ ...d, ...p }))
+  const patch = (p: Partial<Shiori>) => {
+    setDirty(true)
+    setDraft((d) => ({ ...d, ...p }))
+  }
   const save = () => {
     try {
       saveDoc(draft)
+      setDirty(false)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {
       window.alert('保存できませんでした。写真が大きすぎる場合は写真を削除してみてください。')
     }
   }
+  // 未保存のままタブを閉じる/リロード/URL移動する際にブラウザ標準の警告を出す。
+  // アンマウント時はフラグを下ろす(移動はガード済みのため)。
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty()) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload)
+      setDirty(false)
+    }
+  }, [])
   return { draft, setDraft, patch, save, saved }
+}
+
+/** 未保存があれば確認してから遷移する Link(管理画面のナビ用)。 */
+export function guardNav(e: { preventDefault: () => void }): void {
+  if (!confirmLeave()) e.preventDefault()
 }
 
 export function arrayMove<T>(arr: T[], i: number, dir: -1 | 1): T[] {
@@ -50,7 +83,7 @@ export function EditorFrame({
   const body = (
     <div className="app-body manage-main" style={{ paddingBottom: onSave ? 96 : 24 }}>
       <div className="manage-header">
-        <Link className="back" to={backTo}>
+        <Link className="back" to={backTo} onClick={guardNav}>
           ‹ 戻る
         </Link>
         <span className="title">{title}</span>

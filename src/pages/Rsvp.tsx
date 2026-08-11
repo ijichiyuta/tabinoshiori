@@ -27,8 +27,9 @@ function PrivateWhoGate({
     : '催行会社'
 
   const submit = async () => {
-    const n = name.trim()
-    const d = digits.replace(/\D/g, '')
+    // 全角数字・全角空白(日本語IME)に耐えるようNFKC正規化してから照合する
+    const n = name.normalize('NFKC').trim()
+    const d = digits.normalize('NFKC').replace(/\D/g, '')
     if (!n) return
     setBusy(true)
     // サーバー照合を優先(名簿もトークンも端末に出さない)
@@ -51,7 +52,7 @@ function PrivateWhoGate({
       setBusy(false)
     }
     const hit = shiori.members.find((m) => {
-      if (m.name !== n) return false
+      if (m.name.normalize('NFKC').trim() !== n) return false
       const l4 = m.tel?.href.replace(/\D/g, '').slice(-4)
       return l4 ? l4 === d : d === '' // 電話未登録のお客様は名前のみ
     })

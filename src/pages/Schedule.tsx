@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AppFrame } from '../components/AppFrame'
 import { TimelineDay } from '../components/TimelineDay'
 import { UpdateBanner } from '../components/UpdateBanner'
+import { safeHref } from '../lib/docs'
 import { boardingPointFor, useShioriState } from '../lib/store'
 import { localDateString, useNow } from '../lib/time'
 import type { Shiori } from '../lib/types'
@@ -52,7 +53,7 @@ function BoardingBlock({ shiori }: { shiori: Shiori }) {
               {bp.mapUrl && (
                 <>
                   {'　'}
-                  <a href={bp.mapUrl} target="_blank" rel="noreferrer" style={{ fontSize: 13.5 }}>
+                  <a href={safeHref(bp.mapUrl)} target="_blank" rel="noreferrer" style={{ fontSize: 13.5 }}>
                     地図
                   </a>
                 </>

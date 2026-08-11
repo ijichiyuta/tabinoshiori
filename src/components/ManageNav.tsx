@@ -1,5 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
+import { confirmLeave } from '../lib/dirty'
 import type { Shiori } from '../lib/types'
+
+/** 未保存があれば確認してから遷移する。 */
+const onNav = (e: { preventDefault: () => void }) => {
+  if (!confirmLeave()) e.preventDefault()
+}
 
 export type ManageSection = { to: string; label: string; hint?: string }
 export type ManageGroup = { group: string; items: ManageSection[] }
@@ -54,10 +60,14 @@ export function ManageNav({ shiori }: { shiori: Shiori }) {
   const groups = manageSections(shiori)
   return (
     <nav className="manage-sidenav" aria-label="しおりの編集メニュー">
-      <Link className="manage-sidenav-back" to="/manage">
+      <Link className="manage-sidenav-back" to="/manage" onClick={onNav}>
         ‹ しおり一覧
       </Link>
-      <Link className={`manage-sidenav-hub${pathname === hub ? ' on' : ''}`} to={hub}>
+      <Link
+        className={`manage-sidenav-hub${pathname === hub ? ' on' : ''}`}
+        to={hub}
+        onClick={onNav}
+      >
         <span className="ttl">{shiori.title || 'しおり'}</span>
         <span className="sub">概要・公開</span>
       </Link>
@@ -72,6 +82,7 @@ export function ManageNav({ shiori }: { shiori: Shiori }) {
                 to={it.to}
                 className={on ? 'on' : ''}
                 aria-current={on ? 'page' : undefined}
+                onClick={onNav}
               >
                 <span className="lbl">{it.label}</span>
                 {it.hint && <span className="hint">{it.hint}</span>}

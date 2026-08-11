@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
-import { isBuiltin } from '../lib/docs'
+import { isBuiltin, safeHref, safePhoto } from '../lib/docs'
 import { AppFrame } from '../components/AppFrame'
 import { InfoGrid } from '../components/InfoGrid'
 import { UpdateBanner } from '../components/UpdateBanner'
@@ -143,7 +143,7 @@ function TourPersonalCard({ shiori }: { shiori: Shiori }) {
               {bp.mapUrl && (
                 <>
                   {'　'}
-                  <a href={bp.mapUrl} target="_blank" rel="noreferrer" style={{ fontSize: 13.5 }}>
+                  <a href={safeHref(bp.mapUrl)} target="_blank" rel="noreferrer" style={{ fontSize: 13.5 }}>
                     地図
                   </a>
                 </>
@@ -175,7 +175,7 @@ function TourPersonalCard({ shiori }: { shiori: Shiori }) {
           <div style={{ fontSize: 13.5, color: 'var(--sub)', lineHeight: 1.6 }}>
             当日連絡先: {shiori.operator.name}
             {'　'}
-            <a href={shiori.operator.tel.href} className="tnum">
+            <a href={safeHref(shiori.operator.tel.href)} className="tnum">
               {shiori.operator.tel.display}
             </a>
           </div>
@@ -295,8 +295,10 @@ export function Cover({ shiori }: { shiori: Shiori }) {
   }
 
   const counts = attendanceCounts(shiori, state)
-  // 写真は幹事が用意する。データ未設定でも ?photo=1 でプレースホルダー帯を確認できる
-  const showPhotoBand = !!shiori.photo || sp.get('photo') === '1'
+  // 写真は幹事が用意する。データ未設定でも ?photo=1 でプレースホルダー帯を確認できる。
+  // 引き込んだ文書のCSSインジェクション対策として安全なdataURL/HTTPSのみ採用する。
+  const photo = safePhoto(shiori.photo)
+  const showPhotoBand = !!photo || sp.get('photo') === '1'
 
   const buses = [...new Set(shiori.members.map((m) => m.bus).filter(Boolean))].sort()
   const infoRows: [string, ReactNode][] =
@@ -338,14 +340,14 @@ export function Cover({ shiori }: { shiori: Shiori }) {
         <div
           className="cover-photo"
           style={
-            shiori.photo
-              ? { backgroundImage: `url(${shiori.photo})` }
+            photo
+              ? { backgroundImage: `url("${photo}")` }
               : { display: 'flex', alignItems: 'flex-end', padding: 18 }
           }
           role="img"
           aria-label="表紙写真"
         >
-          {!shiori.photo && (
+          {!photo && (
             <span
               className="mono"
               style={{

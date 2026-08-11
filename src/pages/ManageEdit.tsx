@@ -17,7 +17,13 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
   const uploadPhoto = async (file: File | undefined) => {
     if (!file) return
     try {
-      patch({ photo: await fileToDataUrl(file) })
+      const dataUrl = await fileToDataUrl(file)
+      // 大きすぎるとlocalStorage/サーバー保存に失敗するため上限を設ける
+      if (dataUrl.length > 2_000_000) {
+        window.alert('写真のサイズが大きすぎます。別の写真か、小さめの画像をお試しください。')
+        return
+      }
+      patch({ photo: dataUrl })
     } catch {
       window.alert('画像を読み込めませんでした')
     }

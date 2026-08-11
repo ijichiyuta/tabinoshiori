@@ -12,7 +12,11 @@ export function computeSettlement(expenses: Expense[], members: Member[]): Settl
   const perHead = members.length > 0 ? Math.round(total / members.length) : total
   const balance = new Map<string, number>()
   for (const m of members) balance.set(m.id, -perHead)
-  for (const e of expenses) balance.set(e.payerId, (balance.get(e.payerId) ?? 0) + e.amount)
+  for (const e of expenses)
+    balance.set(
+      e.payerId,
+      (balance.get(e.payerId) ?? 0) + (Number.isFinite(e.amount) ? e.amount : 0),
+    )
 
   const debtors = members
     .filter((m) => (balance.get(m.id) ?? 0) < 0)
@@ -39,5 +43,5 @@ export function computeSettlement(expenses: Expense[], members: Member[]): Settl
 }
 
 export function yen(n: number): string {
-  return `¥${n.toLocaleString('ja-JP')}`
+  return `¥${(Number.isFinite(n) ? n : 0).toLocaleString('ja-JP')}`
 }

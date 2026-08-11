@@ -44,13 +44,19 @@ export function nowHM(d: Date): string {
 }
 
 export function eventDateTime(day: ItineraryDay, ev: ItineraryEvent): Date {
-  const time = typeof ev.time === 'string' ? ev.time : '0:00'
-  return new Date(`${day.date}T${time.padStart(5, '0')}:00`)
+  const raw = typeof ev.time === 'string' ? ev.time : '0:00'
+  // "9:5" のように時・分どちらも桁不足でも Invalid Date にしない
+  const [h = '0', m = '0'] = raw.split(':')
+  const hh = h.padStart(2, '0')
+  const mm = m.padStart(2, '0')
+  return new Date(`${day.date}T${hh}:${mm}:00`)
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
 export function shortDateLabel(d: Date): string {
+  // 不正な日付は「NaN/NaN (undefined)」を出さず空文字にフォールバック
+  if (!(d instanceof Date) || isNaN(d.getTime())) return ''
   return `${d.getMonth() + 1}/${d.getDate()} (${WEEKDAYS[d.getDay()]})`
 }
 
