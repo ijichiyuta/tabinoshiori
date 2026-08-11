@@ -250,7 +250,7 @@ export function Details({
         <span className="chev" aria-hidden>
           {open ? '▾' : '▸'}
         </span>
-        {open ? '詳細を閉じる' : summary}
+        {summary}
       </button>
       {open && <div className="ed-details-body">{children}</div>}
     </div>

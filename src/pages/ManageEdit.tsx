@@ -1,4 +1,4 @@
-import { EditorFrame, Field, TextInput, useDraft } from '../components/Editor'
+import { Details, EditorFrame, Field, TextInput, useDraft } from '../components/Editor'
 import { dateLabelRange, telFromDisplay } from '../lib/docs'
 import { fileToDataUrl } from '../lib/image'
 import type { Shiori } from '../lib/types'
@@ -63,14 +63,6 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
           <TextInput value={draft.subtitle} onChange={(v) => patch({ subtitle: v })} />
         </Field>
       </div>
-      <div className="form-grid2">
-        <Field label="表紙の見出し文字">
-          <TextInput value={draft.coverLabel} onChange={(v) => patch({ coverLabel: v })} />
-        </Field>
-        <Field label="右上の小さな表記">
-          <TextInput value={draft.cornerNote} onChange={(v) => patch({ cornerNote: v })} />
-        </Field>
-      </div>
       <Field label="日程の表示" hint="「日程から自動生成」で行程の日付から作り直せます">
         <TextInput value={draft.dateLabel} onChange={(v) => patch({ dateLabel: v })} />
         <button
@@ -121,64 +113,87 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
           </Field>
         </>
       )}
-      <div className="form-grid2">
-        <Field label="宿の名前">
-          <TextInput
-            value={draft.lodging?.name ?? ''}
-            onChange={(v) =>
-              patch({ lodging: v ? { name: v, tel: draft.lodging?.tel } : undefined })
-            }
-          />
-        </Field>
-        <Field label="宿の電話番号">
-          <TextInput
-            value={draft.lodging?.tel?.display ?? ''}
-            onChange={(v) =>
-              patch({
-                lodging: draft.lodging
-                  ? { ...draft.lodging, tel: telFromDisplay(v) }
-                  : { name: '', tel: telFromDisplay(v) },
-              })
-            }
-            placeholder="0596-XX-XXXX"
-          />
-        </Field>
-      </div>
-
-      <Field
-        label="表紙写真(任意)"
-        hint="設定するとタイポグラフィ表紙の代わりに写真帯付き表紙になります"
-      >
-        {draft.photo && (
-          <div
-            style={{
-              height: 120,
-              backgroundImage: `url(${draft.photo})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              border: '1px solid var(--line)',
-              borderRadius: 5,
-              marginBottom: 8,
-            }}
-          />
-        )}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label className="icon-btn" style={{ display: 'inline-block' }}>
-            写真を選ぶ
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={(e) => uploadPhoto(e.target.files?.[0])}
+      <Details summary="宿・宿の連絡先(任意)" defaultOpen={!!draft.lodging?.name}>
+        <div className="form-grid2">
+          <Field label="宿の名前">
+            <TextInput
+              value={draft.lodging?.name ?? ''}
+              onChange={(v) =>
+                patch({ lodging: v ? { name: v, tel: draft.lodging?.tel } : undefined })
+              }
             />
-          </label>
-          {draft.photo && (
-            <button className="icon-btn danger" onClick={() => patch({ photo: undefined })}>
-              写真を削除
-            </button>
-          )}
+          </Field>
+          <Field label="宿の電話番号">
+            <TextInput
+              value={draft.lodging?.tel?.display ?? ''}
+              onChange={(v) =>
+                patch({
+                  lodging: draft.lodging
+                    ? { ...draft.lodging, tel: telFromDisplay(v) }
+                    : { name: '', tel: telFromDisplay(v) },
+                })
+              }
+              placeholder="0596-XX-XXXX"
+            />
+          </Field>
         </div>
-      </Field>
+      </Details>
+
+      <Details
+        summary="表紙の見た目を調整(見出し・写真など)"
+        defaultOpen={!!(draft.photo || draft.coverBadge)}
+      >
+        <div className="form-grid2">
+          <Field label="表紙の見出し文字">
+            <TextInput value={draft.coverLabel} onChange={(v) => patch({ coverLabel: v })} />
+          </Field>
+          <Field label="右上の小さな表記">
+            <TextInput value={draft.cornerNote} onChange={(v) => patch({ cornerNote: v })} />
+          </Field>
+        </div>
+        <Field
+          label="表紙写真(任意)"
+          hint="設定するとタイポグラフィ表紙の代わりに写真帯付き表紙になります"
+        >
+          {draft.photo && (
+            <div
+              style={{
+                height: 120,
+                backgroundImage: `url(${draft.photo})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                border: '1px solid var(--line)',
+                borderRadius: 5,
+                marginBottom: 8,
+              }}
+            />
+          )}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <label className="icon-btn" style={{ display: 'inline-block' }}>
+              写真を選ぶ
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => uploadPhoto(e.target.files?.[0])}
+              />
+            </label>
+            {draft.photo && (
+              <button className="icon-btn danger" onClick={() => patch({ photo: undefined })}>
+                写真を削除
+              </button>
+            )}
+          </div>
+        </Field>
+        {draft.kind === 'duo' && (
+          <Field label="表紙のバッジ(任意)" hint="例: 宿代 前払済 ✓">
+            <TextInput
+              value={draft.coverBadge ?? ''}
+              onChange={(v) => patch({ coverBadge: v || undefined })}
+            />
+          </Field>
+        )}
+      </Details>
 
       {draft.kind === 'group' && (
         <>
@@ -199,6 +214,7 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
                   <button
                     className="icon-btn danger"
                     onClick={() =>
+                      window.confirm(`区分「${r.category || `${i + 1}件目`}」を削除しますか？`) &&
                       patch({
                         fee: {
                           ...(draft.fee ?? { rows: [] }),
@@ -234,58 +250,50 @@ export function ManageEditBasic({ shiori }: { shiori: Shiori }) {
               }
             />
           </Field>
-          <Field label="出欠の選択肢(読点区切り)" hint="例: 参加、不参加、1日目のみ">
-            <TextInput
-              value={draft.attendanceOptions.join('、')}
-              onChange={(v) =>
-                patch({ attendanceOptions: v.split(/[、,]/).map((s) => s.trim()).filter(Boolean) })
-              }
-            />
-          </Field>
-          <Field label="交通手段の選択肢(読点区切り)">
-            <TextInput
-              value={draft.transportOptions.join('、')}
-              onChange={(v) =>
-                patch({ transportOptions: v.split(/[、,]/).map((s) => s.trim()).filter(Boolean) })
-              }
-            />
-          </Field>
+          <Details summary="回答フォームの選択肢を調整(出欠・交通手段)">
+            <Field label="出欠の選択肢(読点区切り)" hint="例: 参加、不参加、1日目のみ">
+              <TextInput
+                value={draft.attendanceOptions.join('、')}
+                onChange={(v) =>
+                  patch({ attendanceOptions: v.split(/[、,]/).map((s) => s.trim()).filter(Boolean) })
+                }
+              />
+            </Field>
+            <Field label="交通手段の選択肢(読点区切り)">
+              <TextInput
+                value={draft.transportOptions.join('、')}
+                onChange={(v) =>
+                  patch({ transportOptions: v.split(/[、,]/).map((s) => s.trim()).filter(Boolean) })
+                }
+              />
+            </Field>
+          </Details>
         </>
       )}
 
-      {draft.kind === 'duo' && (
-        <Field label="表紙のバッジ(任意)" hint="例: 宿代 前払済 ✓">
+      <Details
+        summary="セキュリティ(管理コード)"
+        defaultOpen={!!draft.security?.adminPin || draft.kind === 'tour'}
+      >
+        <Field
+          label="管理コード(任意)"
+          hint="設定すると管理画面(/manage)と公開・お支払いを開くときに要求されます。空欄で無効"
+        >
           <TextInput
-            value={draft.coverBadge ?? ''}
-            onChange={(v) => patch({ coverBadge: v || undefined })}
+            value={draft.security?.adminPin ?? ''}
+            onChange={(v) =>
+              patch({ security: { ...(draft.security ?? {}), adminPin: v.trim() || undefined } })
+            }
+            placeholder="例: 0829"
           />
         </Field>
-      )}
-
-      <div className="field-label" style={{ marginTop: 20 }}>
-        セキュリティ
-      </div>
-      <Field
-        label="管理コード(任意)"
-        hint="設定すると管理画面(/manage)と公開・お支払いを開くときに要求されます。空欄で無効"
-      >
-        <TextInput
-          value={draft.security?.adminPin ?? ''}
-          onChange={(v) =>
-            patch({ security: { ...(draft.security ?? {}), adminPin: v.trim() || undefined } })
-          }
-          placeholder="例: 0829"
-        />
-      </Field>
-      {draft.kind === 'tour' && (
-        <div
-          className="note-l"
-          style={{ marginBottom: 14, fontSize: 13, lineHeight: 1.8 }}
-        >
-          ツアーの名簿は参加者には表示されません(標準仕様)。お客様は「招待リンク(個別URL)」
-          または「予約名の姓+電話番号下4桁」でご本人のしおりだけを開けます。
-        </div>
-      )}
+        {draft.kind === 'tour' && (
+          <div className="note-l" style={{ fontSize: 13, lineHeight: 1.8 }}>
+            ツアーの名簿は参加者には表示されません(標準仕様)。お客様は「招待リンク(個別URL)」
+            または「予約名の姓+電話番号下4桁」でご本人のしおりだけを開けます。
+          </div>
+        )}
+      </Details>
     </EditorFrame>
   )
 }

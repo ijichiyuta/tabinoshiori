@@ -147,7 +147,7 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
                 </Field>
                 {!transit && (
                   <Details
-                    summary="詳細を追加(場所・地図・電話・注記・タグ)"
+                    summary="詳細(場所・地図・電話・注記・タグ)"
                     defaultOpen={hasDetail}
                   >
                     <Field label="場所・補足">
