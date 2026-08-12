@@ -125,25 +125,8 @@ export function Home() {
         </div>
       </header>
 
-      {/* 数字バンド */}
-      <div className="lp-stats">
-        <div className="lp-stat">
-          <div className="num">0秒</div>
-          <div className="cap">お客様の登録時間——URLを開くだけ</div>
-        </div>
-        <div className="lp-stat">
-          <div className="num">圏外OK</div>
-          <div className="cap">トンネル・山間部でも一度開けば表示</div>
-        </div>
-        <div className="lp-stat">
-          <div className="num">名簿非公開</div>
-          <div className="cap">他のお客様に氏名・座席を見せない</div>
-        </div>
-      </div>
-
       {/* 機能 */}
       <section className="lp-section" id="features">
-        <div className="lp-eyebrow">FEATURES</div>
         <h2 className="lp-h2">ツアーの案内業務が、しおり一枚で終わる。</h2>
         <p className="lp-lede">
           乗車地の案内、座席の割り当て、当日の点呼、変更の連絡、キャンセル規定の交付——
@@ -167,9 +150,6 @@ export function Home() {
       <section className="lp-band" id="tour">
         <div className="lp-band-inner">
           <div className="copy">
-            <div className="lp-eyebrow" style={{ color: 'rgba(251,250,247,.8)' }}>
-              FOR BUS TOUR OPERATORS
-            </div>
             <h2>
               運営の現場に、
               <br />
@@ -204,8 +184,7 @@ export function Home() {
 
       {/* 使い方 */}
       <section className="lp-section">
-        <div className="lp-eyebrow">HOW IT WORKS</div>
-        <h2 className="lp-h2">使い方は、3つだけ。</h2>
+        <h2 className="lp-h2">導入は、3ステップ。</h2>
         <div className="lp-steps">
           {STEPS.map((s, i) => (
             <div key={s.title} className="lp-step">
@@ -219,7 +198,6 @@ export function Home() {
 
       {/* 料金 */}
       <section className="lp-section" id="pricing">
-        <div className="lp-eyebrow">PRICING</div>
         <h2 className="lp-h2">お客様はずっと無料。支払うのは運営会社だけ。</h2>
         <div className="lp-pricing">
           <div className="lp-price">
@@ -260,7 +238,6 @@ export function Home() {
 
       {/* FAQ */}
       <section className="lp-section">
-        <div className="lp-eyebrow">FAQ</div>
         <h2 className="lp-h2">よくある質問</h2>
         <div className="lp-faq">
           {FAQS.map((f) => (
@@ -274,7 +251,6 @@ export function Home() {
 
       {/* デモ */}
       <section className="lp-section" id="demos">
-        <div className="lp-eyebrow">DEMO</div>
         <h2 className="lp-h2">バスツアーのデモを、そのまま触れます。</h2>
         {TOUR_DEMOS.map((s) => (
           <div key={s.slug} className="home-card">
@@ -306,9 +282,14 @@ export function Home() {
         <div className="lp-cta-inner">
           <h2>次のツアーから、旅合わせ。</h2>
           <p>しおり作りは5分。お客様への案内はURLひとつ。</p>
-          <Link to="/manage" className="lp-btn-white">
-            無料でしおりを作る
-          </Link>
+          <div className="ctas" style={{ justifyContent: 'center' }}>
+            <Link to="/manage" className="lp-btn-white">
+              無料でしおりを作る
+            </Link>
+            <a href="mailto:info@smcn-jp.com?subject=旅合わせ%20導入のご相談" className="lp-btn-ghost">
+              導入のご相談
+            </a>
+          </div>
         </div>
       </section>
 

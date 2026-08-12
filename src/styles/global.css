@@ -64,6 +64,97 @@ button {
   color: var(--muted);
 }
 
+/* ---------- 日本語の折り返し(見出し) ----------
+   見出しは文節区切り(auto-phrase)で折り、行長を均す(balance)。palt で約物を詰める。
+   本文はベタ組みのまま(既定)。未対応ブラウザは各プロパティを無視する。 */
+h1,
+h2,
+h3,
+h4,
+.lp-h2,
+.lp-hero h1,
+.lp-band h2,
+.lp-cta h2,
+.page-title,
+.manage-header .title {
+  word-break: auto-phrase;
+  text-wrap: balance;
+  font-feature-settings: 'palt';
+}
+.lp-lede,
+.lp-hero .sub,
+.lp-feature h3,
+.lp-price .name {
+  text-wrap: pretty;
+}
+
+/* ---------- マイクロインタラクション ----------
+   状態変化を運ぶプロパティだけを短く遷移する(transition:all や hover:scale は使わない)。 */
+a,
+.btn,
+.btn-outline,
+.btn-ghost,
+.icon-btn,
+.add-btn,
+.create-btn,
+.lp-btn-white,
+.lp-btn-ghost,
+.row-menu-btn,
+.seg button,
+.radio-list button,
+.card,
+.lp-nav .links a,
+.lp-faq summary,
+.ed-details-toggle,
+.chip {
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+/* 押下フィードバック(スマホのタップにも反応が返る) */
+.btn:active,
+.btn-outline:active,
+.btn-ghost:active,
+.icon-btn:active,
+.add-btn:active,
+.create-btn:active,
+.lp-btn-white:active,
+.lp-btn-ghost:active,
+.row-menu-btn:active,
+.seg button:active,
+.radio-list button:active {
+  transform: translateY(1px);
+}
+/* リンクになっているカード(しおり一覧)のホバー */
+a.card:hover {
+  border-color: var(--accent);
+  background: var(--paper);
+}
+
+/* ---------- ページ切り替えの控えめなフェード ----------
+   各ページの本文がマウントされる(=画面遷移する)たびに一度だけ再生。
+   tabbar/save-bar は app-body の兄弟なので sticky に影響しない。 */
+@keyframes appFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.app-body,
+.lp {
+  animation: appFade 0.2s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-body,
+  .lp {
+    animation: none;
+  }
+}
+
 /* ---------- アプリの枠 ---------- */
 .app {
   max-width: 430px;
@@ -1825,13 +1916,40 @@ select.text-input {
   cursor: pointer;
   font-size: 15.5px;
   font-weight: 700;
-  padding: 14px 0;
+  padding: 14px 32px 14px 2px;
   list-style: none;
+  position: relative;
+}
+.lp-faq summary::-webkit-details-marker {
+  display: none;
 }
 .lp-faq summary::before {
   content: 'Q. ';
   color: var(--accent);
   font-family: var(--serif);
+}
+/* 右端に開閉を示すシェブロン(開くと回転) */
+.lp-faq summary::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+.lp-faq details[open] summary::after {
+  transform: translateY(-30%) rotate(-135deg);
+}
+.lp-faq summary:hover,
+.lp-faq details[open] summary {
+  color: var(--accent);
+}
+.lp-faq details[open] p {
+  animation: appFade 0.2s ease both;
 }
 .lp-faq p {
   font-size: 14.5px;

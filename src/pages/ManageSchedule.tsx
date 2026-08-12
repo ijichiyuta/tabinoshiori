@@ -57,7 +57,7 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
           <div className="event-card" style={{ background: 'var(--banner)' }}>
             <div className="event-card-head">
               <div className="event-card-title">
-                <span className="ec-time">📅 DAY {di + 1}</span>
+                <span className="ec-time">DAY {di + 1}</span>
                 <span className="ec-name">{day.label || '日付を設定してください'}</span>
               </div>
               <RowMenu
@@ -96,7 +96,7 @@ export function ManageSchedule({ shiori }: { shiori: Shiori }) {
                 <div className="event-card-head">
                   <div className="event-card-title">
                     <span className="ec-time">
-                      {transit ? '🚌 移動' : '⏱'} {ev.time || '時刻未設定'}
+                      {transit ? `移動 ${ev.time || ''}`.trim() : ev.time || '時刻未設定'}
                     </span>
                     <span className={`ec-name${ev.title ? '' : ' placeholder'}`}>
                       {ev.title || (transit ? '移動手段を入力' : '予定名を入力')}
