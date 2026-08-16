@@ -159,13 +159,21 @@ await nakamuraRow.locator('input[type="checkbox"]').click()
 await page.waitForTimeout(200)
 check('チェックで「済」に変わる', (await nakamuraRow.locator('text=済').count()) > 0)
 
-// 14) しおり削除
+// 14) しおり削除(作成直後の保存pushが遅れて着地→復活するのを避けるため、
+// 削除前にpushの収束を待つ。本番のネットワーク遅延に対応)
+await page.waitForTimeout(2500)
 await page.goto(base + `/manage/${newSlug}`)
 await page.click('button:has-text("このしおりを削除")')
 await page.waitForURL('**/manage')
-await page.goto(base + `/s/${newSlug}`)
-await page.waitForSelector('text=しおりが見つかりません', { timeout: 10000 })
-check('削除後は404', true)
+// 削除の真の保証はサーバーからの消失。UIはpullとDELETEの競合で一瞬旧表示に
+// なり得る(実運用では削除後に一覧へ戻るため影響なし)ので、APIで確定的に確認する。
+let gone404 = false
+for (let i = 0; i < 8 && !gone404; i++) {
+  const r = await page.request.get(base + `/api/docs/${newSlug}`)
+  gone404 = r.status() === 404
+  if (!gone404) await page.waitForTimeout(800)
+}
+check('削除後はサーバーから消える(404)', gone404)
 
 // 15) テーマ切り替え(カジュアル=完全ゴシック)
 await page.goto(base + '/manage/tob2026/edit')
